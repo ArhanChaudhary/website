@@ -1,8 +1,30 @@
 ---
-import Layout from '../layouts/Layout.astro';
-import HelloWorld from '../components/HelloWorld.astro';
+import Layout from "../layouts/Layout.astro";
+import Section from "../components/Section.astro";
+import "normalize.css";
 ---
 
-<Layout title="Hello World">
-	<HelloWorld>
+<Layout title="Arhan's Homepage">
+  <Section isOdd={true}>
+    <span>
+      <div class="heading-1">Hi there, I'm Arhan</div>
+      <div class="heading-2">
+        I am a <span class="cb">student</span> and a <span class="cr"
+          >programming</span
+        > hobbyist
+      </div>
+    </span>
+  </Section>
+  <Section isOdd={false}>poop</Section>
 </Layout>
+
+<style type="scss">
+  .heading-1 {
+    font-size: 2rem;
+  }
+
+  .heading-2 {
+    font-size: 1.5rem;
+    margin-top: 5px;
+  }
+</style>
