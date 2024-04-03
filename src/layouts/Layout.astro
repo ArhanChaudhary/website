@@ -20,10 +20,13 @@ import "normalize.css";
     <title>{title}</title>
   </head>
   <body>
-    <div id="ssh-text">{sshUser}@arhan.sh:~$ █</div>
-    <main>
-      <slot class="slot" />
-    </main>
+    <div id="flex-wrapper">
+      <div id="ssh-text">{sshUser}@arhan.sh:~$ █</div>
+      <main>
+        <slot class="slot" />
+      </main>
+      <div id="copyright">&copy; 2024 Arhan Chaudhary</div>
+    </div>
     <nav>
       <a href="/">Home</a>
       <a href="/projects">Projects</a>
@@ -57,24 +60,39 @@ import "normalize.css";
     height: 100dvh;
     background-color: hsl(240, 6%, 10%);
 
-    #ssh-text {
-      margin-top: 20px;
-      margin-left: 50px;
-      font-family: "Input Mono", Helvetica;
-      font-weight: normal;
-      color: white;
-      font-size: 16px;
-      line-height: normal;
-    }
-
-    main {
+    #flex-wrapper {
       flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: auto;
+
+      #ssh-text {
+        margin: 20px 50px;
+        font-family: "Input Mono", Helvetica;
+        font-weight: normal;
+        color: white;
+        font-size: 16px;
+        line-height: normal;
+      }
+
+      main {
+        flex: 1;
+        margin-left: 90px;
+      }
+
+      #copyright {
+        font-family: "Input Mono", Helvetica;
+        font-weight: 200;
+        color: white;
+        margin-left: 90px;
+        margin-bottom: 15px;
+      }
     }
 
     nav {
       display: grid;
       overflow: auto;
-      grid-template-columns: 115px 45px;
+      grid-template-columns: 100px 45px;
       grid-auto-rows: min-content;
       row-gap: 35px;
       column-gap: 10px;
@@ -141,6 +159,14 @@ import "normalize.css";
     font-family: "Input Mono";
     src: url("/fonts/InputMono/InputMono-Regular.ttf") format("truetype");
     font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+  }
+
+  @font-face {
+    font-family: "Input Mono";
+    src: url("/fonts/InputMono/InputMono-ExtraLight.ttf") format("truetype");
+    font-weight: 200;
     font-style: normal;
     font-display: swap;
   }
