@@ -1,12 +1,13 @@
 ---
 interface Props {
   title: string;
+  highlightIndex: number;
 }
 
-const { title } = Astro.props;
+const { title, highlightIndex } = Astro.props;
+import "normalize.css";
 ---
 
-<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -18,27 +19,117 @@ const { title } = Astro.props;
     <title>{title}</title>
   </head>
   <body>
-    <slot />
+    <main>
+      <slot class="slot" />
+    </main>
+    <nav>
+      <a href="/">Home</a>
+      <a href="/projects">Projects</a>
+      <a href="/blog">Blog</a>
+      <a href="/ctfing">CTFing</a>
+      <a href="/reading">Reading</a>
+      <a href="/cubing">Cubing</a>
+      <a href="/best-of-yt">Best of YouTube</a>
+      <a href="/favorite-music">Favorite Music</a>
+      <div id="nav-arrow">↳</div>
+      <script is:inline define:vars={{ highlightIndex }}>
+        document.querySelectorAll("nav a")[highlightIndex - 1].style.color =
+          "white";
+      </script>
+    </nav>
   </body>
 </html>
 
-<style>
+<style define:vars={{ highlightIndex }}>
   :root {
     --lb: hsl(180, 75%, 51%);
     --lr: hsl(333, 100%, 62%);
   }
+
   html {
-    color: hsl(0, 0%, 86%);
-    font-family: monospace;
+    overflow: hidden;
+  }
+
+  body {
+    display: flex;
+    height: 100dvh;
+    background-color: hsl(240, 6%, 10%);
+
+    main {
+      flex: 1;
+    }
+
+    nav {
+      display: grid;
+      overflow: auto;
+      grid-template-columns: 115px 45px;
+      grid-auto-rows: min-content;
+      row-gap: 40px;
+      column-gap: 15px;
+      padding: 60px 30px 60px 0;
+      font-family: "Input Mono", Helvetica;
+      font-weight: 500;
+      font-size: 17px;
+
+      a {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        color: hsl(0, 0%, 67%);
+        text-align: right;
+        text-decoration-thickness: 1px;
+        grid-column-start: 1;
+      }
+
+      #nav-arrow {
+        color: white;
+        transform: scale(1.5) scaleX(-1);
+        grid-row-start: var(--highlightIndex);
+        grid-column-start: 2;
+        font-family: sans-serif;
+        width: 27px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+    }
   }
 </style>
 
-<style is:global>
+<style is:global lang="scss">
+  * {
+    box-sizing: border-box;
+  }
+
   .cr {
     color: var(--lr);
   }
 
   .cb {
     color: var(--lb);
+  }
+
+  @font-face {
+    font-family: "Input Mono";
+    src: url("/fonts/InputMono/InputMono-Bold.ttf") format("truetype");
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+  }
+
+  @font-face {
+    font-family: "Input Mono";
+    src: url("/fonts/InputMono/InputMono-Medium.ttf") format("truetype");
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+  }
+
+  @font-face {
+    font-family: "Input Mono";
+    src: url("/fonts/InputMono/InputMono-Regular.ttf") format("truetype");
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
   }
 </style>

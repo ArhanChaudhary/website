@@ -1,20 +1,8 @@
 ---
 import Layout from "../layouts/Layout.astro";
-import Section from "../components/Section.astro";
-import "normalize.css";
 ---
 
-<Layout title="Arhan's Homepage">
-  <Section isOdd={true}>
-    <div class="heading-1">Hi there, I'm Arhan</div>
-    <div class="heading-2">
-      I am a <span class="cb">student</span> and a <span class="cr"
-        >programming</span
-      > hobbyist
-    </div>
-  </Section>
-  <Section isOdd={false}>poop</Section>
-</Layout>
+<Layout title="Arhan's Homepage" highlightIndex={1}> hello </Layout>
 
 <style type="scss">
   .heading-1 {
