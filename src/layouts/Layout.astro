@@ -1,10 +1,11 @@
 ---
 interface Props {
   title: string;
+  sshUser: string;
   highlightIndex: number;
 }
 
-const { title, highlightIndex } = Astro.props;
+const { title, highlightIndex, sshUser } = Astro.props;
 import "normalize.css";
 ---
 
@@ -19,6 +20,7 @@ import "normalize.css";
     <title>{title}</title>
   </head>
   <body>
+    <div id="ssh-text">{sshUser}@arhan.sh:~$ █</div>
     <main>
       <slot class="slot" />
     </main>
@@ -55,6 +57,16 @@ import "normalize.css";
     height: 100dvh;
     background-color: hsl(240, 6%, 10%);
 
+    #ssh-text {
+      margin-top: 20px;
+      margin-left: 50px;
+      font-family: "Input Mono", Helvetica;
+      font-weight: normal;
+      color: white;
+      font-size: 16px;
+      line-height: normal;
+    }
+
     main {
       flex: 1;
     }
@@ -64,12 +76,12 @@ import "normalize.css";
       overflow: auto;
       grid-template-columns: 115px 45px;
       grid-auto-rows: min-content;
-      row-gap: 40px;
-      column-gap: 15px;
-      padding: 60px 30px 60px 0;
+      row-gap: 35px;
+      column-gap: 10px;
+      padding: 30px 20px 60px 0;
       font-family: "Input Mono", Helvetica;
       font-weight: 500;
-      font-size: 17px;
+      font-size: 15px;
 
       a {
         display: flex;
