@@ -27,19 +27,31 @@ import "normalize.css";
       </main>
       <div id="copyright">&copy; 2024 Arhan Chaudhary</div>
     </div>
+    <label id="nav-hamburger" for="nav-toggle">
+      <div></div>
+      <div></div>
+      <div></div>
+    </label>
+    <input type="checkbox" id="nav-toggle" />
     <nav>
-      <a href="/">Home</a>
-      <a href="/projects">Projects</a>
-      <a href="/blog">Blog</a>
-      <a href="/ctfing">CTFing</a>
-      <a href="/reading">Reading</a>
-      <a href="/cubing">Cubing</a>
-      <a href="/best-of-yt">Best of YouTube</a>
-      <a href="/favorite-music">Favorite Music</a>
-      <div id="nav-arrow">↳</div>
+      <label for="nav-toggle" id="nav-close">
+        <div class="x-rectangle first"></div>
+        <div class="x-rectangle second"></div>
+      </label>
+      <div id="nav-grid">
+        <a href="/">Home</a>
+        <a href="/projects">Projects</a>
+        <a href="/blog">Blog</a>
+        <a href="/ctfing">CTFing</a>
+        <a href="/reading">Reading</a>
+        <a href="/cubing">Cubing</a>
+        <a href="/best-of-yt">Best of YouTube</a>
+        <a href="/favorite-music">Favorite Music</a>
+        <div id="nav-arrow">↳</div>
+      </div>
       <script is:inline define:vars={{ highlightIndex }}>
         document.querySelector(
-          `nav a:nth-child(${highlightIndex})`
+          `nav a:nth-of-type(${highlightIndex})`
         ).style.color = "white";
       </script>
     </nav>
@@ -98,37 +110,127 @@ import "normalize.css";
     }
 
     nav {
-      display: grid;
       overflow: auto;
-      grid-template-columns: 120px 45px;
-      grid-auto-rows: min-content;
-      row-gap: 30px;
-      column-gap: 10px;
-      padding: 60px 20px 60px 0;
       font-family: "Input Mono", Helvetica;
       font-weight: 500;
       font-size: 15px;
 
-      a {
-        display: flex;
-        align-items: center;
-        justify-content: flex-end;
-        color: hsl(0, 0%, 67%);
-        text-align: right;
-        text-decoration-thickness: 1px;
-        grid-column-start: 1;
+      #nav-close {
+        display: none;
+        cursor: pointer;
+        color: white;
+        left: 20px;
+        top: 20px;
+        position: absolute;
+
+        .x-rectangle {
+          position: absolute;
+          height: 5px;
+          width: 25px;
+          background-color: white;
+          margin: 5px 0;
+        }
+
+        .first {
+          transform: rotate(45deg);
+        }
+
+        .second {
+          transform: rotate(-45deg);
+        }
       }
 
-      #nav-arrow {
-        color: white;
-        transform: scale(1.5) scaleX(-1);
-        grid-row-start: var(--highlightIndex);
-        grid-column-start: 2;
-        font-family: sans-serif;
-        width: 27px;
+      #nav-grid {
+        display: grid;
+        grid-template-columns: 120px 45px;
+        grid-auto-rows: min-content;
+        row-gap: 30px;
+        column-gap: 10px;
+        padding: 60px 20px 60px 0;
+
+        a {
+          display: flex;
+          align-items: center;
+          justify-content: flex-end;
+          color: hsl(0, 0%, 67%);
+          text-align: right;
+          text-decoration-thickness: 1px;
+          grid-column-start: 1;
+        }
+
+        #nav-arrow {
+          color: white;
+          transform: scale(1.5) scaleX(-1);
+          grid-row-start: var(--highlightIndex);
+          grid-column-start: 2;
+          font-family: sans-serif;
+          width: 27px;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+        }
+      }
+    }
+
+    #nav-hamburger {
+      display: none;
+      position: absolute;
+      right: 0;
+      top: 0;
+      margin-top: 15px;
+      margin-right: 15px;
+      padding: 10px;
+      height: 53px;
+      flex-flow: column;
+      align-items: center;
+      justify-content: space-between;
+      background-color: hsl(240, 6%, 10%);
+      cursor: pointer;
+
+      div {
+        height: 5px;
+        width: 35px;
+        background-color: white;
+      }
+    }
+
+    #nav-toggle {
+      visibility: hidden;
+      position: absolute;
+    }
+
+    @media (max-width: 950px) {
+      #ssh-text {
+        margin-left: 30px !important;
+      }
+
+      main,
+      #copyright {
+        margin-left: 60px !important;
+      }
+
+      #nav-hamburger {
         display: flex;
-        justify-content: center;
-        align-items: center;
+      }
+
+      #nav-close {
+        display: block !important;
+      }
+
+      nav {
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        padding-right: 0;
+        padding-left: 15px;
+        background-color: hsl(240, 13%, 6%);
+        transition: transform 0.3s;
+        transform: translateX(100%);
+      }
+
+      #nav-toggle:checked + nav {
+        transform: initial;
       }
     }
   }

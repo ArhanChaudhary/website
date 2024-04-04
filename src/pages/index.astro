@@ -40,16 +40,16 @@ import Layout from "../layouts/Layout.astro";
       </div>
       <div id="socials">
         <a href="#">
-          <img src="/img/home/resume.png">
+          <img src="/img/home/resume.png" />
         </a>
         <a href="https://github.com/ArhanChaudhary">
-          <img src="/img/home/gh-logo.png">
+          <img src="/img/home/gh-logo.png" />
         </a>
         <a href="https://www.linkedin.com/in/arhan-chaudhary/">
-          <img src="/img/home/in-logo.png">
+          <img src="/img/home/in-logo.png" />
         </a>
         <a href="#">
-          <img src="/img/home/mail.png">
+          <img src="/img/home/mail.png" />
         </a>
       </div>
     </div>
@@ -92,7 +92,7 @@ import Layout from "../layouts/Layout.astro";
     }
 
     #max-width-container {
-      max-width: 850px;
+      max-width: 900px;
       flex: 1;
       position: relative;
 
@@ -114,6 +114,7 @@ import Layout from "../layouts/Layout.astro";
 
       #shape-things {
         margin-top: 65px;
+        margin-bottom: 70px;
         position: relative;
         display: flex;
         justify-content: space-around;
@@ -186,15 +187,24 @@ import Layout from "../layouts/Layout.astro";
       #socials {
         position: absolute;
         bottom: -20px;
-        right: 0;
+        right: 50px;
         display: flex;
-        gap: 35px;
+        gap: 40px;
 
         img {
-
-          height: 30px;
+          height: 35px;
         }
       }
+    }
+  }
+
+  @media (max-width: 750px) {
+    #shape-things > :not(#shape-thing-3, :last-child) {
+      display: none !important;
+    }
+
+    :global(#copyright) {
+      visibility: hidden;
     }
   }
 </style>
