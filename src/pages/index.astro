@@ -2,15 +2,199 @@
 import Layout from "../layouts/Layout.astro";
 ---
 
-<Layout title="Arhan's Homepage" highlightIndex={1} sshUser="home" />
+<Layout title="Arhan's Homepage" highlightIndex={1} sshUser="home">
+  <div id="outer-flex-wrapper">
+    <div id="shape-thing-1">
+      <div class="first"></div>
+      <div class="second"></div>
+    </div>
+    <div id="max-width-container">
+      <div id="hi">Hi there, I'm Arhan</div>
+      <div id="about">
+        By <span class="cb">day</span>, I am a freshman at Purdue University
+        pursuing a computer science major and an electrical computer engineering
+        minor.
+        <br />
+        <br />
+        By <span class="cr">night</span>, you’ll catch me competing in CTFs,
+        blogging about programming, obsessing over books, solving Rubik’s cubes,
+        and riding my skateboard.
+      </div>
+      <div id="shape-things">
+        <div id="shape-thing-2">
+          <div class="rectangle"></div>
+          <div class="triangle first"></div>
+          <div class="triangle second"></div>
+        </div>
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+        <div id="shape-thing-3">
+          <div class="square-1"></div>
+          <div class="square-2"></div>
+          <div class="square-3"></div>
+        </div>
+        <div></div>
+        <div></div>
+      </div>
+      <div id="socials">
+        <a href="#">
+          <img src="/img/home/resume.png">
+        </a>
+        <a href="https://github.com/ArhanChaudhary">
+          <img src="/img/home/gh-logo.png">
+        </a>
+        <a href="https://www.linkedin.com/in/arhan-chaudhary/">
+          <img src="/img/home/in-logo.png">
+        </a>
+        <a href="#">
+          <img src="/img/home/mail.png">
+        </a>
+      </div>
+    </div>
+  </div>
+</Layout>
 
 <style type="scss">
-  .heading-1 {
-    font-size: 2rem;
+  * {
+    color: white;
+    font-family: "Input Mono", Helvetica;
   }
 
-  .heading-2 {
-    font-size: 1.5rem;
-    margin-top: 5px;
+  #outer-flex-wrapper {
+    display: flex;
+    flex-flow: column;
+    height: 100%;
+
+    #shape-thing-1 {
+      margin-bottom: 30px;
+
+      div {
+        width: 325px;
+        height: 40px;
+        margin-left: -100px;
+        border-top: 40px solid;
+        border-right: 40px solid transparent;
+      }
+
+      .first {
+        border-top-color: var(--lr);
+      }
+
+      .second {
+        border-top-color: var(--lb);
+        position: relative;
+        margin-top: -32px;
+        width: 340px;
+        z-index: -1;
+      }
+    }
+
+    #max-width-container {
+      max-width: 850px;
+      flex: 1;
+      position: relative;
+
+      #hi {
+        font-weight: 700;
+        font-size: 28px;
+      }
+
+      #about {
+        margin-top: 50px;
+        font-weight: 200;
+        font-size: 16px;
+        padding-right: 40px;
+
+        span {
+          font-weight: 400;
+        }
+      }
+
+      #shape-things {
+        margin-top: 65px;
+        position: relative;
+        display: flex;
+        justify-content: space-around;
+
+        #shape-thing-2 {
+          width: 223px;
+          height: 212px;
+          position: relative;
+
+          .triangle {
+            position: absolute;
+            border-bottom: 104px solid;
+            border-right: 53px solid transparent;
+            border-left: 53px solid transparent;
+
+            &.first {
+              right: 0;
+              top: 26px;
+              border-bottom-color: var(--lr);
+            }
+
+            &.second {
+              left: 0;
+              bottom: 0;
+              border-bottom-color: var(--lb);
+            }
+          }
+
+          .rectangle {
+            position: absolute;
+            left: 24px;
+            width: 165px;
+            aspect-ratio: 194 / 224;
+            border: 2px solid white;
+          }
+        }
+
+        #shape-thing-3 {
+          margin-top: 15px;
+          width: 182px;
+          height: 212px;
+          position: relative;
+
+          div {
+            aspect-ratio: 1;
+            position: absolute;
+          }
+
+          .square-1 {
+            width: 119px;
+            top: 40px;
+            border: 2px solid white;
+          }
+
+          .square-2 {
+            right: 0;
+            width: 90px;
+            background-color: var(--lb);
+          }
+
+          .square-3 {
+            bottom: 0;
+            right: 40px;
+            width: 90px;
+            background-color: var(--lr);
+          }
+        }
+      }
+
+      #socials {
+        position: absolute;
+        bottom: -20px;
+        right: 0;
+        display: flex;
+        gap: 35px;
+
+        img {
+
+          height: 30px;
+        }
+      }
+    }
   }
 </style>

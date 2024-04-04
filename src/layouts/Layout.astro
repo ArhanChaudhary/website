@@ -38,8 +38,9 @@ import "normalize.css";
       <a href="/favorite-music">Favorite Music</a>
       <div id="nav-arrow">↳</div>
       <script is:inline define:vars={{ highlightIndex }}>
-        document.querySelectorAll("nav a")[highlightIndex - 1].style.color =
-          "white";
+        document.querySelector(
+          `nav a:nth-child(${highlightIndex})`
+        ).style.color = "white";
       </script>
     </nav>
   </body>
@@ -65,11 +66,16 @@ import "normalize.css";
       display: flex;
       flex-direction: column;
       overflow: auto;
+      direction: rtl;
+
+      > * {
+        direction: ltr;
+      }
 
       #ssh-text {
         margin: 20px 50px;
         font-family: "Input Mono", Helvetica;
-        font-weight: normal;
+        font-weight: 500;
         color: white;
         font-size: 16px;
         line-height: normal;
@@ -77,14 +83,16 @@ import "normalize.css";
 
       main {
         flex: 1;
-        margin-left: 90px;
+        margin-left: 100px;
+        position: relative;
       }
 
       #copyright {
         font-family: "Input Mono", Helvetica;
+        font-size: 16px;
         font-weight: 200;
         color: white;
-        margin-left: 90px;
+        margin-left: 100px;
         margin-bottom: 15px;
       }
     }
@@ -92,11 +100,11 @@ import "normalize.css";
     nav {
       display: grid;
       overflow: auto;
-      grid-template-columns: 100px 45px;
+      grid-template-columns: 120px 45px;
       grid-auto-rows: min-content;
-      row-gap: 35px;
+      row-gap: 30px;
       column-gap: 10px;
-      padding: 30px 20px 60px 0;
+      padding: 60px 20px 60px 0;
       font-family: "Input Mono", Helvetica;
       font-weight: 500;
       font-size: 15px;
@@ -132,11 +140,11 @@ import "normalize.css";
   }
 
   .cr {
-    color: var(--lr);
+    color: var(--lr) !important;
   }
 
   .cb {
-    color: var(--lb);
+    color: var(--lb) !important;
   }
 
   @font-face {
