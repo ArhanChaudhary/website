@@ -9,6 +9,7 @@ const { title, highlightIndex, sshUser } = Astro.props;
 import "normalize.css";
 ---
 
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -21,10 +22,93 @@ import "normalize.css";
   </head>
   <body>
     <div id="flex-wrapper">
-      <div id="ssh-text">{sshUser}@arhan.sh:~$ █</div>
+      <div id="ssh-text">
+        {sshUser}@arhan.sh:~$ <span id="troll"
+          >sudo rm -rf --no-preserve-root /</span
+        ><span id="cursor">█</span>
+      </div>
+      <script>
+        function onSSHClick() {
+          document.getElementById("cursor")!.classList.add("blinking");
+          const delays = [
+            600, 400, 500, 300,
+
+            500,
+
+            300, 300,
+
+            600,
+
+            200, 300, 300,
+
+            500,
+
+            200, 100, 400, 200, 400, 300, 100, 200, 100, 200, 100, 300, 300,
+            600, 300, 100, 200,
+
+            400,
+
+            800, 2500,
+          ];
+          const initialLength = delays.length;
+          const troll = document.getElementById("troll")!;
+          function type() {
+            if (delays.length) {
+              setTimeout(type, delays.shift());
+              troll.style.width = `${initialLength - delays.length}ch`;
+            } else {
+              troll.style.width = `0`;
+              setTimeout(del.bind(undefined, root as ChildNode), 1000);
+            }
+          }
+          setTimeout(type, 2000);
+
+          const root = document.querySelector("main");
+          const deletionTime = 4000;
+          function totalNodes(node: ChildNode): number {
+            return (
+              1 +
+              Array.prototype.slice
+                .apply(node.childNodes)
+                .reduce((p, q) => totalNodes(q) + p, 0)
+            );
+          }
+          const totalNodesRoot = totalNodes(root as ChildNode);
+          function del(node: ChildNode) {
+            const children = [...node.childNodes];
+            if (children.length > 0) {
+              del(children[Math.floor(Math.random() * children.length)]);
+            } else if (node !== root) {
+              node.remove();
+              setTimeout(
+                del.bind(undefined, root as ChildNode),
+                deletionTime / totalNodesRoot
+              );
+            } else {
+              root.innerHTML = document.getElementById("troll-text")!.innerHTML;
+            }
+          }
+        }
+        document
+          .getElementById("ssh-text")!
+          .addEventListener("click", onSSHClick, { once: true });
+      </script>
       <main>
         <slot class="slot" />
       </main>
+      <template id="troll-text">
+        <div id="troll-flex-wrapper">
+          <span>
+            🤨 We are sorry. This page has been made unavailable under...
+            mysterious circumstances.
+            <br />
+            Please click <span
+              id="reload-text"
+              onclick="window.location.reload()">here</span
+            > to reload.
+          </span>
+        </div>
+      </template>
       <div id="copyright">&copy; 2024 Arhan Chaudhary</div>
     </div>
     <label id="nav-hamburger" for="nav-toggle">
@@ -59,6 +143,32 @@ import "normalize.css";
 </html>
 
 <style define:vars={{ highlightIndex }}>
+  @keyframes opacity {
+    from {
+      opacity: 0;
+    }
+
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes blink {
+    50% {
+      opacity: 0;
+    }
+  }
+
+  @keyframes fromTop {
+    from {
+      transform: translateY(-10px);
+    }
+
+    to {
+      transform: initial;
+    }
+  }
+
   :root {
     --lb: hsl(180, 75%, 51%);
     --lr: hsl(333, 100%, 62%);
@@ -86,18 +196,54 @@ import "normalize.css";
       }
 
       #ssh-text {
+        cursor: pointer;
         margin: 20px 50px;
         font-family: "Input Mono", Helvetica;
         font-weight: 500;
         color: white;
         font-size: 16px;
         line-height: normal;
+
+        #troll {
+          vertical-align: top;
+          display: inline-block;
+          white-space: nowrap;
+          width: 0;
+          overflow: hidden;
+        }
+
+        #cursor {
+          margin-left: 2px;
+        }
+
+        .blinking {
+          animation: blink 0.9s step-start infinite;
+        }
       }
 
       main {
         flex: 1;
         margin-left: 100px;
         position: relative;
+
+        #troll-flex-wrapper {
+          font-family: "Input Mono", Helvetica;
+          font-weight: 700;
+          font-size: 26px;
+          color: white;
+          height: 100%;
+          padding-right: 40px;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          animation: 0.3s ease-in-out both;
+          animation-name: opacity, fromTop;
+
+          #reload-text {
+            cursor: pointer;
+            text-decoration: underline;
+          }
+        }
       }
 
       #copyright {
