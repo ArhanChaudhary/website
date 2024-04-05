@@ -68,11 +68,21 @@ import Layout from "../layouts/Layout.astro";
 <style type="scss">
   @keyframes shapeThing1 {
     from {
-      transform: translateX(-150px);
+      width: 175px;
     }
 
     to {
-      transform: initial;
+      width: 325px;
+    }
+  }
+
+  @keyframes shapeThing2 {
+    from {
+      width: 190px;
+    }
+
+    to {
+      width: 340px;
     }
   }
 
@@ -130,7 +140,6 @@ import Layout from "../layouts/Layout.astro";
       margin-bottom: 20px;
 
       div {
-        width: 325px;
         height: 40px;
         margin-left: -100px;
         border-top: 40px solid;
@@ -143,11 +152,10 @@ import Layout from "../layouts/Layout.astro";
       }
 
       .second {
-        animation: 0.2s ease-out both shapeThing1;
+        animation: 0.2s ease-out both shapeThing2;
         border-top-color: var(--lb);
         position: relative;
         margin-top: -32px;
-        width: 340px;
         z-index: -1;
       }
     }
@@ -325,6 +333,14 @@ import Layout from "../layouts/Layout.astro";
 
     :global(#copyright) {
       visibility: hidden;
+    }
+  }
+
+    /* Layout.astro hardcoded to this value */
+  @media (max-width: 950px) {
+    #shape-thing-1 div {
+      /* Layout.astro hardcoded to this value */
+      margin-left: -60px !important;
     }
   }
 </style>
