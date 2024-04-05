@@ -9,7 +9,7 @@ const { title, highlightIndex, sshUser } = Astro.props;
 import "normalize.css";
 ---
 
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -18,6 +18,34 @@ import "normalize.css";
     <link rel="icon" href="/favicon.ico" />
     <meta name="generator" content={Astro.generator} />
     <meta name="author" content="Arhan Chaudhary" />
+    <link
+      rel="preload"
+      href="/fonts/InputMono/InputMono-Bold.ttf"
+      as="font"
+      type="font/ttf"
+      crossorigin
+    />
+    <link
+      rel="preload"
+      href="/fonts/InputMono/InputMono-Medium.ttf"
+      as="font"
+      type="font/ttf"
+      crossorigin
+    />
+    <link
+      rel="preload"
+      href="/fonts/InputMono/InputMono-Regular.ttf"
+      as="font"
+      type="font/ttf"
+      crossorigin
+    />
+    <link
+      rel="preload"
+      href="/fonts/InputMono/InputMono-ExtraLight.ttf"
+      as="font"
+      type="font/ttf"
+      crossorigin
+    />
     <title>{title}</title>
   </head>
   <body>
