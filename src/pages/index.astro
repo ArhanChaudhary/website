@@ -9,7 +9,16 @@ import Layout from "../layouts/Layout.astro";
       <div class="second"></div>
     </div>
     <div id="max-width-container">
-      <div id="hi">Hi there, I'm Arhan</div>
+      <div id="hi">
+        <span>H</span><span>i</span><span class="ignored">&nbsp;</span><span
+          >t</span
+        ><span>h</span><span>e</span><span>r</span><span>e</span><span>,</span
+        ><span class="ignored">&nbsp;</span><span>I</span><span>'</span><span
+          >m</span
+        ><span class="ignored">&nbsp;</span><span>A</span><span>r</span><span
+          >h</span
+        ><span>a</span><span>n</span>
+      </div>
       <div id="about">
         By <span class="cb">day</span>, I am a freshman at Purdue University
         pursuing a computer science major and an electrical computer engineering
@@ -57,6 +66,66 @@ import Layout from "../layouts/Layout.astro";
 </Layout>
 
 <style type="scss">
+  @keyframes shapeThing1 {
+    from {
+      transform: translateX(-200px);
+    }
+
+    to {
+      transform: initial;
+    }
+  }
+
+  @keyframes textContent {
+    from {
+      transform: translateX(-5px);
+    }
+
+    to {
+      transform: initial;
+    }
+  }
+
+  @keyframes bottomLeftShape {
+    from {
+      transform: translate(-10px, 10px);
+    }
+
+    to {
+      transform: initial;
+    }
+  }
+
+  @keyframes bottomRightShape {
+    from {
+      transform: translate(10px, 10px);
+    }
+
+    to {
+      transform: initial;
+    }
+  }
+
+  @keyframes topRightShape {
+    from {
+      transform: translate(10px, -10px);
+    }
+
+    to {
+      transform: initial;
+    }
+  }
+
+  @keyframes opacity {
+    from {
+      opacity: 0;
+    }
+
+    to {
+      opacity: 1;
+    }
+  }
+
   * {
     color: white;
     font-family: "Input Mono", Helvetica;
@@ -68,7 +137,7 @@ import Layout from "../layouts/Layout.astro";
     height: 100%;
 
     #shape-thing-1 {
-      margin-bottom: 30px;
+      margin-bottom: 20px;
 
       div {
         width: 325px;
@@ -76,13 +145,16 @@ import Layout from "../layouts/Layout.astro";
         margin-left: -100px;
         border-top: 40px solid;
         border-right: 40px solid transparent;
+        animation: ease-in-out both shapeThing1;
       }
 
       .first {
+        animation-duration: 0.35s;
         border-top-color: var(--lr);
       }
 
       .second {
+        animation-duration: 0.3s;
         border-top-color: var(--lb);
         position: relative;
         margin-top: -32px;
@@ -94,14 +166,30 @@ import Layout from "../layouts/Layout.astro";
     #max-width-container {
       max-width: 900px;
       flex: 1;
+      height: 32px;
       position: relative;
 
       #hi {
+        animation: 0.1s linear both 0.1s;
+        animation-name: textContent, opacity;
         font-weight: 700;
         font-size: 28px;
+        height: 42px;
+        line-height: 32.2px;
+        display: table-cell;
+        vertical-align: bottom;
+
+        :not(.ignored) {
+          transition: font-size 0.1s ease-in-out;
+          &:hover {
+            font-size: 45px;
+          }
+        }
       }
 
       #about {
+        animation: 0.1s linear both 0.1s;
+        animation-name: textContent, opacity;
         margin-top: 50px;
         font-weight: 200;
         font-size: 16px;
@@ -118,25 +206,45 @@ import Layout from "../layouts/Layout.astro";
         position: relative;
         display: flex;
         justify-content: space-around;
+        --shape-animation: 0.2s ease-in-out;
 
         #shape-thing-2 {
           width: 223px;
           height: 212px;
           position: relative;
 
+          &:hover .triangle {
+            &.first {
+              top: 16px;
+              right: -10px;
+            }
+
+            &.second {
+              bottom: -10px;
+              left: -10px;
+            }
+          }
+
           .triangle {
             position: absolute;
             border-bottom: 104px solid;
             border-right: 53px solid transparent;
             border-left: 53px solid transparent;
+            transition: var(--shape-animation);
 
             &.first {
+              transition-property: top, right;
+              animation: var(--shape-animation) both;
+              animation-name: topRightShape, opacity;
               right: 0;
               top: 26px;
               border-bottom-color: var(--lr);
             }
 
             &.second {
+              transition-property: left, bottom;
+              animation: var(--shape-animation) both;
+              animation-name: bottomLeftShape, opacity;
               left: 0;
               bottom: 0;
               border-bottom-color: var(--lb);
@@ -144,6 +252,7 @@ import Layout from "../layouts/Layout.astro";
           }
 
           .rectangle {
+            animation: 0.3s ease-in-out both opacity;
             position: absolute;
             left: 24px;
             width: 165px;
@@ -158,24 +267,46 @@ import Layout from "../layouts/Layout.astro";
           height: 212px;
           position: relative;
 
+          &:hover {
+            .square-2 {
+              top: -10px;
+              right: -10px;
+            }
+
+            .square-3 {
+              bottom: -10px;
+              right: 30px;
+            }
+          }
+
           div {
             aspect-ratio: 1;
             position: absolute;
           }
 
           .square-1 {
+            animation: 0.3s ease-in-out both opacity;
             width: 119px;
             top: 40px;
             border: 2px solid white;
           }
 
           .square-2 {
+            animation: var(--shape-animation) both;
+            animation-name: topRightShape, opacity;
+            transition: var(--shape-animation);
+            transition-property: top, right;
+            top: 0;
             right: 0;
             width: 90px;
             background-color: var(--lb);
           }
 
           .square-3 {
+            animation: var(--shape-animation) both;
+            animation-name: bottomRightShape, opacity;
+            transition: var(--shape-animation);
+            transition-property: bottom, right;
             bottom: 0;
             right: 40px;
             width: 90px;

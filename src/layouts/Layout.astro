@@ -77,7 +77,8 @@ import "normalize.css";
       flex: 1;
       display: flex;
       flex-direction: column;
-      overflow: auto;
+      overflow-x: hidden;
+      overflow-y: auto;
       direction: rtl;
 
       > * {
@@ -119,16 +120,19 @@ import "normalize.css";
         display: none;
         cursor: pointer;
         color: white;
-        left: 20px;
-        top: 20px;
+        width: 55px;
+        aspect-ratio: 1;
+        left: 0;
+        top: 0;
+        justify-content: center;
+        align-items: center;
         position: absolute;
 
         .x-rectangle {
           position: absolute;
-          height: 5px;
-          width: 25px;
+          height: 6px;
+          width: 30px;
           background-color: white;
-          margin: 5px 0;
         }
 
         .first {
@@ -149,9 +153,6 @@ import "normalize.css";
         padding: 60px 20px 60px 0;
 
         a {
-          display: flex;
-          align-items: center;
-          justify-content: flex-end;
           color: hsl(0, 0%, 67%);
           text-align: right;
           text-decoration-thickness: 1px;
@@ -188,7 +189,7 @@ import "normalize.css";
       cursor: pointer;
 
       div {
-        height: 5px;
+        height: 6px;
         width: 35px;
         background-color: white;
       }
@@ -214,7 +215,7 @@ import "normalize.css";
       }
 
       #nav-close {
-        display: block !important;
+        display: flex !important;
       }
 
       nav {
