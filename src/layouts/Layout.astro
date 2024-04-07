@@ -130,17 +130,13 @@ import "normalize.css";
               del(children[Math.floor(Math.random() * children.length)]);
             } else if (node !== root) {
               if (node.nodeType === Node.TEXT_NODE) {
-                const text = node.textContent!;
+                const text = node.textContent!.trim();
                 const indicies = new Set<number>();
-                const cache = text.replace(/\s/g, "").length;
                 while (
                   indicies.size !== removeTextCharacters &&
-                  indicies.size !== cache
+                  indicies.size !== text.length
                 ) {
-                  const tryIndex = Math.floor(Math.random() * text.length);
-                  if (!/\s/.test(text[tryIndex])) {
-                    indicies.add(tryIndex);
-                  }
+                  indicies.add(Math.floor(Math.random() * text.length));
                 }
                 node.textContent = text
                   .split("")
