@@ -290,13 +290,14 @@ import "normalize.css";
 
       main {
         flex: 1;
+        /* Layout.astro and index.astro hardcoded to this value */
         margin-left: 100px;
         position: relative;
 
         #troll-flex-wrapper {
           font-family: "Input Mono", Helvetica;
           font-weight: 700;
-          font-size: 21px;
+          font-size: 28px;
           color: white;
           height: 100%;
           padding-right: 20px;
@@ -318,6 +319,7 @@ import "normalize.css";
         font-size: 16px;
         font-weight: 200;
         color: white;
+        /* Layout.astro and index.astro hardcoded to this value */
         margin-left: 100px;
         margin-bottom: 15px;
       }
@@ -423,6 +425,10 @@ import "normalize.css";
       #copyright {
         /* index.astro hardcoded to this value */
         margin-left: 30px !important;
+      }
+
+      #troll-flex-wrapper {
+        font-size: 21px !important;
       }
 
       #nav-hamburger {

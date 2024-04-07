@@ -69,21 +69,11 @@ import Layout from "../layouts/Layout.astro";
   // this is TOO SLOW!!!!! use overflow: hidden on a wrapper instead
   @keyframes shapeThing1 {
     from {
-      width: 175px;
+      transform: translateX(-150px);
     }
 
     to {
-      width: 325px;
-    }
-  }
-
-  @keyframes shapeThing2 {
-    from {
-      width: 190px;
-    }
-
-    to {
-      width: 340px;
+      transform: initial;
     }
   }
 
@@ -139,21 +129,27 @@ import Layout from "../layouts/Layout.astro";
 
     #shape-thing-1 {
       margin-bottom: 20px;
+      /* Layout.astro hardcoded to this value */
+      margin-left: -100px;
+      width: 340px;
+      position: relative;
+      overflow: hidden;
 
       div {
         height: 40px;
-        margin-left: -100px;
         border-top: 40px solid;
         border-right: 40px solid transparent;
       }
 
       .first {
+        width: calc(100% - 15px);
         animation: 0.23s ease-in-out both shapeThing1;
         border-top-color: var(--lr);
       }
 
       .second {
-        animation: 0.2s ease-out both shapeThing2;
+        width: 100%;
+        animation: 0.2s ease-out both shapeThing1;
         border-top-color: var(--lb);
         position: relative;
         margin-top: -32px;
@@ -339,9 +335,11 @@ import Layout from "../layouts/Layout.astro";
 
   /* Layout.astro hardcoded to this value */
   @media (max-width: 950px) {
-    #shape-thing-1 div {
+    #shape-thing-1 {
       /* Layout.astro hardcoded to this value */
       margin-left: -30px !important;
+      /* Layout.astro softcoded to this value */
+      width: 270px !important;
     }
   }
 </style>
