@@ -14,11 +14,11 @@ import "normalize.css";
   <head>
     <meta charset="UTF-8" />
     <meta name="description" content="Welcome to my website!" />
-    <meta property="og:url" content="https://arhan.sh">
-    <meta property="og:title" content="Arhan's Homepage">
-    <meta property="og:description" content="Welcome to my website!">
-    <meta property="og:image" content="https://arhan.sh/favicon.ico">
-    <meta name="twitter:card" content="summary">
+    <meta property="og:url" content="https://arhan.sh" />
+    <meta property="og:title" content="Arhan's Homepage" />
+    <meta property="og:description" content="Welcome to my website!" />
+    <meta property="og:image" content="https://arhan.sh/favicon.ico" />
+    <meta name="twitter:card" content="summary" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" href="/favicon.ico" />
     <meta name="generator" content={Astro.generator} />
@@ -64,7 +64,7 @@ import "normalize.css";
         function onSSHClick() {
           document.getElementById("cursor")!.classList.add("blinking");
           const delays = [
-            600, 400, 500, 300,
+            600, 400, 300, 300,
 
             500,
 
@@ -79,9 +79,9 @@ import "normalize.css";
             200, 100, 400, 200, 400, 300, 100, 200, 100, 200, 100, 300, 300,
             600, 300, 100, 200,
 
-            400,
+            600,
 
-            800, 2500,
+            800, 2000,
           ];
           const initialLength = delays.length;
           const troll = document.getElementById("troll")!;
@@ -90,36 +90,75 @@ import "normalize.css";
               setTimeout(type, delays.shift());
               troll.style.width = `${initialLength - delays.length}ch`;
             } else {
-              troll.style.width = `0`;
               setTimeout(del.bind(undefined, root as ChildNode), 1000);
+              troll.style.width = `0`;
             }
           }
           setTimeout(type, 2000);
 
+          function visible(node: ChildNode): boolean {
+            if (node.nodeType === Node.COMMENT_NODE) {
+              return false;
+            } else if (node.nodeType === Node.TEXT_NODE) {
+              return node.textContent!.trim() !== "";
+            } else if ((node as any).offsetParent === undefined) {
+              return true;
+            } else {
+              return (node as any).offsetParent !== null;
+            }
+          }
           const root = document.querySelector("main");
           const deletionTime = 4000;
+          const removeTextCharacters = 15;
           function totalNodes(node: ChildNode): number {
-            return (
-              1 +
-              Array.prototype.slice
-                .apply(node.childNodes)
-                .reduce((p, q) => totalNodes(q) + p, 0)
-            );
+            const childrenTotalNodes = [...node.childNodes]
+              .filter(visible)
+              .reduce((p, q) => totalNodes(q) + p, 0);
+            if (node.nodeType === Node.TEXT_NODE) {
+              return (
+                Math.ceil(node.textContent!.length / removeTextCharacters) +
+                childrenTotalNodes
+              );
+            } else {
+              return 1 + childrenTotalNodes;
+            }
           }
           const totalNodesRoot = totalNodes(root as ChildNode);
           function del(node: ChildNode) {
-            const children = [...node.childNodes];
+            const children = [...node.childNodes].filter(visible);
             if (children.length > 0) {
               del(children[Math.floor(Math.random() * children.length)]);
             } else if (node !== root) {
-              node.remove();
+              if (node.nodeType === Node.TEXT_NODE) {
+                const text = node.textContent!;
+                const indicies = new Set<number>();
+                const cache = text.replace(/\s/g, "").length;
+                while (
+                  indicies.size !== removeTextCharacters &&
+                  indicies.size !== cache
+                ) {
+                  const tryIndex = Math.floor(Math.random() * text.length);
+                  if (!/\s/.test(text[tryIndex])) {
+                    indicies.add(tryIndex);
+                  }
+                }
+                node.textContent = text
+                  .split("")
+                  .map((c, i) => (indicies.has(i) ? "" : c))
+                  .join("");
+              } else {
+                node.remove();
+              }
               setTimeout(
                 del.bind(undefined, root as ChildNode),
                 deletionTime / totalNodesRoot
               );
             } else {
-              root.innerHTML = document.getElementById("troll-text")!.innerHTML;
+              showTroll(root);
             }
+          }
+          function showTroll(root: HTMLElement) {
+            root.innerHTML = document.getElementById("troll-text")!.innerHTML;
           }
         }
         document
