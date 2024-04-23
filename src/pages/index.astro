@@ -128,7 +128,7 @@ import Layout from "../layouts/Layout.astro";
     height: 100%;
 
     #shape-thing-1 {
-      margin-bottom: 20px;
+      margin-bottom: 15px;
       /* Layout.astro hardcoded to this value */
       margin-left: -100px;
       width: 340px;
@@ -168,14 +168,16 @@ import Layout from "../layouts/Layout.astro";
         animation-name: textContent, opacity;
         font-weight: 700;
         font-size: 28px;
-        height: 42px;
+        height: 47px;
         line-height: 32.2px;
         display: table-cell;
         vertical-align: bottom;
 
         :not(.ignored) {
-          transition: font-size 0.1s ease-in-out;
+          transition: font-size 0.2s linear;
+
           &:hover {
+            transition: 0.35s cubic-bezier(0.26, 0.39, 0.22, 3.14);
             font-size: 45px;
           }
         }
