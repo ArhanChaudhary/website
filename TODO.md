@@ -1,0 +1,48 @@
+- make the arrow an svg icon
+- todo messages
+- mail and updated resume
+- projects
+    - nand
+    - timeweb
+    - advent of code
+    - this website
+- blog
+    - "Attending DEFCON 32"
+    - "From NAND to AI, Part 1"
+    - "From NAND to AI, Part 2"
+    - [internet project blog post]
+    - [reprogramming house phone blog post]
+    - [kernal blog post]
+    - [driver or exfat thing?]
+- CTFing
+    - asmhole (high school team)
+    - def con
+    - squarectf
+- reading
+    - the art
+    - blood meridian
+    - the elements of computing systems
+    - the rust programming language
+    - interworking book
+    - https://goodreads.com/en/book/show/35068671
+    - digital signal processing book
+- cubing
+    - wca profile and recent competitions
+    - pb and its scramble
+    - GAN 11 Pro 3x3 Magnetic (UV Coated)
+    - adrian
+    - max park
+- best of youtube
+    - https://gist.github.com/ArhanChaudhary/53b48cb31dd57643494e0086b5bf6fc7
+- favorite music
+    - on the outside i'm an avid rap fan, but I secretly have a taste for house and trance
+    - the kid laroi
+    - thunderzone v2
+    - twilight force
+    - highlands of the elder dragon
+    - layla
+    - creo
+    - epilogue
+    - nemophore
+    - fellowship
+    - icdd
