@@ -13,10 +13,10 @@ import "normalize.css";
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="description" content="Welcome to my website!" />
+    <meta name="description" content="Arhan's personal website" />
     <meta property="og:url" content="https://arhan.sh" />
     <meta property="og:title" content="Arhan's Homepage" />
-    <meta property="og:description" content="Welcome to my website!" />
+    <meta property="og:description" content="Arhan's personal website" />
     <meta property="og:image" content="https://arhan.sh/favicon.ico" />
     <meta name="twitter:card" content="summary" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -60,6 +60,11 @@ import "normalize.css";
           >sudo rm -rf --no-preserve-root /</span
         ><span id="cursor">█</span>
       </div>
+      <label id="nav-hamburger" for="nav-toggle">
+        <div></div>
+        <div></div>
+        <div></div>
+      </label>
       <script>
         function onSSHClick() {
           document.getElementById("cursor")!.classList.add("blinking");
@@ -179,11 +184,6 @@ import "normalize.css";
       </template>
       <div id="copyright">&copy; 2024 Arhan Chaudhary</div>
     </div>
-    <label id="nav-hamburger" for="nav-toggle">
-      <div></div>
-      <div></div>
-      <div></div>
-    </label>
     <input type="checkbox" id="nav-toggle" />
     <nav>
       <label for="nav-toggle" id="nav-close">
@@ -199,7 +199,13 @@ import "normalize.css";
         <a href="/cubing">Cubing</a>
         <a href="/best-of-yt">Best of YouTube</a>
         <a href="/favorite-music">Favorite Music</a>
-        <div id="nav-arrow">↳</div>
+        <div id="nav-arrow">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="-41 0 41 34">
+            <path
+              d="M 0 0 V 24 H -28 V 34 L -41 21 L -28 8 V 18 H -6 V 0"
+              fill="white"></path>
+          </svg>
+        </div>
       </div>
       <script is:inline define:vars={{ highlightIndex }}>
         document.querySelector(
@@ -257,6 +263,7 @@ import "normalize.css";
       flex-direction: column;
       overflow-y: auto;
       direction: rtl;
+      position: relative;
 
       > * {
         direction: ltr;
@@ -293,6 +300,8 @@ import "normalize.css";
         /* Layout.astro and index.astro hardcoded to this value */
         margin-left: 100px;
         position: relative;
+        color: white;
+        font-family: "Input Mono", Helvetica;
 
         #troll-flex-wrapper {
           font-family: "Input Mono", Helvetica;
@@ -375,15 +384,13 @@ import "normalize.css";
         }
 
         #nav-arrow {
-          color: white;
-          transform: scale(1.5) scaleX(-1);
           grid-row-start: var(--highlightIndex);
           grid-column-start: 2;
-          font-family: sans-serif;
-          width: 27px;
+          width: 21px;
           display: flex;
           justify-content: center;
           align-items: center;
+          transform: translateY(-2px);
         }
       }
     }
@@ -393,10 +400,9 @@ import "normalize.css";
       position: absolute;
       right: 0;
       top: 0;
-      margin-top: 15px;
-      margin-right: 15px;
-      padding: 10px;
-      height: 53px;
+      margin-top: 25px;
+      margin-right: 25px;
+      height: 33px;
       flex-flow: column;
       align-items: center;
       justify-content: space-between;

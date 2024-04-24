@@ -1,6 +1,3 @@
-- make the arrow an svg icon
-- todo messages
-- mail and updated resume
 - projects
     - nand
     - timeweb
