@@ -1,6 +1,10 @@
 import { defineConfig } from 'astro/config';
+import robotsTxt from "astro-robots-txt";
+
+import sitemap from "@astrojs/sitemap";
 
 // https://astro.build/config
 export default defineConfig({
-    site: 'https://arhan.sh',
+  site: 'https://arhan.sh',
+  integrations: [robotsTxt(), sitemap()]
 });
