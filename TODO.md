@@ -29,9 +29,8 @@
     - GAN 11 Pro 3x3 Magnetic (UV Coated)
     - adrian
     - max park
-- best of youtube
+- media
     - https://gist.github.com/ArhanChaudhary/53b48cb31dd57643494e0086b5bf6fc7
-- favorite music
     - on the outside i'm an avid rap fan, but I secretly have a taste for house and trance
     - the kid laroi
     - thunderzone v2

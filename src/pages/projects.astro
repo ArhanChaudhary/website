@@ -1,7 +1,21 @@
 ---
 import Layout from "../layouts/Layout.astro";
+import Project from "../components/Project.astro";
 ---
 
 <Layout title="Arhan's Projects" highlightIndex={2} sshUser="projects">
-  This part of my website is a work in progress.
+  <h2>Welcome to my projects page!</h2>
+  I've always been a sucker for project-based learning. With every programming endeavor,
+  I try to learn something new and build something more ambitious than the last one!
+  <br />
+  <br />
+  <hr />
+  <br />
+  <Project title="NAND" dateRange="June 2024 — April 2024"> Hello </Project>
+  <Project title="TimeWeb" dateRange="Oct 2019 — June 2023"> Hello </Project>
+  <Project title="website" dateRange="April 2024 — Present"> Hello </Project>
+  <Project title="Advent of Code" dateRange="Dec 2023 — March 2024">
+    Hello
+  </Project>
+  <Project title="GitMe" dateRange="Sep 2023"> Hello </Project>
 </Layout>

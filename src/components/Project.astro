@@ -1,0 +1,57 @@
+---
+interface Props {
+    title: string;
+    dateRange: string;
+}
+const { title, dateRange } = Astro.props;
+---
+
+<div>
+    <div class="flex-container">
+        <div class="title">{title}</div>
+        {dateRange}
+    </div>
+    <div class="description">
+        <slot></slot>
+    </div>
+</div>
+
+<style>
+    .flex-container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+
+        .title {
+            font-size: 1.5em;
+            font-weight: 700;
+            display: inline-block;
+            position: relative;
+
+            &::before, &::after {
+                content: '';
+                position: absolute;
+                height: 3px;
+            }
+
+            &::before {
+                width: 40px;
+                background-color: var(--lb);
+                left: 0;
+                bottom: -12px;
+            }
+
+            &::after {
+                width: 60px;
+                left: 0;
+                background-color: var(--lr);
+                bottom: -3px;
+            }
+        }
+    }
+
+    .description {
+        margin: 50px;
+    }
+
+</style>
