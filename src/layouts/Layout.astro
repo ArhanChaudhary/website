@@ -55,10 +55,8 @@ import "normalize.css";
   </head>
   <body>
     <div id="flex-wrapper">
-      <div id="ssh-text">
-        {sshUser}@arhan.sh:~$ <span id="troll"
-          >sudo rm -rf --no-preserve-root /</span
-        ><span id="cursor">█</span>
+      <div id="ssh-text" class="input-mono">
+        {sshUser}@arhan.sh:~$ <span id="troll"></span><span id="cursor">█</span>
       </div>
       <label id="nav-hamburger" for="nav-toggle">
         <div></div>
@@ -66,6 +64,7 @@ import "normalize.css";
         <div></div>
       </label>
       <script>
+        const trollText = "sudo rm -rf --no-preserve-root /";
         function onSSHClick() {
           document.getElementById("cursor")!.classList.add("blinking");
           const delays = [
@@ -93,10 +92,10 @@ import "normalize.css";
           function type() {
             if (delays.length) {
               setTimeout(type, delays.shift());
-              troll.style.width = `${initialLength - delays.length}ch`;
+              troll.textContent = trollText.slice(0, initialLength - delays.length);
             } else {
               setTimeout(del.bind(undefined, root as ChildNode), 1000);
-              troll.style.width = `0`;
+              troll.textContent = "";
             }
           }
           setTimeout(type, 2000);
@@ -170,7 +169,7 @@ import "normalize.css";
         <slot class="slot" />
       </main>
       <template id="troll-text">
-        <div id="troll-flex-wrapper">
+        <div id="troll-flex-wrapper" class="input-mono">
           <span>
             🤨 We are sorry. This page has been made unavailable under...
             mysterious circumstances.
@@ -182,10 +181,10 @@ import "normalize.css";
           </span>
         </div>
       </template>
-      <div id="copyright">&copy; 2024 Arhan Chaudhary</div>
+      <div id="copyright" class="input-mono">&copy; 2024 Arhan Chaudhary</div>
     </div>
     <input type="checkbox" id="nav-toggle" />
-    <nav>
+    <nav class="input-mono">
       <label for="nav-toggle" id="nav-close">
         <div class="x-rectangle first"></div>
         <div class="x-rectangle second"></div>
@@ -249,6 +248,7 @@ import "normalize.css";
 
   html {
     overflow: hidden;
+    line-height: initial;
   }
 
   body {
@@ -271,19 +271,10 @@ import "normalize.css";
       #ssh-text {
         cursor: pointer;
         margin: 20px 68px 20px 50px;
-        font-family: "Input Mono", Helvetica;
         font-weight: 500;
         color: white;
         font-size: 16px;
         line-height: normal;
-
-        #troll {
-          vertical-align: top;
-          display: inline-block;
-          white-space: nowrap;
-          width: 0;
-          overflow: hidden;
-        }
 
         #cursor {
           margin-left: 2px;
@@ -300,10 +291,8 @@ import "normalize.css";
         margin-left: 100px;
         position: relative;
         color: white;
-        font-family: "Input Mono", Helvetica;
 
         #troll-flex-wrapper {
-          font-family: "Input Mono", Helvetica;
           font-weight: 700;
           font-size: 28px;
           color: white;
@@ -323,7 +312,6 @@ import "normalize.css";
       }
 
       #copyright {
-        font-family: "Input Mono", Helvetica;
         font-size: 16px;
         font-weight: 200;
         color: white;
@@ -335,7 +323,6 @@ import "normalize.css";
 
     nav {
       overflow: auto;
-      font-family: "Input Mono", Helvetica;
       font-weight: 500;
       font-size: 15px;
 
@@ -464,6 +451,10 @@ import "normalize.css";
 </style>
 
 <style is:global lang="scss">
+  a {
+    color: rgb(68, 147, 248);
+  }
+
   * {
     box-sizing: border-box;
   }
@@ -506,5 +497,14 @@ import "normalize.css";
     font-weight: 200;
     font-style: normal;
     font-display: swap;
+  }
+
+  .input-mono {
+    font-family: "Input Mono", Helvetica;
+  }
+
+  .system-ui {
+    font-family: system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif,
+      "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
   }
 </style>
