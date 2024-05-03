@@ -261,12 +261,10 @@ import "normalize.css";
       display: flex;
       flex-direction: column;
       overflow-y: auto;
-      direction: rtl;
       position: relative;
-
-      > * {
-        direction: ltr;
-      }
+      // Layout.astro is hardcoded to this value (in nav)
+      margin-right: -195px;
+      padding-right: 195px;
 
       #ssh-text {
         cursor: pointer;
@@ -325,6 +323,8 @@ import "normalize.css";
       overflow: auto;
       font-weight: 500;
       font-size: 15px;
+      position: relative;
+      z-index: 1;
 
       #nav-close {
         display: none;
@@ -356,11 +356,12 @@ import "normalize.css";
 
       #nav-grid {
         display: grid;
-        grid-template-columns: 120px 45px;
+        // Layout.astro is hardcoded to this value (in padding)
+        grid-template-columns: 120px 65px;
+        column-gap: 10px;
         grid-auto-rows: min-content;
         row-gap: 30px;
-        column-gap: 10px;
-        padding: 60px 20px 60px 0;
+        padding: 60px 0;
 
         a {
           color: hsl(0, 0%, 67%);
@@ -409,6 +410,11 @@ import "normalize.css";
 
     /* index.astro hardcoded to this value */
     @media (max-width: 950px) {
+      #flex-wrapper {
+        margin-right: initial;
+        padding-right: initial;
+      }
+
       #ssh-text {
         margin-left: 30px !important;
       }
