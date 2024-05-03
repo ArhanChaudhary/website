@@ -1,0 +1,3 @@
+[submodule "src/blog"]
+	path = src/pages/blog
+	url = https://github.com/ArhanChaudhary/blog

@@ -1,0 +1,28 @@
+---
+import Layout from "./Layout.astro";
+const { frontmatter } = Astro.props;
+---
+
+<Layout title={frontmatter.title} sshUser="blog" highlightIndex={3}>
+  <div class="system-ui" id="blog-wrapper">
+    <h1>{frontmatter.title}</h1>
+    <p>
+      Published {
+        new Date(frontmatter.pubDate).toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        })
+      } • <a href="/blog">More posts</a>
+    </p>
+    <hr />
+    <slot />
+  </div>
+</Layout>
+
+<style>
+  #blog-wrapper {
+    max-width: 70ch;
+    margin-right: 30px;
+  }
+</style>

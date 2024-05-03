@@ -1,15 +1,11 @@
-- projects
-    - nand
-    - timeweb
-    - advent of code
-    - this website
 - blog
+    - "Hello World"
     - "Attending DEFCON 32"
     - "From NAND to AI, Part 1"
     - "From NAND to AI, Part 2"
     - [internet project blog post]
     - [reprogramming house phone blog post]
-    - [kernal blog post]
+    - [kernel blog post]
     - [driver or exfat thing?]
 - CTFing
     - asmhole (high school team)
