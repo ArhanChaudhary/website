@@ -92,7 +92,10 @@ import "normalize.css";
           function type() {
             if (delays.length) {
               setTimeout(type, delays.shift());
-              troll.textContent = trollText.slice(0, initialLength - delays.length);
+              troll.textContent = trollText.slice(
+                0,
+                initialLength - delays.length
+              );
             } else {
               setTimeout(del.bind(undefined, root as ChildNode), 1000);
               troll.textContent = "";
@@ -197,6 +200,7 @@ import "normalize.css";
         <a href="/cubing">Cubing</a>
         <a href="/reading">Reading</a>
         <a href="/media">Media</a>
+        {highlightIndex == 8 && <a href="/404">Not Found</a>}
         <div id="nav-arrow">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="-41 0 41 34">
             <path
