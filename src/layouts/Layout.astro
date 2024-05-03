@@ -13,10 +13,10 @@ import "normalize.css";
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="description" content="Arhan's personal website" />
-    <meta property="og:url" content="https://arhan.sh" />
-    <meta property="og:title" content="Arhan's Homepage" />
+    <meta property="og:url" content={`https://arhan.sh${Astro.url.pathname}`} />
+    <meta property="og:title" content={title} />
     <meta property="og:description" content="Arhan's personal website" />
+    <meta name="description" content="Arhan's personal website" />
     <meta property="og:image" content="https://arhan.sh/favicon.ico" />
     <meta name="twitter:card" content="summary" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
