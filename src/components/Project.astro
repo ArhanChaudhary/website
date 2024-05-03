@@ -1,57 +1,54 @@
 ---
 interface Props {
-    title: string;
-    dateRange: string;
+  title: string;
+  dateRange: string;
+  link: string;
 }
-const { title, dateRange } = Astro.props;
+const { title, dateRange, link } = Astro.props;
 ---
 
 <div>
-    <div class="flex-container">
-        <div class="title">{title}</div>
-        {dateRange}
-    </div>
-    <div class="description">
-        <slot></slot>
-    </div>
+  <div class="flex-container input-mono">
+    <a class="title" href={link}>{title}</a>
+    {dateRange}
+  </div>
+  <div class="description">
+    <slot />
+  </div>
 </div>
 
 <style>
-    .flex-container {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
+  .flex-container {
+    display: flex;
+    align-items: center;
+    text-align: right;
+    justify-content: space-between;
 
-        .title {
-            font-size: 1.5em;
-            font-weight: 700;
-            display: inline-block;
-            position: relative;
+    .title {
+      font-size: 24px;
+      font-weight: 700;
+      display: inline-block;
+      position: relative;
+      display: list-item;
+      text-align: left;
+      margin-right: 75px;
 
-            &::before, &::after {
-                content: '';
-                position: absolute;
-                height: 3px;
-            }
+      &::marker {
+        color: white;
+      }
 
-            &::before {
-                width: 40px;
-                background-color: var(--lb);
-                left: 0;
-                bottom: -12px;
-            }
-
-            &::after {
-                width: 60px;
-                left: 0;
-                background-color: var(--lr);
-                bottom: -3px;
-            }
-        }
+      &::before,
+      &::after {
+        content: "";
+        position: absolute;
+        height: 3px;
+      }
     }
+  }
 
-    .description {
-        margin: 50px;
-    }
-
+  .description {
+    margin: 30px 10px 30px 30px;
+    font-family: system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif,
+      "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+  }
 </style>

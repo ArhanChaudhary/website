@@ -4,18 +4,121 @@ import Project from "../components/Project.astro";
 ---
 
 <Layout title="Arhan's Projects" highlightIndex={2} sshUser="projects">
-  <h2>Welcome to my projects page!</h2>
-  I've always been a sucker for project-based learning. With every programming endeavor,
-  I try to learn something new and build something more ambitious than the last one!
-  <br />
-  <br />
-  <hr />
-  <br />
-  <Project title="NAND" dateRange="June 2024 — April 2024"> Hello </Project>
-  <Project title="TimeWeb" dateRange="Oct 2019 — June 2023"> Hello </Project>
-  <Project title="website" dateRange="April 2024 — Present"> Hello </Project>
-  <Project title="Advent of Code" dateRange="Dec 2023 — March 2024">
-    Hello
-  </Project>
-  <Project title="GitMe" dateRange="Sep 2023"> Hello </Project>
+  <div id="max-width-wrapper" class="system-ui">
+    <h2 class="input-mono">My personal projects</h2>
+    <span class="description">
+      I've always been a sucker for project-based learning. With each new
+      programming endeavor, I try to build something more ambitious than the
+      last one!
+    </span>
+    <br />
+    <br />
+    <hr />
+    <br />
+    <Project
+      title="NAND"
+      link="https://nand.arhan.sh/"
+      dateRange="June 2023 — April 2024"
+    >
+      NAND is a Turing equivalent 16-bit computer made entirely from a clock and
+      NAND gates emulated on the web. NAND features its own CPU, machine code
+      language, assembly language, assembler, virtual machine language, virtual
+      machine translator, programming language, compiler, IDE, and user
+      interface. NAND is based on the Jack-VM-Hack platform specified in the <a
+        href="https://www.nand2tetris.org/">Nand to Tetris course</a
+      > and its <a
+        href="https://www.amazon.com/Elements-Computing-Systems-second-Principles-dp-0262539802/dp/0262539802/ref=dp_ob_title_bk"
+        >associated book</a
+      >.
+      <br />
+      <br />
+      <a href="https://github.com/ArhanChaudhary/NAND">GitHub repository</a> (450+
+      stars, 30,000+ views)
+      <br />
+      <a href="https://news.ycombinator.com/item?id=40159278"
+        >Hacker News post</a
+      > (reached #1 on the front page)
+      <br />
+      <a href="https://github.com/ArhanChaudhary/NAND/blob/main/README.md"
+        >Writeup</a
+      >
+    </Project>
+    <Project
+      title="TimeWeb"
+      link="https://timeweb.io/"
+      dateRange="Oct 2019 — June 2023"
+    >
+      TimeWeb is a time management application that visualizes, quantifies, and
+      prioritizes your daily school or work assignments. Unlike typical
+      planners, TimeWeb splits up and graphs all of your work until they are
+      due. Every day, know what to do, when to do it, and how long it will take.
+      <br />
+      <br />
+      TimeWeb was primarily a high school project; I even gave a couple school presentations
+      on it. Although TimeWeb is easily the project I've put the most effort into,
+      I have yet to officially launch or promote it.
+      <br />
+      <br />
+      <a href="https://github.com/ArhanChaudhary/TimeWeb">GitHub repository</a>
+      <br />
+      <a href="https://timeweb.io/user-guide">Writeup</a>
+    </Project>
+    <Project
+      title="GitMe"
+      link="https://devpost.com/software/gitme-amuryi"
+      dateRange="Sep 2023"
+    >
+      A weekend project I made for Purdue's Hello World 2023 hackathon with my
+      collegiate (and now my best) friends. It uses ChatGPT to summarize GitHub
+      profiles in a bullet-point format to help users write their resumes.
+      <br />
+      <br />
+      Placed 3rd out of 150 participants.
+      <br />
+      <br />
+      <a href="https://github.com/Leo7Deng/GitMe">GitHub repository</a>
+    </Project>
+    <Project
+      title="Advent of Code 2023"
+      link="https://github.com/ArhanChaudhary/advent-of-code"
+      dateRange="Dec 2023 — March 2024"
+    >
+      My solutions for all 25 days of Advent of Code 2023 to familiarize myself
+      with Rust. I had wanted to completely finish a year of Advent of Code for
+      a long time, so this was a huge personal accomplishment for me :)
+    </Project>
+    <Project
+      title="website"
+      link="https://arhan.sh/"
+      dateRange="April 2024 — Present"
+    >
+      We can't forget! My personal website itself has taken a nontrivial amount
+      of time to write, design, and maintain. I'm quite proud of what I have so
+      far!
+      <br />
+      <br />
+      <a href="https://github.com/ArhanChaudhary/website">GitHub repository</a>
+    </Project>
+  </div>
 </Layout>
+
+<style>
+  #max-width-wrapper {
+    max-width: 800px;
+    margin-right: 50px;
+
+    .description {
+      font-size: 18px;
+    }
+
+    hr {
+      border-top: 3px solid var(--lr);
+      border-bottom: 2px solid var(--lb);
+      border-right: 0;
+      border-left: 0;
+      border-style: solid;
+      background-color: white;
+      height: 1px;
+    }
+  }
+</style>
