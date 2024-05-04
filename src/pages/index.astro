@@ -1,10 +1,10 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import { Image } from "astro:assets";
-import resume from "../assets/resume.png";
-import ghLogo from "../assets/gh-logo.png";
-import inLogo from "../assets/in-logo.png";
-import mail from "../assets/mail.png";
+import resume from "../assets/index/resume.png";
+import ghLogo from "../assets/index/gh-logo.png";
+import inLogo from "../assets/index/in-logo.png";
+import mail from "../assets/index/mail.png";
 ---
 
 <Layout title="Arhan's Homepage" highlightIndex={1} sshUser="home">
@@ -56,7 +56,7 @@ import mail from "../assets/mail.png";
         <a
           href="https://drive.google.com/file/d/11bE4iOw3yctlRf1HUjhw83Oq_-9R_ki3/view?usp=sharing"
         >
-          <Image src={resume} alt="" height="35"/>
+          <Image src={resume} alt="" height="35" />
         </a>
         <a href="https://github.com/ArhanChaudhary">
           <Image src={ghLogo} alt="" height="35" />
