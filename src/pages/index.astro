@@ -1,5 +1,10 @@
 ---
 import Layout from "../layouts/Layout.astro";
+import { Image } from "astro:assets";
+import resume from "../assets/resume.png";
+import ghLogo from "../assets/gh-logo.png";
+import inLogo from "../assets/in-logo.png";
+import mail from "../assets/mail.png";
 ---
 
 <Layout title="Arhan's Homepage" highlightIndex={1} sshUser="home">
@@ -48,17 +53,19 @@ import Layout from "../layouts/Layout.astro";
         <div></div>
       </div>
       <div id="socials">
-        <a href="https://drive.google.com/file/d/11bE4iOw3yctlRf1HUjhw83Oq_-9R_ki3/view?usp=sharing">
-          <img src="/img/home/resume.png" />
+        <a
+          href="https://drive.google.com/file/d/11bE4iOw3yctlRf1HUjhw83Oq_-9R_ki3/view?usp=sharing"
+        >
+          <Image src={resume} alt="" height="35"/>
         </a>
         <a href="https://github.com/ArhanChaudhary">
-          <img src="/img/home/gh-logo.png" />
+          <Image src={ghLogo} alt="" height="35" />
         </a>
         <a href="https://www.linkedin.com/in/arhan-chaudhary/">
-          <img src="/img/home/in-logo.png" />
+          <Image src={inLogo} alt="" height="35" />
         </a>
         <a href="mailto:arhan.ch@gmail.com">
-          <img src="/img/home/mail.png" />
+          <Image src={mail} alt="" height="35" />
         </a>
       </div>
     </div>
@@ -312,7 +319,7 @@ import Layout from "../layouts/Layout.astro";
         gap: 40px;
 
         img {
-          height: 35px;
+          display: block;
         }
       }
     }

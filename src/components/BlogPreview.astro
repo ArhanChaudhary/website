@@ -9,6 +9,6 @@ const { pubDate, title, description, url } = Astro.props;
 ---
 
 <p>
-  Published {pubDate} - <a href={url}>{title}</a> -
+  {pubDate} - <a href={url}>{title}</a> -
   {description}
 </p>
