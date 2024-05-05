@@ -4,11 +4,96 @@ interface Props {
   title: string;
   description: string;
   url: string | undefined;
+  colorDotRed: boolean;
+  first: boolean;
+  last: boolean;
 }
-const { pubDate, title, description, url } = Astro.props;
+const { pubDate, title, description, url, colorDotRed, first, last } =
+  Astro.props;
 ---
 
-<p>
-  {pubDate} - <a href={url}>{title}</a> -
-  {description}
-</p>
+<div class="grid-wrapper">
+  <span class="pub-date">{pubDate}</span>
+  <span class:list={["boop", { lb: !colorDotRed, lr: colorDotRed }]}></span>
+  <a href={url}>{title}</a>
+  <div class="description">{description}</div>
+  <div class:list={["timeline", { first, last }]}></div>
+</div>
+
+<style lang="scss">
+  .grid-wrapper {
+    display: grid;
+    align-items: center;
+    grid-template-columns: 8ch 2ch 10px 4ch minmax(0, 45ch);
+    grid-template-rows: auto 4px auto 50px;
+
+    .pub-date {
+      color: hsl(0, 0%, 60%);
+      display: inline-block;
+      text-align: right;
+    }
+
+    .boop {
+      display: inline-block;
+      grid-row-start: 1;
+      width: 100%;
+      aspect-ratio: 1;
+      border-radius: 50%;
+      grid-column-start: 3;
+
+      &.lb {
+        background-color: var(--lb);
+      }
+
+      &.lr {
+        background-color: var(--lr);
+      }
+    }
+
+    a {
+      grid-column-start: 5;
+      font-size: 26px;
+      font-weight: 700;
+      justify-self: left;
+      color: white;
+      text-decoration: none;
+
+      &:hover {
+        text-decoration: underline;
+        color: hsl(0, 0%, 85%);
+      }
+
+      &:active {
+        color: hsl(0, 0%, 75%);
+      }
+    }
+
+    .description {
+      word-wrap: break-word;
+      grid-row-start: 3;
+      grid-column-start: 5;
+      color: hsl(0, 0%, 65%);
+    }
+
+    .timeline {
+      grid-column-start: 3;
+      grid-row-start: 1;
+      grid-row-end: 5;
+      align-self: normal;
+      justify-self: center;
+      background-color: hsl(0, 0%, 25%);
+      width: 3px;
+      position: relative;
+      z-index: -1;
+
+      &.first {
+        margin-top: 100%;
+      }
+
+      &.last {
+        grid-row-end: initial;
+        margin-bottom: 100%;
+      }
+    }
+  }
+</style>

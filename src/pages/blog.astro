@@ -18,14 +18,22 @@ const allPosts = await Astro.glob("../pages/blog/*.mdx");
             return 1;
           }
         })
-        .map((post) => (
+        .map((post, i) => (
           <BlogPreview
             pubDate={new Date(post.frontmatter.pubDate).toLocaleDateString(
-              "en-US"
+              "en-US",
+              {
+                year: "2-digit",
+                month: "numeric",
+                day: "numeric",
+              }
             )}
             title={post.frontmatter.title}
             description={post.frontmatter.description}
             url={post.url}
+            colorDotRed={i % 2 === 0}
+            first={i === 0}
+            last={i === allPosts.length - 1}
           />
         ))
     }
@@ -43,5 +51,6 @@ const allPosts = await Astro.glob("../pages/blog/*.mdx");
     padding-bottom: 6px;
     border-top: 4px solid var(--lr);
     border-bottom: 4px solid var(--lb);
+    margin-bottom: 50px;
   }
 </style>
