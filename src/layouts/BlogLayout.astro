@@ -17,6 +17,15 @@ const { frontmatter } = Astro.props;
     </p>
     <hr />
     <slot />
+    <script
+      is:inline
+      src="https://utteranc.es/client.js"
+      repo="ArhanChaudhary/website"
+      issue-term="title"
+      label="blog"
+      theme="github-dark"
+      crossorigin="anonymous"
+      async></script>
   </div>
 </Layout>
 
@@ -24,7 +33,7 @@ const { frontmatter } = Astro.props;
   #blog-wrapper {
     max-width: 70ch;
     margin-right: 30px;
-    margin-bottom: 50px;
+    margin-bottom: 20px;
   }
 </style>
 

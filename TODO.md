@@ -1,5 +1,10 @@
+- put nav higher z index so you can scroll the blog
+- scss globals and organize hardcoded
+- margin right to main
+- utteranc.es
 - blog
-    - "Hello World"
+    - timeweb
+    - anxiety
     - "Attending DEFCON 32"
     - "From NAND to AI, Part 1"
     - "From NAND to AI, Part 2"
@@ -19,6 +24,7 @@
     - interworking book
     - https://goodreads.com/en/book/show/35068671
     - digital signal processing book
+    - this is how you lose the time war
 - cubing
     - wca profile and recent competitions
     - pb and its scramble
