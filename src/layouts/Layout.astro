@@ -184,7 +184,11 @@ import "normalize.css";
           </span>
         </div>
       </template>
-      <div id="copyright" class="input-mono">&copy; 2024 Arhan Chaudhary</div>
+      <div id="copyright" class="input-mono">
+        &copy; 2024 Arhan Chaudhary &#x2022; <a
+          href="https://github.com/ArhanChaudhary/website">source</a
+        >
+      </div>
     </div>
     <input type="checkbox" id="nav-toggle" />
     <nav class="input-mono">
@@ -219,7 +223,7 @@ import "normalize.css";
 </html>
 
 <style define:vars={{ highlightIndex }} lang="scss">
-  @use '../assets/variables';
+  @use "../assets/variables";
 
   @keyframes opacity {
     from {
@@ -447,6 +451,7 @@ import "normalize.css";
         background-color: hsl(240, 13%, 6%);
         transition: transform 0.3s;
         transform: translateX(100%);
+        z-index: 1;
       }
 
       #nav-toggle:checked + nav {
