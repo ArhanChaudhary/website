@@ -51,6 +51,12 @@ import "normalize.css";
       type="font/ttf"
       crossorigin
     />
+    <link
+      rel="alternate"
+      type="application/rss+xml"
+      title={title}
+      href={`${Astro.site}rss.xml`}
+    />
     <title>{title}</title>
   </head>
   <body>
@@ -303,7 +309,6 @@ import "normalize.css";
           font-size: 28px;
           color: white;
           height: 100%;
-          padding-right: var(--mobile-padding);
           display: flex;
           justify-content: center;
           align-items: center;
