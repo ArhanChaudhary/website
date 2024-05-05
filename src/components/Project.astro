@@ -17,7 +17,9 @@ const { title, dateRange, link } = Astro.props;
   </div>
 </div>
 
-<style>
+<style lang="scss">
+  @use '../assets/variables';
+
   .flex-container {
     display: flex;
     align-items: center;
@@ -27,7 +29,6 @@ const { title, dateRange, link } = Astro.props;
     .title {
       font-size: 24px;
       font-weight: 700;
-      display: inline-block;
       position: relative;
       display: list-item;
       text-align: left;
@@ -50,5 +51,11 @@ const { title, dateRange, link } = Astro.props;
     margin: 30px 10px 30px 30px;
     font-family: system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif,
       "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+  }
+
+  @media (max-width: variables.$mobile-width) {
+    .flex-container .title {
+      display: initial;
+    }
   }
 </style>

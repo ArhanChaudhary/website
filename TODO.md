@@ -1,7 +1,3 @@
-- put nav higher z index so you can scroll the blog
-- scss globals and organize hardcoded
-- margin right to main
-- utteranc.es
 - blog
     - timeweb
     - anxiety

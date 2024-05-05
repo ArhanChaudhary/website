@@ -335,11 +335,9 @@ import mail from "../assets/index/mail.png";
     }
   }
 
-  /* Layout.astro hardcoded to this value */
-  @media (max-width: 950px) {
+  @media (max-width: variables.$mobile-width) {
     #shape-thing-1 {
-      /* Layout.astro hardcoded to this value */
-      margin-left: -30px !important;
+      margin-left: calc(var(--mobile-padding) * -1) !important;
       /* Layout.astro softcoded to this value */
       width: 270px !important;
     }

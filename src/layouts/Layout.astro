@@ -219,6 +219,8 @@ import "normalize.css";
 </html>
 
 <style define:vars={{ highlightIndex }} lang="scss">
+  @use '../assets/variables';
+
   @keyframes opacity {
     from {
       opacity: 0;
@@ -245,11 +247,6 @@ import "normalize.css";
     }
   }
 
-  :root {
-    --lb: hsl(180, 75%, 51%);
-    --lr: hsl(333, 100%, 62%);
-  }
-
   html {
     overflow: hidden;
     line-height: initial;
@@ -266,6 +263,8 @@ import "normalize.css";
       flex-direction: column;
       overflow-y: auto;
       position: relative;
+      z-index: 1;
+      outline: 0;
       // Layout.astro is hardcoded to this value (in nav)
       margin-right: -195px;
       padding-right: 195px;
@@ -291,6 +290,7 @@ import "normalize.css";
         flex: 1;
         /* Layout.astro and index.astro hardcoded to this value */
         margin-left: 100px;
+        margin-right: var(--mobile-padding);
         position: relative;
         color: white;
 
@@ -299,7 +299,7 @@ import "normalize.css";
           font-size: 28px;
           color: white;
           height: 100%;
-          padding-right: 20px;
+          padding-right: var(--mobile-padding);
           display: flex;
           justify-content: center;
           align-items: center;
@@ -328,7 +328,6 @@ import "normalize.css";
       font-weight: 500;
       font-size: 15px;
       position: relative;
-      z-index: 1;
 
       #nav-close {
         display: none;
@@ -361,11 +360,13 @@ import "normalize.css";
       #nav-grid {
         display: grid;
         // Layout.astro is hardcoded to this value (in padding)
-        grid-template-columns: 120px 65px;
+        grid-template-columns: 80px 25px;
         column-gap: 10px;
         grid-auto-rows: min-content;
         row-gap: 30px;
-        padding: 60px 0;
+        margin: 60px 40px;
+        position: relative;
+        z-index: 2;
 
         a {
           color: hsl(0, 0%, 67%);
@@ -412,21 +413,16 @@ import "normalize.css";
       position: absolute;
     }
 
-    /* index.astro hardcoded to this value */
-    @media (max-width: 950px) {
+    @media (max-width: variables.$mobile-width) {
       #flex-wrapper {
         margin-right: initial;
         padding-right: initial;
       }
 
-      #ssh-text {
-        margin-left: 30px !important;
-      }
-
       main,
-      #copyright {
-        /* index.astro hardcoded to this value */
-        margin-left: 30px !important;
+      #copyright,
+      #ssh-text {
+        margin-left: var(--mobile-padding) !important;
       }
 
       #troll-flex-wrapper {
@@ -461,6 +457,12 @@ import "normalize.css";
 </style>
 
 <style is:global lang="scss">
+  :root {
+    --lb: hsl(180, 75%, 51%);
+    --lr: hsl(333, 100%, 62%);
+    --mobile-padding: 20px;
+  }
+
   html {
     font-size: 18px;
   }
