@@ -2,6 +2,121 @@
 import Layout from "../layouts/Layout.astro";
 ---
 
-<Layout title="Arhan's CTF Stuff" highlightIndex={4} sshUser="ctf">
-  This part of my website is a work in progress.
+<Layout title="Arhan's CTF Page" highlightIndex={4} sshUser="ctf">
+  <div id="max-width-wrapper" class="system-ui">
+    <h1 class="input-mono">My CTF page</h1>
+    <p>
+      As a programming hobbyist, I believe that Capture the Flag competitions,
+      or CTFs, are the greatest discipline of computer science. CTFs
+      competitions involve working together with a team to exploit vulnerablites
+      in programs or systems to find a "flag", a specific text string that
+      serves as the answer to the challenge.
+    </p>
+    <p>
+      For example, there's a secret message hidden in the following string. Can
+      you decipher its true meaning? (Hint: research binary encoding schemes)
+    </p>
+    <p>
+      <span class="input-mono" id="flag-plaintext"
+        >NHJlX3kwdV80X2g0Y2szciE/</span
+      >
+      <button id="reveal-flag">Reveal</button>
+      <span id="flag-explanation" hidden
+        ><a href="https://www.base64decode.org/">base64 decode</a> the text</span
+      >
+    </p>
+    <script>
+      document.getElementById("reveal-flag")!.addEventListener("click", (e) => {
+        document.getElementById("flag-plaintext")!.innerText = atob(
+          document.getElementById("flag-plaintext")!.innerText
+        );
+        document.getElementById("flag-explanation")!.hidden = false;
+      });
+    </script>
+    <p>
+      Part of my love for competing in CTFs comes from having fun with my team.
+      My close high school friends <a href="https://rluo.dev/">Ruien</a>, <a
+        href="https://bithole.dev">Adrian</a
+      >, <a href="https://kot.pink">Kevin</a> and I form the CTF team <a
+        href="https://ctftime.org/team/207689">asmhole</a
+      >. Together, we:
+    </p>
+    <ul>
+      <li>
+        Went to DEF CON 31 together! We won 1st place for Starphish CTF and a
+        Flipper Zero
+      </li>
+      <li>
+        Won <a href="https://b01lersc.tf/scoreboard">1st place</a> for b01lers CTF
+        2024 Purdue division
+      </li>
+      <li>
+        Won <a href="https://squarectf.com/2023/results.html">10th place</a> for
+        Square CTF 2023 and $200
+      </li>
+      <li>
+        Finished as the <a href="https://ctftime.org/stats/2023/US"
+          >top 43 national CTFtime team</a
+        > in 2023
+      </li>
+    </ul>
+    <hr />
+    <p>
+      The rest of this page is dedicated towards my CTF competitions and my
+      write-ups. Note that I've ommitted asmhole competitions I minimally
+      participated in.
+    </p>
+    <ul id="ctf-list">
+      <li>
+        <a href="https://ctftime.org/event/2250">b01lers CTF 2024</a> — (no write-up)
+      </li>
+      <li>
+        <a href="https://ctftime.org/event/2238">TAMUctf 2024</a> — (no write-up)
+      </li>
+      <li>
+        <a href="https://ctftime.org/event/1992">GlacierCTF 2023</a> — (no write-up)
+      </li>
+      <li>
+        <a href="https://ctftime.org/event/2111">Square CTF 2023</a> — <a
+          href="">write-up</a
+        >
+      </li>
+      <li>
+        <a href="https://ctftime.org/event/2122"
+          >HK Cyber Security New Generation CTF Challenge 2023</a
+        > — (no write up)
+      </li>
+      <li>
+        <a href="https://ctftime.org/event/1772">HITCON CTF 2022</a> — (no write-up)
+      </li>
+      <li>
+        <a href="https://ctftime.org/event/1803">GlacierCTF 2022</a> — (no write-up)
+      </li>
+    </ul>
+  </div>
 </Layout>
+
+<style lang="scss">
+  #max-width-wrapper {
+    max-width: var(--common-max-width);
+    margin-bottom: 50px;
+
+    h1 {
+      font-size: 28px;
+    }
+
+    #reveal-flag {
+      appearance: none;
+      background-color: inherit;
+      color: hsl(0, 0%, 95%);
+      border: 1px solid hsl(0, 0%, 60%);
+      border-radius: 4px;
+      padding: 3px 5px;
+      cursor: pointer;
+    }
+
+    #ctf-list li {
+      margin: 1em 0;
+    }
+  }
+</style>

@@ -42,7 +42,7 @@ const allPosts = await Astro.glob("../pages/blog/*.mdx");
 
 <style lang="scss">
   #blog-page-wrapper {
-    max-width: 800px;
+    max-width: var(--common-max-width);
   }
 
   h1 {
