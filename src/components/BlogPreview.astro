@@ -17,7 +17,8 @@ const { pubDate, title, description, url, colorDotRed, first, last } =
   <span class:list={["boop", { lb: !colorDotRed, lr: colorDotRed }]}></span>
   <a href={url}>{title}</a>
   <div class="description">{description}</div>
-  <div class:list={["timeline", { first, last }]}></div>
+  <div class:list={["timeline-1", { first, last }]}></div>
+  <div class:list={["timeline-2", { first, last }]}></div>
 </div>
 
 <style lang="scss">
@@ -25,7 +26,7 @@ const { pubDate, title, description, url, colorDotRed, first, last } =
     display: grid;
     align-items: center;
     grid-template-columns: 8ch 2ch 10px 4ch minmax(0, 45ch);
-    grid-template-rows: auto 4px auto 50px;
+    grid-template-rows: auto 3px auto 50px;
 
     .pub-date {
       color: hsl(0, 0%, 60%);
@@ -75,24 +76,40 @@ const { pubDate, title, description, url, colorDotRed, first, last } =
       color: hsl(0, 0%, 65%);
     }
 
-    .timeline {
+    .timeline-1,
+    .timeline-2 {
       grid-column-start: 3;
-      grid-row-start: 1;
-      grid-row-end: 5;
       align-self: normal;
       justify-self: center;
       background-color: hsl(0, 0%, 25%);
       width: 3px;
       position: relative;
       z-index: -1;
+    }
+
+    .timeline-1 {
+      grid-row-start: 1;
+      grid-row-end: 1;
 
       &.first {
-        margin-top: 100%;
+        top: 50%;
+
+        &.last {
+          display: none;
+        }
       }
 
       &.last {
-        grid-row-end: initial;
-        margin-bottom: 100%;
+        bottom: 50%;
+      }
+    }
+
+    .timeline-2 {
+      grid-row-start: 2;
+      grid-row-end: 5;
+
+      &.last {
+        display: none;
       }
     }
   }
