@@ -1,7 +1,14 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import BlogPreview from "../components/BlogPreview.astro";
-const allPosts = await Astro.glob("../pages/blog/*.mdx");
+
+interface Frontmatter {
+  title: string;
+  description: string;
+  pubDate: string;
+}
+
+const allPosts = await Astro.glob<Frontmatter>("../pages/blog/*.mdx");
 ---
 
 <Layout title="Arhan's Blog" highlightIndex={3} sshUser="blog">

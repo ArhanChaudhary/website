@@ -1,0 +1,95 @@
+---
+import type { MDXInstance } from "astro";
+
+interface Props {
+  writeup: MDXInstance<Record<string, any>>;
+  prevCategory: string | undefined;
+  ctfName: string;
+}
+
+const { writeup, prevCategory, ctfName } = Astro.props;
+---
+
+{
+  prevCategory !== writeup.frontmatter.category && (
+    <div class="category-wrapper">
+      <hr />
+      <h2>{writeup.frontmatter.category}</h2>
+      <hr />
+    </div>
+  )
+}
+<h3>
+  {writeup.file.split("/").at(-1)!.replace(".mdx", "")} —
+  {writeup.frontmatter.points} points
+</h3>
+<p class="blockquote-wrapper">{writeup.frontmatter.description}</p>
+<p>
+  {
+    writeup.frontmatter.attachments && (
+      <i>
+        Attachments:
+        {(writeup.frontmatter.attachments as string[]).map((attachment, i) => (
+          <>
+            <a
+              class="attachment-link"
+              href={`/write-up/${ctfName}/${writeup.file
+                .split("/")
+                .at(-1)!
+                .replace(".mdx", "")}/${attachment}`}
+            >
+              {attachment.split("/").at(-1)}
+            </a>
+            {writeup.frontmatter.attachments.length > 2 &&
+              i !== writeup.frontmatter.attachments.length - 1 && <>,&nbsp;</>}
+            {i === writeup.frontmatter.attachments.length - 2 && <>and</>}
+          </>
+        ))}
+      </i>
+    )
+  }
+</p>
+<writeup.Content />
+
+<style lang="scss">
+  .blockquote-wrapper {
+    border-left: 5px solid hsl(0, 0%, 50%);
+    color: hsl(0, 0%, 65%);
+    padding-left: 30px;
+  }
+
+  .attachment-link {
+    display: inline-block;
+  }
+
+  .category-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    &:not(:first-of-type) {
+      margin-top: 50px;
+    }
+
+    h2 {
+      margin: 0;
+    }
+
+    hr:first-of-type {
+      width: 25px;
+    }
+
+    hr:last-of-type {
+      flex-grow: 1;
+    }
+  }
+</style>
+
+<style lang="scss" is:global>
+  img {
+    max-width: 100%;
+    margin: 0 auto;
+    display: block;
+    height: auto;
+  }
+</style>

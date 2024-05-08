@@ -1,5 +1,51 @@
 ---
 import Layout from "../layouts/Layout.astro";
+import type { Frontmatter } from "./write-up/[ctf].astro";
+const allCTFs = [
+  {
+    ctfName: "b01lers CTF 2024",
+    ctfLink: "https://ctftime.org/event/2250",
+  },
+  {
+    ctfName: "TAMUctf 2024",
+    ctfLink: "https://ctftime.org/event/2238",
+  },
+  {
+    ctfName: "GlacierCTF 2023",
+    ctfLink: "https://ctftime.org/event/1992",
+  },
+  {
+    ctfName: "Square CTF 2023",
+    ctfLink: "https://ctftime.org/event/2111",
+  },
+  {
+    ctfName: "HK Cyber Security New Generation CTF Challenge 2023",
+    ctfLink: "https://ctftime.org/event/2122",
+  },
+  {
+    ctfName: "HITCON CTF 2022",
+    ctfLink: "https://ctftime.org/event/1772",
+  },
+  {
+    ctfName: "GlacierCTF 2022",
+    ctfLink: "https://ctftime.org/event/1803",
+  },
+];
+
+function urlToCTFName(url: string) {
+  return url.split("/")[url.split("/").length - 2];
+}
+
+const allWriteups = await Astro.glob<Frontmatter>("../pages/write-up/**/*.mdx");
+const CTFWriteupNames = new Set(
+  allWriteups.map((writeup) => {
+    const ret = urlToCTFName(writeup.url as string);
+    if (allCTFs.every(({ ctfName }) => ret !== ctfName)) {
+      throw new Error("CTF name typo");
+    }
+    return ret;
+  })
+);
 ---
 
 <Layout title="Arhan's CTF Page" highlightIndex={4} sshUser="ctf">
@@ -67,31 +113,26 @@ import Layout from "../layouts/Layout.astro";
       participated in.
     </p>
     <ul id="ctf-list">
-      <li>
-        <a href="https://ctftime.org/event/2250">b01lers CTF 2024</a> — (no write-up)
-      </li>
-      <li>
-        <a href="https://ctftime.org/event/2238">TAMUctf 2024</a> — (no write-up)
-      </li>
-      <li>
-        <a href="https://ctftime.org/event/1992">GlacierCTF 2023</a> — (no write-up)
-      </li>
-      <li>
-        <a href="https://ctftime.org/event/2111">Square CTF 2023</a> — <a
-          href="">write-up</a
-        >
-      </li>
-      <li>
-        <a href="https://ctftime.org/event/2122"
-          >HK Cyber Security New Generation CTF Challenge 2023</a
-        > — (no write up)
-      </li>
-      <li>
-        <a href="https://ctftime.org/event/1772">HITCON CTF 2022</a> — (no write-up)
-      </li>
-      <li>
-        <a href="https://ctftime.org/event/1803">GlacierCTF 2022</a> — (no write-up)
-      </li>
+      {
+        allCTFs.map(({ ctfName, ctfLink }) => (
+          <li>
+            <a href={ctfLink}>{ctfName}</a> —
+            {(() => {
+              if (CTFWriteupNames.has(ctfName)) {
+                return (
+                  <a
+                    href={`/write-up/${ctfName.toLowerCase().replaceAll(" ", "-")}`}
+                  >
+                    write-up
+                  </a>
+                );
+              } else {
+                return "(no write-up)";
+              }
+            })()}
+          </li>
+        ))
+      }
     </ul>
   </div>
 </Layout>

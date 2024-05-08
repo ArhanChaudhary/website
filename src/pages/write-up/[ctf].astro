@@ -1,0 +1,95 @@
+---
+import type { MDXInstance } from "astro";
+import Layout from "../../layouts/Layout.astro";
+import Writeup from "../../components/Writeup.astro";
+
+export interface Frontmatter {
+  description: string;
+  category:
+    | "Web Exploitation"
+    | "Reverse Engineering"
+    | "Forensics"
+    | "General Skills"
+    | "Binary Exploitation";
+  points: number;
+  attachments?: string[];
+}
+
+export async function getStaticPaths() {
+  function urlToCTFName(url: string) {
+    return url.split("/")[url.split("/").length - 2];
+  }
+
+  const allWriteups = (await Astro.glob<Frontmatter>(
+    "../write-up/**/*.mdx"
+  )) as MDXInstance<Record<string, any>>[];
+
+  const CTFWriteupNames = [
+    ...new Set(
+      allWriteups.map((writeup) => urlToCTFName(writeup.url as string))
+    ),
+  ];
+
+  return CTFWriteupNames.map((CTFName) => {
+    const sluggifiedCTFName = CTFName.toLowerCase().replaceAll(" ", "-");
+    const iteratorCTFWriteups = allWriteups.filter(
+      (writeup) =>
+        urlToCTFName(writeup.url as string)
+          .toLowerCase()
+          .replaceAll(" ", "-") === sluggifiedCTFName
+    );
+    return {
+      params: {
+        ctf: sluggifiedCTFName,
+      },
+      props: {
+        writeups: iteratorCTFWriteups,
+        ctfName: CTFName,
+      },
+    };
+  });
+}
+
+const { writeups, ctfName } = Astro.props;
+const categorySorting = [
+  "General Skills",
+  "Forensics",
+  "Web Exploitation",
+  "Reverse Engineering",
+  "Binary Exploitation",
+];
+writeups.sort((a, b) => {
+  const firstIndex = categorySorting.indexOf(a.frontmatter.category);
+  if (firstIndex === -1) throw new Error("Invalid category");
+  const secondIndex = categorySorting.indexOf(b.frontmatter.category);
+  if (secondIndex === -1) throw new Error("Invalid category");
+  const diff = firstIndex - secondIndex;
+  if (diff === 0) {
+    return b.frontmatter.points - a.frontmatter.points;
+  } else {
+    return diff;
+  }
+});
+---
+
+<Layout title={ctfName} sshUser="ctf" highlightIndex={4}>
+  <div class="system-ui" id="write-up-wrapper">
+    <h1>{ctfName}</h1>
+    {
+      writeups.map((writeup, i) => (
+        <Writeup
+          {writeup}
+          {ctfName}
+          prevCategory={writeups[i - 1]?.frontmatter.category}
+        />
+      ))
+    }
+  </div>
+</Layout>
+
+<style lang="scss">
+  #write-up-wrapper {
+    max-width: var(--common-max-width);
+    margin-bottom: 50px;
+  }
+</style>
