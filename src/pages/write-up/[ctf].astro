@@ -75,6 +75,30 @@ writeups.sort((a, b) => {
 <Layout title={ctfName} sshUser="ctf" highlightIndex={4}>
   <div class="system-ui" id="write-up-wrapper">
     <h1>{ctfName}</h1>
+    <ul>
+      {
+        writeups.map((writeup, i) => (
+          <>
+            {writeups[i - 1]?.frontmatter.category !==
+              writeup.frontmatter.category && (
+              <li class="category-toc">{writeup.frontmatter.category}</li>
+            )}
+            <li class="writeup-toc">
+              <a
+                href={`#${writeup.file
+                  .split("/")
+                  .at(-1)!
+                  .replace(".mdx", "")
+                  .toLowerCase()
+                  .replaceAll(" ", "-")}`}
+              >
+                {writeup.file.split("/").at(-1)!.replace(".mdx", "")}
+              </a>
+            </li>
+          </>
+        ))
+      }
+    </ul>
     {
       writeups.map((writeup, i) => (
         <Writeup
@@ -91,5 +115,15 @@ writeups.sort((a, b) => {
   #write-up-wrapper {
     max-width: var(--common-max-width);
     margin-bottom: 50px;
+
+    .category-toc {
+      margin-top: 1em;
+    }
+
+    .writeup-toc {
+      list-style-type: circle;
+      list-style-position: inside;
+      padding-left: 40px;
+    }
   }
 </style>

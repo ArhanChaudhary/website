@@ -14,12 +14,21 @@ const { writeup, prevCategory, ctfName } = Astro.props;
   prevCategory !== writeup.frontmatter.category && (
     <div class="category-wrapper">
       <hr />
-      <h2>{writeup.frontmatter.category}</h2>
+      <h2 id={writeup.frontmatter.category.toLowerCase().replaceAll(" ", "-")}>
+        {writeup.frontmatter.category}
+      </h2>
       <hr />
     </div>
   )
 }
-<h3>
+<h3
+  id={writeup.file
+    .split("/")
+    .at(-1)!
+    .replace(".mdx", "")
+    .toLowerCase()
+    .replaceAll(" ", "-")}
+>
   {writeup.file.split("/").at(-1)!.replace(".mdx", "")} —
   {writeup.frontmatter.points} points
 </h3>
@@ -66,6 +75,7 @@ const { writeup, prevCategory, ctfName } = Astro.props;
     display: flex;
     align-items: center;
     gap: 10px;
+    margin-bottom: -25px;
 
     &:not(:first-of-type) {
       margin-top: 50px;
@@ -82,6 +92,10 @@ const { writeup, prevCategory, ctfName } = Astro.props;
     hr:last-of-type {
       flex-grow: 1;
     }
+  }
+
+  h3 {
+    margin-top: calc(1em + 25px);
   }
 </style>
 
