@@ -207,8 +207,8 @@ import "normalize.css";
         <a href="/projects">Projects</a>
         <a href="/blog">Blog</a>
         <a href="/ctfing">CTFing</a>
-        <a href="/cubing">Cubing</a>
         <a href="/reading">Reading</a>
+        <a href="/cubing">Cubing</a>
         <a href="/media">Media</a>
         {highlightIndex == 8 && <a href="/404">Not Found</a>}
         <div id="nav-arrow">
@@ -467,23 +467,21 @@ import "normalize.css";
 </style>
 
 <style is:global lang="scss">
-  :root {
-    --lb: hsl(180, 75%, 51%);
-    --lr: hsl(333, 100%, 62%);
-    --mobile-padding: 20px;
-    --common-max-width: 70ch;
+  @use "../assets/variables";
+
+  * {
+    box-sizing: border-box;
   }
 
   html {
     font-size: 18px;
+    --lb: hsl(180, 75%, 51%);
+    --lr: hsl(333, 100%, 62%);
+    --mobile-padding: 20px;
   }
 
   a {
     color: rgb(68, 147, 248);
-  }
-
-  * {
-    box-sizing: border-box;
   }
 
   .cr {
@@ -502,6 +500,30 @@ import "normalize.css";
     border-style: solid;
     background-color: white;
     height: 1px;
+  }
+
+  #max-width-wrapper {
+    max-width: 70ch;
+    margin-bottom: 50px;
+  }
+
+  .astro-code {
+    padding: 1em;
+    font-size: 15px;
+    font-family: "Input Mono", monospace;
+
+    code {
+      font-size: 15px;
+      background-color: initial;
+      padding: initial;
+    }
+  }
+
+  code {
+    background-color: hsl(220, 13%, 27%);
+    border-radius: 2px;
+    padding: 2px 4px;
+    font-size: 14px;
   }
 
   @font-face {
@@ -540,27 +562,18 @@ import "normalize.css";
     font-family: "Input Mono", Helvetica;
   }
 
+  h1.input-mono {
+    font-size: 28px;
+  }
+
   .system-ui {
     font-family: system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif,
       "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
   }
 
-  .astro-code {
-    padding: 1em;
-    font-size: 15px;
-    font-family: "Input Mono", monospace;
-
-    code {
-      font-size: 15px;
-      background-color: initial;
-      padding: initial;
+  @media (max-width: variables.$mobile-width) {
+    #max-width-wrapper {
+      margin: 0 auto;
     }
-  }
-
-  code {
-    background-color: hsl(220, 13%, 27%);
-    border-radius: 2px;
-    padding: 2px 4px;
-    font-size: 14px;
   }
 </style>

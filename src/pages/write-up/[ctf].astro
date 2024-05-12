@@ -3,7 +3,7 @@ import type { MDXInstance } from "astro";
 import Layout from "../../layouts/Layout.astro";
 import Writeup from "../../components/Writeup.astro";
 
-export interface Frontmatter {
+export interface WriteupFrontmatter {
   description: string;
   category:
     | "Web Exploitation"
@@ -17,10 +17,10 @@ export interface Frontmatter {
 
 export async function getStaticPaths() {
   function urlToCTFName(url: string) {
-    return url.split("/")[url.split("/").length - 2];
+    return url.split("/").at(-2)!;
   }
 
-  const allWriteups = (await Astro.glob<Frontmatter>(
+  const allWriteups = (await Astro.glob<WriteupFrontmatter>(
     "../write-up/**/*.mdx"
   )) as MDXInstance<Record<string, any>>[];
 
@@ -112,18 +112,13 @@ writeups.sort((a, b) => {
 </Layout>
 
 <style lang="scss">
-  #write-up-wrapper {
-    max-width: var(--common-max-width);
-    margin-bottom: 50px;
+  .category-toc {
+    margin-top: 1em;
+  }
 
-    .category-toc {
-      margin-top: 1em;
-    }
-
-    .writeup-toc {
-      list-style-type: circle;
-      list-style-position: inside;
-      padding-left: 40px;
-    }
+  .writeup-toc {
+    list-style-type: circle;
+    list-style-position: inside;
+    padding-left: 40px;
   }
 </style>

@@ -4,15 +4,17 @@ const { frontmatter } = Astro.props;
 ---
 
 <Layout title={frontmatter.title} sshUser="blog" highlightIndex={3}>
-  <div class="system-ui" id="blog-wrapper">
+  <div class="system-ui" id="max-width-wrapper">
     <h1>{frontmatter.title}</h1>
     <p>
       Published {
-        new Date(frontmatter.pubDate).toLocaleDateString("en-US", {
-          year: "numeric",
-          month: "long",
-          day: "numeric",
-        })
+        frontmatter.pubDate
+          ? new Date(frontmatter.pubDate).toLocaleDateString("en-US", {
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+            })
+          : "N.A."
       } &#x2022; <a href="/blog">more posts</a> &#x2022; <a href="/rss.xml"
         >rss</a
       >
@@ -32,8 +34,7 @@ const { frontmatter } = Astro.props;
 </Layout>
 
 <style lang="scss">
-  #blog-wrapper {
-    max-width: var(--common-max-width);
+  #max-width-wrapper {
     margin-bottom: 10px;
   }
 </style>

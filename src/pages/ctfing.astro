@@ -1,51 +1,26 @@
 ---
 import Layout from "../layouts/Layout.astro";
-import type { Frontmatter } from "./write-up/[ctf].astro";
-const allCTFs = [
-  {
-    ctfName: "b01lers CTF 2024",
-    ctfLink: "https://ctftime.org/event/2250",
-  },
-  {
-    ctfName: "TAMUctf 2024",
-    ctfLink: "https://ctftime.org/event/2238",
-  },
-  {
-    ctfName: "GlacierCTF 2023",
-    ctfLink: "https://ctftime.org/event/1992",
-  },
-  {
-    ctfName: "Square CTF 2023",
-    ctfLink: "https://ctftime.org/event/2111",
-  },
-  {
-    ctfName: "HK Cyber Security New Generation CTF Challenge 2023",
-    ctfLink: "https://ctftime.org/event/2122",
-  },
-  {
-    ctfName: "HITCON CTF 2022",
-    ctfLink: "https://ctftime.org/event/1772",
-  },
-  {
-    ctfName: "GlacierCTF 2022",
-    ctfLink: "https://ctftime.org/event/1803",
-  },
-];
 
 function urlToCTFName(url: string) {
-  return url.split("/")[url.split("/").length - 2];
+  return url.split("/").at(-2)!;
 }
 
-const allWriteups = await Astro.glob<Frontmatter>("../pages/write-up/**/*.mdx");
-const CTFWriteupNames = new Set(
-  allWriteups.map((writeup) => {
-    const ret = urlToCTFName(writeup.url as string);
-    if (allCTFs.every(({ ctfName }) => ret !== ctfName)) {
-      throw new Error("CTF name typo");
-    }
-    return ret;
-  })
-);
+const allWriteups = await Astro.glob("../pages/write-up/**/*.mdx");
+const CTFWriteupNames = new Set<string>();
+const allCTFs: { link: string; endDate: string; name: string }[] = [];
+for (const writeup of allWriteups) {
+  console.log(writeup.url!);
+  const writeupName = writeup.url!.split("/").at(-1)!;
+  const CTFName = urlToCTFName(writeup.url!);
+  if (writeupName === "_") {
+    allCTFs.push({
+      ...(writeup.frontmatter as { link: string; endDate: string }),
+      name: CTFName,
+    });
+  } else {
+    CTFWriteupNames.add(CTFName);
+  }
+}
 ---
 
 <Layout title="Arhan's CTF Page" highlightIndex={4} sshUser="ctf">
@@ -114,50 +89,46 @@ const CTFWriteupNames = new Set(
     </p>
     <ul id="ctf-list">
       {
-        allCTFs.map(({ ctfName, ctfLink }) => (
-          <li>
-            <a href={ctfLink}>{ctfName}</a> —
-            {(() => {
-              if (CTFWriteupNames.has(ctfName)) {
-                return (
-                  <a
-                    href={`/write-up/${ctfName.toLowerCase().replaceAll(" ", "-")}`}
-                  >
-                    write-up
-                  </a>
-                );
-              } else {
-                return "(no write-up)";
-              }
-            })()}
-          </li>
-        ))
+        allCTFs
+          .sort(
+            (a, b) =>
+              new Date(b.endDate).getTime() - new Date(a.endDate).getTime()
+          )
+          .map(({ name, link }) => (
+            <li>
+              <a href={link}>{name}</a> —
+              {(() => {
+                if (CTFWriteupNames.has(name)) {
+                  return (
+                    <a
+                      href={`/write-up/${name.toLowerCase().replaceAll(" ", "-")}`}
+                    >
+                      write-up
+                    </a>
+                  );
+                } else {
+                  return "(no write-up)";
+                }
+              })()}
+            </li>
+          ))
       }
     </ul>
   </div>
 </Layout>
 
 <style lang="scss">
-  #max-width-wrapper {
-    max-width: var(--common-max-width);
-    margin-bottom: 50px;
+  #reveal-flag {
+    appearance: none;
+    background-color: inherit;
+    color: hsl(0, 0%, 95%);
+    border: 1px solid hsl(0, 0%, 60%);
+    border-radius: 4px;
+    padding: 3px 5px;
+    cursor: pointer;
+  }
 
-    h1 {
-      font-size: 28px;
-    }
-
-    #reveal-flag {
-      appearance: none;
-      background-color: inherit;
-      color: hsl(0, 0%, 95%);
-      border: 1px solid hsl(0, 0%, 60%);
-      border-radius: 4px;
-      padding: 3px 5px;
-      cursor: pointer;
-    }
-
-    #ctf-list li {
-      margin: 1em 0;
-    }
+  #ctf-list li {
+    margin: 1em 0;
   }
 </style>
