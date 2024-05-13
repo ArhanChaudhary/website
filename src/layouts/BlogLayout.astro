@@ -3,7 +3,7 @@ import Layout from "./Layout.astro";
 const { frontmatter } = Astro.props;
 ---
 
-<Layout title={frontmatter.title} sshUser="blog" highlightIndex={3}>
+<Layout title={frontmatter.title} description={frontmatter.description} sshUser="blog" highlightIndex={3}>
   <div class="system-ui" id="max-width-wrapper">
     <h1>{frontmatter.title}</h1>
     <p>
