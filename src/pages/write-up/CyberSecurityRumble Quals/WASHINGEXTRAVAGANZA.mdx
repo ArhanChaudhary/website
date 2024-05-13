@@ -1,0 +1,152 @@
+---
+description: I am just trying to wash my hoodies, but the landlords jacked the prices!
+category: Web Exploitation
+points: 431
+attachments: [washingextravaganza.tar.xz]
+links: [{ name: Website, url: https://washingextravaganza.rumble.host/ }]
+---
+{/* cspell:ignore becomevip addedcredits */}
+
+The challenge bluntly lays out what to do to get the flag. You need to spend 133.7 € to start the Flag Washing Machine, but apparently you can only load 5 € of free credits once.
+
+We're presented with a relatively large codebase. For me and my team, the primary difficulty was figuring out which specific part of it was vulnerable. Firstly, we noticed that the challenge was split into two parts: getting enough credits, and becoming VIP.
+
+`washingportal/userview/fixtures/machines.json`
+```json
+{ ... "name": "Flag Washing Machine", "flag": "TESTFLAG", "viponly": "True"}
+```
+
+`washingportal/userview/forms.py`
+```py
+if self.request.user.washer.balance < wmtype.cost:
+    msg = "Not enough credits for this machine"
+    self.add_error("wmtype", msg)
+    raise ValidationError(msg)
+
+if not self.request.user.washer.isvip and wmtype.viponly:
+    msg = "You need to be one of our premium customers to start this machine!"
+    self.add_error("wmtype", msg)
+    raise ValidationError(msg)
+```
+
+The most notable part about the codebase was it being split into two separate backends. A Django one, for the application logic, and an Express one, for the transactional logic. State is transferred between one another using JSON Web Tokens (JWT) with a private signing secret.
+
+If we had this signing secret, we could fake transaction requests and easily give our account the credits needed. We tried to leak the signing secret by crashing the Django backend suspiciously left in debug mode, but the debug page masked its actual value. After some more tinkering around, we were certain that the vulnerability was not crypto related and instead with the application logic itself.
+
+### Becoming VIP
+
+Here's the endpoint that actually grants you VIP.
+
+`washingportal/userview/views.py`
+```py
+@login_required
+def addedcredits(request):
+    encoded = request.GET["req"]
+    try:
+        data = jwt.decode(encoded, settings.SIGNINGSECRET, algorithms="HS256")
+    except:
+        return HttpResponseBadRequest()
+    payment = Payment.objects.get(nonce=uuid.UUID(data["nonce"]))
+    if not payment:
+        return HttpResponseGone()
+    washer = User.objects.get(username=data["user"]).washer
+    ...
+    elif data["scope"] == "vip":
+        if data["amount"] == settings.VIPCOST:
+            washer.isvip = True
+            washer.save()
+            payment.delete()
+            return redirect(dashboard)
+    return HttpResponseBadRequest()
+```
+
+The key observation is the fact that this function offers no form of validation. You simply need to provide a valid JWT with scope "vip" and amount "500" to become VIP.
+
+... And we have another endpoint that does just that!
+
+`washingportal/userview/views.py`
+```py
+@login_required
+def becomevip(request):
+    payment = Payment.objects.create(user=request.user.washer, amount=settings.VIPCOST)
+    payment.save()
+    req = jwt.encode(
+        {
+            "amount": payment.amount,
+            "user": payment.user.user.username,
+            "nonce": str(payment.nonce),
+            "scope": "vip",
+            "target": "Washing Extravaganza",
+            "returnpath": settings.THISSERVER_URL + "/addedcredits",
+        },
+        settings.SIGNINGSECRET,
+        algorithm="HS256",
+    )
+    return redirect(settings.PAYMENTPROVIDER_URL + "/payment/?req=" + req)
+```
+
+If you navigate to /becomevip, copy the JWT in the query string, and give it to /addedcredits, you'll become VIP! Hooray!
+
+### Getting enough credits
+
+Once again, you need to be especially observant. The attack vector we used leverages a subtle oversight in the following code.
+
+`paymentprocessor/index.js`
+```js
+const alreadyhadfreemoney = new Set([]);
+const alreadyprocessed = new Set([]);
+
+app.post("/process", (req, res) => {
+    const decoded = jwt.verify(req.body.jwt, process.env.SIGNINGSECRET);
+    ...
+    if (decoded.nonce in alreadyprocessed) {
+        return res.status(410).send("Payment already processed.");
+    }
+    const token = jwt.sign(
+        {
+            amount: decoded.amount,
+            user: decoded.user,
+            nonce: decoded.nonce,
+            scope: "payment",
+        },
+        process.env.SIGNINGSECRET,
+        { algorithm: "HS256" }
+    );
+    alreadyprocessed.add(decoded.nonce);
+    alreadyhadfreemoney.add(decoded.user);
+    return res.redirect(decoded.returnpath + "?req=" + token);
+    ...
+});
+
+app.get("/payment", (req, res) => {
+    const decoded = jwt.verify(req.query.req, process.env.SIGNINGSECRET);
+    ...
+    const freenotallowed = alreadyhadfreemoney.has(decoded.user) || decoded.amount > freemoney_limit;
+    ...
+    const token = jwt.sign(
+        {
+            amount: decoded.amount,
+            user: decoded.user,
+            nonce: decoded.nonce,
+            scope: freenotallowed ? "limbo" : "freelimbo",
+            // ^ (The scope `freelimbo` represents a successful transaction and `limbo` an unsuccessful one.)
+            returnpath: decoded.returnpath,
+        },
+        process.env.SIGNINGSECRET,
+        { algorithm: "HS256" }
+    );
+    ...
+});
+```
+
+When the user requests a transaction, the transaction backend:
+1. Navigates them to /payment
+2. Ensures the user hadn't already redeemed their one-time free credit
+3. Navigates them to /process upon form submit
+4. Marks the user as having redeemed their one-time free credit
+
+The oversight lies at steps 1 and 2. You can repeat these two steps indefinitely on different browser tabs and redeem all of these transactions en-mass without issue. You may have noticed that there is a check to see if a transaction's nonce has already been redeemed, but this doesn't matter because the nonce is different for every transaction.
+
+*(P.S. I'm not sure why `decoded.nonce in alreadyprocessed` is incorrectly used instead of `alreadyprocessed.has(decoded.nonce)`. Perhaps the organizers made a mistake? Either way, it doesn't affect the solution)*
+
+Thirty tabs of dirty laundry later, we've finally ~~laundered~~ earned enough credits to start the Flag Washing Machine: {/* cspell:disable */}`CSR{Som3tim3s_3v3n_washing_c4n_be_fun_but_p4ying_f0r_it_is_n3ver}`
