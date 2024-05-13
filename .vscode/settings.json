@@ -1,0 +1,10 @@
+{
+    "cSpell.languageSettings": [
+        {
+            "languageId": "markdown",
+            "ignoreRegExpList": [
+                "/```[\\s\\S]*?```|`[\\s\\S]*?`|---[\\s\\S]*?---/gm"
+            ]
+        }
+    ]
+}

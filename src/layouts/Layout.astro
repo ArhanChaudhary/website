@@ -298,6 +298,7 @@ import "normalize.css";
 
       main {
         flex: 1;
+        word-wrap: break-word;
         /* Layout.astro and index.astro hardcoded to this value */
         margin-left: 100px;
         margin-right: var(--mobile-padding);
@@ -509,17 +510,16 @@ import "normalize.css";
 
   .astro-code {
     padding: 1em;
-    font-size: 15px;
-    font-family: "Input Mono", monospace;
+    font-size: 14px;
 
     code {
-      font-size: 15px;
       background-color: initial;
       padding: initial;
     }
   }
 
   code {
+    font-family: "Input Mono", monospace;
     background-color: hsl(220, 13%, 27%);
     border-radius: 2px;
     padding: 2px 4px;
@@ -573,7 +573,8 @@ import "normalize.css";
 
   @media (max-width: variables.$mobile-width) {
     #max-width-wrapper {
-      margin: 0 auto;
+      margin-right: auto;
+      margin-left: auto;
     }
   }
 </style>
