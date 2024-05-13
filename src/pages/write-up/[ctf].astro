@@ -13,6 +13,7 @@ export interface WriteupFrontmatter {
     | "Binary Exploitation";
   points: number;
   attachments?: string[];
+  links?: { name: string; url: string }[];
 }
 
 export async function getStaticPaths() {
@@ -21,7 +22,7 @@ export async function getStaticPaths() {
   }
 
   const allWriteups = (await Astro.glob<WriteupFrontmatter>(
-    "../write-up/**/*.mdx"
+    "../write-up/**/!(_).mdx"
   )) as MDXInstance<Record<string, any>>[];
 
   const CTFWriteupNames = [
@@ -58,22 +59,24 @@ const categorySorting = [
   "Reverse Engineering",
   "Binary Exploitation",
 ];
+for (const writeup of writeups) {
+  if (!categorySorting.includes(writeup.frontmatter.category)) {
+    throw new Error("Invalid writeup category");
+  }
+}
 writeups.sort((a, b) => {
   const firstIndex = categorySorting.indexOf(a.frontmatter.category);
-  if (firstIndex === -1) throw new Error("Invalid category");
   const secondIndex = categorySorting.indexOf(b.frontmatter.category);
-  if (secondIndex === -1) throw new Error("Invalid category");
-  const diff = firstIndex - secondIndex;
-  if (diff === 0) {
+  if (firstIndex === secondIndex) {
     return b.frontmatter.points - a.frontmatter.points;
   } else {
-    return diff;
+    return firstIndex - secondIndex;
   }
 });
 ---
 
 <Layout title={ctfName} sshUser="ctf" highlightIndex={4}>
-  <div class="system-ui" id="write-up-wrapper">
+  <div class="system-ui" id="max-width-wrapper">
     <h1>{ctfName}</h1>
     <ul>
       {

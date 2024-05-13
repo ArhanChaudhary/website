@@ -9,7 +9,6 @@ const allWriteups = await Astro.glob("../pages/write-up/**/*.mdx");
 const CTFWriteupNames = new Set<string>();
 const allCTFs: { link: string; endDate: string; name: string }[] = [];
 for (const writeup of allWriteups) {
-  console.log(writeup.url!);
   const writeupName = writeup.url!.split("/").at(-1)!;
   const CTFName = urlToCTFName(writeup.url!);
   if (writeupName === "_") {

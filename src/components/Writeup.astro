@@ -35,6 +35,26 @@ const { writeup, prevCategory, ctfName } = Astro.props;
 <p class="blockquote-wrapper">{writeup.frontmatter.description}</p>
 <p>
   {
+    writeup.frontmatter.links && (
+      <>
+        <i>
+          Links:
+          {(writeup.frontmatter.links as { name: string; url: string }[]).map(
+            (link, i) => (
+              <>
+                <a href={link.url}>{link.name}</a>
+                {writeup.frontmatter.links.length > 2 &&
+                  i !== writeup.frontmatter.links.length - 1 && <>,&nbsp;</>}
+                {i === writeup.frontmatter.links.length - 2 && <>and</>}
+              </>
+            )
+          )}
+        </i>
+        <br />
+      </>
+    )
+  }
+  {
     writeup.frontmatter.attachments && (
       <i>
         Attachments:
@@ -47,7 +67,7 @@ const { writeup, prevCategory, ctfName } = Astro.props;
                 .at(-1)!
                 .replace(".mdx", "")}/${attachment}`}
             >
-              {attachment.split("/").at(-1)}
+              {attachment}
             </a>
             {writeup.frontmatter.attachments.length > 2 &&
               i !== writeup.frontmatter.attachments.length - 1 && <>,&nbsp;</>}
