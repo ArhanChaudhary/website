@@ -17,27 +17,20 @@ export interface WriteupFrontmatter {
 }
 
 export async function getStaticPaths() {
-  function urlToCTFName(url: string) {
-    return url.split("/").at(-2)!;
-  }
-
   const allWriteups = (await Astro.glob<WriteupFrontmatter>(
     "../write-up/**/!(_).mdx"
   )) as MDXInstance<Record<string, any>>[];
 
   const CTFWriteupNames = [
-    ...new Set(
-      allWriteups.map((writeup) => urlToCTFName(writeup.url as string))
-    ),
+    ...new Set(allWriteups.map((writeup) => writeup.url!.split("/").at(-2)!)),
   ];
 
   return CTFWriteupNames.map((CTFName) => {
     const sluggifiedCTFName = CTFName.toLowerCase().replaceAll(" ", "-");
     const iteratorCTFWriteups = allWriteups.filter(
       (writeup) =>
-        urlToCTFName(writeup.url as string)
-          .toLowerCase()
-          .replaceAll(" ", "-") === sluggifiedCTFName
+        writeup.url!.split("/").at(-2)!.toLowerCase().replaceAll(" ", "-") ===
+        sluggifiedCTFName
     );
     return {
       params: {
@@ -88,14 +81,13 @@ writeups.sort((a, b) => {
             )}
             <li class="writeup-toc">
               <a
-                href={`#${writeup.file
-                  .split("/")
+                href={`#${writeup
+                  .url!.split("/")
                   .at(-1)!
-                  .replace(".mdx", "")
                   .toLowerCase()
                   .replaceAll(" ", "-")}`}
               >
-                {writeup.file.split("/").at(-1)!.replace(".mdx", "")}
+                {writeup.url!.split("/").at(-1)}
               </a>
             </li>
           </>

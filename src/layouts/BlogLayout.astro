@@ -1,15 +1,20 @@
 ---
 import Layout from "./Layout.astro";
-const { frontmatter } = Astro.props;
+const { blog } = Astro.props;
 ---
 
-<Layout title={frontmatter.title} description={frontmatter.description} sshUser="blog" highlightIndex={3}>
+<Layout
+  title={blog.url.split("/").at(-1)}
+  description={blog.frontmatter.description}
+  sshUser="blog"
+  highlightIndex={3}
+>
   <div class="system-ui" id="max-width-wrapper">
-    <h1>{frontmatter.title}</h1>
+    <h1>{blog.url.split("/").at(-1)}</h1>
     <p>
       Published {
-        frontmatter.pubDate
-          ? new Date(frontmatter.pubDate).toLocaleDateString("en-US", {
+        blog.frontmatter.pubDate
+          ? new Date(blog.frontmatter.pubDate).toLocaleDateString("en-US", {
               year: "numeric",
               month: "long",
               day: "numeric",

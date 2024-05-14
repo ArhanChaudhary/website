@@ -2,13 +2,12 @@
 import Layout from "../layouts/Layout.astro";
 import BlogPreview from "../components/BlogPreview.astro";
 
-interface Frontmatter {
-  title: string;
+export interface BlogFrontmatter {
   description: string;
   pubDate?: string;
 }
 
-const allPosts = (await Astro.glob<Frontmatter>("../pages/blog/*.mdx")).filter(
+const allBlogs = (await Astro.glob<BlogFrontmatter>("../pages/blog/*.mdx")).filter(
   (post) => post.frontmatter.pubDate
 );
 ---
@@ -17,15 +16,15 @@ const allPosts = (await Astro.glob<Frontmatter>("../pages/blog/*.mdx")).filter(
   <div id="max-width-wrapper" class="input-mono">
     <h1>My blog</h1>
     {
-      allPosts
+      allBlogs
         .sort(
           (a, b) =>
             new Date(b.frontmatter.pubDate!).getTime() -
             new Date(a.frontmatter.pubDate!).getTime()
         )
-        .map((post, i) => (
+        .map((blog, i) => (
           <BlogPreview
-            pubDate={new Date(post.frontmatter.pubDate!).toLocaleDateString(
+            pubDate={new Date(blog.frontmatter.pubDate!).toLocaleDateString(
               "en-US",
               {
                 year: "2-digit",
@@ -33,12 +32,12 @@ const allPosts = (await Astro.glob<Frontmatter>("../pages/blog/*.mdx")).filter(
                 day: "numeric",
               }
             )}
-            title={post.frontmatter.title}
-            description={post.frontmatter.description}
-            url={post.url}
+            title={blog.url!.split("/").at(-1)!}
+            description={blog.frontmatter.description}
+            url={blog.url}
             colorDotRed={i % 2 === 0}
             first={i === 0}
-            last={i === allPosts.length - 1}
+            last={i === allBlogs.length - 1}
           />
         ))
     }

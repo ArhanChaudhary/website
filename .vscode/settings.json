@@ -1,10 +1,9 @@
 {
-    "cSpell.languageSettings": [
-        {
-            "languageId": "markdown",
-            "ignoreRegExpList": [
-                "/```[\\s\\S]*?```|`[\\s\\S]*?`|---[\\s\\S]*?---/gm"
-            ]
-        }
-    ]
+  "cSpell.languageSettings": [
+    {
+      "languageId": "markdown",
+      "ignoreRegExpList": ["/```[\\s\\S]*?```|`[\\s\\S]*?`|---[\\s\\S]*?---/gm"]
+    }
+  ],
+  "cSpell.words": ["astro"]
 }
