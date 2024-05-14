@@ -7,9 +7,9 @@ export interface BlogFrontmatter {
   pubDate?: string;
 }
 
-const allBlogs = (await Astro.glob<BlogFrontmatter>("../pages/blog/*.mdx")).filter(
-  (post) => post.frontmatter.pubDate
-);
+const allBlogs = (
+  await Astro.glob<BlogFrontmatter>("../pages/blog/*.mdx")
+).filter((post) => post.frontmatter.pubDate);
 ---
 
 <Layout title="Arhan's Blog" highlightIndex={3} sshUser="blog">
@@ -34,7 +34,13 @@ const allBlogs = (await Astro.glob<BlogFrontmatter>("../pages/blog/*.mdx")).filt
             )}
             title={blog.url!.split("/").at(-1)!}
             description={blog.frontmatter.description}
-            url={blog.url}
+            url={(() => {
+              const split = blog.url!.split("/");
+              split[split.length - 1] = split[split.length - 1]
+                .toLowerCase()
+                .replaceAll(" ", "-");
+              return split.join("/");
+            })()}
             colorDotRed={i % 2 === 0}
             first={i === 0}
             last={i === allBlogs.length - 1}

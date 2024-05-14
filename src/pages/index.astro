@@ -13,7 +13,7 @@ import mail from "../assets/index/mail.png";
       <div class="first"></div>
       <div class="second"></div>
     </div>
-    <div id="max-width-container">
+    <div id="max-width-wrapper">
       <div id="hi">
         <span>H</span><span>i</span><span class="ignored">&nbsp;</span><span
           >t</span
@@ -162,11 +162,11 @@ import mail from "../assets/index/mail.png";
       }
     }
 
-    #max-width-container {
-      max-width: 900px;
+    #max-width-wrapper {
+      max-width: 79ch;
       flex: 1;
-      height: 32px;
       position: relative;
+      margin-bottom: initial;
 
       #hi {
         animation: 0.1s linear both 0.1s;
@@ -329,7 +329,7 @@ import mail from "../assets/index/mail.png";
     }
   }
 
-  @media (max-width: 750px) {
+  @media (max-width: variables.$mobile-width - 200px) {
     #shape-things > :not(#shape-thing-3, :last-child) {
       display: none !important;
     }
@@ -344,6 +344,12 @@ import mail from "../assets/index/mail.png";
       margin-left: calc(var(--mobile-padding) * -1) !important;
       /* Layout.astro softcoded to this value */
       width: 270px !important;
+    }
+  }
+
+  @media (min-width: variables.$mobile-width) and (max-width: variables.$mobile-width + 100px) {
+    :global(#copyright) {
+      visibility: hidden;
     }
   }
 </style>
