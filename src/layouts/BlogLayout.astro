@@ -7,7 +7,6 @@ const { blog } = Astro.props;
   title={blog.url.split("/").at(-1)}
   description={blog.frontmatter.description}
   sshUser="blog"
-  highlightIndex={3}
 >
   <div class="system-ui" id="max-width-wrapper">
     <h1>{blog.url.split("/").at(-1)}</h1>

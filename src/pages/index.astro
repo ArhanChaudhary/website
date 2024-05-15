@@ -7,7 +7,7 @@ import inLogo from "../assets/index/in-logo.png";
 import mail from "../assets/index/mail.png";
 ---
 
-<Layout title="Arhan's Homepage" highlightIndex={1} sshUser="home">
+<Layout title="Arhan's Homepage" sshUser="home">
   <div id="outer-flex-wrapper" class="input-mono">
     <div id="shape-thing-1">
       <div class="first"></div>
@@ -341,13 +341,13 @@ import mail from "../assets/index/mail.png";
 
   @media (max-width: variables.$mobile-width) {
     #shape-thing-1 {
-      margin-left: calc(var(--mobile-padding) * -1) !important;
+      margin-left: calc(var(--mobile-outer-padding) * -1) !important;
       /* Layout.astro softcoded to this value */
       width: 270px !important;
     }
   }
 
-  @media (min-width: variables.$mobile-width) and (max-width: variables.$mobile-width + 100px) {
+  @media (min-width: variables.$mobile-width) and (max-width: variables.$mobile-width + 50px) {
     :global(#copyright) {
       visibility: hidden;
     }

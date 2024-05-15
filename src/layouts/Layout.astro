@@ -1,13 +1,31 @@
 ---
+import "normalize.css";
+
 interface Props {
   title: string;
   sshUser: string;
-  highlightIndex: number;
   description?: string;
 }
 
-const { title, sshUser, highlightIndex, description = "Arhan's personal website" } = Astro.props;
-import "normalize.css";
+const {
+  title,
+  sshUser,
+  description = "Arhan's personal website",
+} = Astro.props;
+
+const highlightIndex = {
+  "home": 1,
+  "projects": 2,
+  "blog": 3,
+  "ctf": 4,
+  "reading": 5,
+  "cubing": 6,
+  "media": 7,
+  "nuclear-bomb": 8,
+}[sshUser];
+if (highlightIndex === undefined) {
+  throw new Error("invalid sshUser");
+}
 ---
 
 <!doctype html>
@@ -212,7 +230,7 @@ import "normalize.css";
         <a href="/cubing">Cubing</a>
         <a href="/media">Media</a>
         {highlightIndex == 8 && <a href="/404">Not Found</a>}
-        <div id="nav-arrow">
+        <div id="nav-arrow" style={`--highlightIndex: ${highlightIndex}`}>
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="-41 0 41 34">
             <path
               d="M 0 0 V 24 H -28 V 34 L -41 21 L -28 8 V 18 H -6 V 0"
@@ -229,7 +247,7 @@ import "normalize.css";
   </body>
 </html>
 
-<style define:vars={{ highlightIndex }} lang="scss">
+<style lang="scss">
   @use "../assets/variables";
 
   @keyframes opacity {
@@ -282,7 +300,7 @@ import "normalize.css";
 
       #ssh-text {
         cursor: pointer;
-        margin: 20px 68px 20px 50px;
+        margin: 20px 68px 20px var(--outer-padding);
         font-weight: 500;
         color: white;
         font-size: 16px;
@@ -302,7 +320,7 @@ import "normalize.css";
         word-wrap: break-word;
         /* Layout.astro and index.astro hardcoded to this value */
         margin-left: 100px;
-        margin-right: var(--mobile-padding);
+        margin-right: var(--mobile-outer-padding);
         position: relative;
         color: white;
 
@@ -328,8 +346,7 @@ import "normalize.css";
         font-size: 16px;
         font-weight: 200;
         color: hsl(0, 0%, 70%);
-        /* Layout.astro and index.astro hardcoded to this value */
-        margin-left: 100px;
+        margin-left: var(--outer-padding);
         margin-bottom: 15px;
       }
     }
@@ -433,7 +450,7 @@ import "normalize.css";
       main,
       #copyright,
       #ssh-text {
-        margin-left: var(--mobile-padding) !important;
+        margin-left: var(--mobile-outer-padding) !important;
       }
 
       #troll-flex-wrapper {
@@ -479,7 +496,8 @@ import "normalize.css";
     font-size: 18px;
     --lb: hsl(180, 75%, 51%);
     --lr: hsl(333, 100%, 62%);
-    --mobile-padding: 20px;
+    --outer-padding: 50px;
+    --mobile-outer-padding: 20px;
   }
 
   a {
