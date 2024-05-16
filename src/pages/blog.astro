@@ -1,49 +1,30 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import BlogPreview from "../components/BlogPreview.astro";
+import { getCollection } from "astro:content";
 
-export interface BlogFrontmatter {
-  description: string;
-  pubDate?: string;
-}
-
-const allBlogs = (
-  await Astro.glob<BlogFrontmatter>("../pages/blog/*.mdx")
-).filter((post) => post.frontmatter.pubDate);
+const publishedBlogs = await getCollection("blog", ({ data }) => data.pubDate);
 ---
 
 <Layout title="Arhan's Blog" sshUser="blog">
   <div id="max-width-wrapper" class="input-mono">
     <h1>My blog</h1>
     {
-      allBlogs
-        .sort(
-          (a, b) =>
-            new Date(b.frontmatter.pubDate!).getTime() -
-            new Date(a.frontmatter.pubDate!).getTime()
-        )
+      publishedBlogs
+        .sort((a, b) => b.data.pubDate!.getTime() - a.data.pubDate!.getTime())
         .map((blog, i) => (
           <BlogPreview
-            pubDate={new Date(blog.frontmatter.pubDate!).toLocaleDateString(
-              "en-US",
-              {
-                year: "2-digit",
-                month: "numeric",
-                day: "numeric",
-              }
-            )}
-            title={blog.url!.split("/").at(-1)!}
-            description={blog.frontmatter.description}
-            url={(() => {
-              const split = blog.url!.split("/");
-              split[split.length - 1] = split[split.length - 1]
-                .toLowerCase()
-                .replaceAll(" ", "-");
-              return split.join("/");
-            })()}
+            pubDate={blog.data.pubDate!.toLocaleDateString("en-US", {
+              year: "2-digit",
+              month: "numeric",
+              day: "numeric",
+            })}
+            title={blog.id.replace(".mdx", "")}
+            description={blog.data.description}
+            url={`/blog/${blog.slug}`}
             colorDotRed={i % 2 === 0}
             first={i === 0}
-            last={i === allBlogs.length - 1}
+            last={i === publishedBlogs.length - 1}
           />
         ))
     }

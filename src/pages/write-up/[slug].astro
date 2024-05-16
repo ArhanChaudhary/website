@@ -1,0 +1,77 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import Writeup from "../../components/Writeup.astro";
+import { getCollection } from "astro:content";
+import { writeupCategory } from "../../content/config";
+
+export async function getStaticPaths() {
+  const allWriteups = await getCollection("write-up");
+  const CTFWriteupNames = [
+    ...new Set(allWriteups.map((writeup) => writeup.id.split("/").at(-2)!)),
+  ];
+  return CTFWriteupNames.map((CTFName) => {
+    const iteratorCTFWriteups = allWriteups.filter(
+      (writeup) => writeup.id.split("/").at(-2)! === CTFName
+    );
+    return {
+      params: {
+        slug: CTFName.toLowerCase().replaceAll(" ", "-"),
+      },
+      props: {
+        writeups: iteratorCTFWriteups,
+        ctfName: CTFName,
+      },
+    };
+  });
+}
+
+const { writeups, ctfName } = Astro.props;
+writeups.sort((a, b) => {
+  const firstIndex = writeupCategory.indexOf(a.data.category);
+  const secondIndex = writeupCategory.indexOf(b.data.category);
+  if (firstIndex === secondIndex) {
+    return b.data.points - a.data.points;
+  } else {
+    return firstIndex - secondIndex;
+  }
+});
+---
+
+<Layout title={ctfName + " Write-up"} sshUser="ctf">
+  <div class="system-ui" id="max-width-wrapper">
+    <h1>{ctfName}</h1>
+    <ul>
+      {
+        writeups.map((writeup, i) => (
+          <>
+            {writeups[i - 1]?.data.category !== writeup.data.category && (
+              <li class="category-toc">{writeup.data.category}</li>
+            )}
+            <li class="writeup-toc">
+              <a href={`#${writeup.slug.split("/").at(-1)!}`}>
+                {writeup.id.split("/").at(-1)!.replace(".mdx", "")}
+              </a>
+            </li>
+          </>
+        ))
+      }
+    </ul>
+    {
+      writeups.map((writeup, i) => (
+        <Writeup {writeup} prevCategory={writeups[i - 1]?.data.category} />
+      ))
+    }
+  </div>
+</Layout>
+
+<style lang="scss">
+  .category-toc {
+    margin-top: 1em;
+  }
+
+  .writeup-toc {
+    list-style-type: circle;
+    list-style-position: inside;
+    padding-left: 40px;
+  }
+</style>

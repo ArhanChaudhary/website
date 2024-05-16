@@ -1,76 +1,72 @@
 ---
-import type { MDXInstance } from "astro";
+import type { CollectionEntry } from "astro:content";
 
 interface Props {
-  writeup: MDXInstance<Record<string, any>>;
+  writeup: CollectionEntry<"write-up">;
   prevCategory: string | undefined;
-  ctfName: string;
 }
 
-const { writeup, prevCategory, ctfName } = Astro.props;
+const { writeup, prevCategory } = Astro.props;
+const { Content } = await writeup.render();
 ---
 
 {
-  prevCategory !== writeup.frontmatter.category && (
+  prevCategory !== writeup.data.category && (
     <div class="category-wrapper">
       <hr />
-      <h2 id={writeup.frontmatter.category.toLowerCase().replaceAll(" ", "-")}>
-        {writeup.frontmatter.category}
+      <h2 id={writeup.data.category.toLowerCase().replaceAll(" ", "-")}>
+        {writeup.data.category}
       </h2>
       <hr />
     </div>
   )
 }
-<h3 id={writeup.url!.split("/").at(-1)!.toLowerCase().replaceAll(" ", "-")}>
-  {writeup.url!.split("/").at(-1)!} —
-  {writeup.frontmatter.points} points
+<h3 id={writeup.slug.split("/").at(-1)!}>
+  {writeup.id.split("/").at(-1)!.replace(".mdx", "")} —
+  {writeup.data.points} points
 </h3>
-<p class="blockquote-wrapper">{writeup.frontmatter.description}</p>
+<p class="blockquote-wrapper">{writeup.data.description}</p>
 <p>
   {
-    writeup.frontmatter.links && (
+    writeup.data.links && (
       <>
         <i>
           Links:
-          {(writeup.frontmatter.links as { name: string; url: string }[]).map(
-            (link, i) => (
-              <>
-                <a href={link.url}>{link.name}</a>
-                {writeup.frontmatter.links.length > 2 &&
-                  i !== writeup.frontmatter.links.length - 1 && <>,&nbsp;</>}
-                {i === writeup.frontmatter.links.length - 2 && <>and</>}
-              </>
-            )
-          )}
+          {writeup.data.links.map((link, i) => (
+            <>
+              <a href={link.url}>{link.name}</a>
+              {writeup.data.links!.length > 2 &&
+                i !== writeup.data.links!.length - 1 && <>,&nbsp;</>}
+              {i === writeup.data.links!.length - 2 && <>and</>}
+            </>
+          ))}
         </i>
         <br />
       </>
     )
   }
   {
-    writeup.frontmatter.attachments && (
+    writeup.data.attachments && (
       <i>
         Attachments:
-        {(writeup.frontmatter.attachments as string[]).map((attachment, i) => (
+        {writeup.data.attachments.map((attachment, i) => (
           <>
             <a
               class="attachment-link"
-              href={`/write-up/${ctfName}/${writeup
-                .url!.split("/")
-                .at(-1)!}/${attachment}`}
+              href={`/write-up/${writeup.id.replace(".mdx", "/")}${attachment}`}
             >
               {attachment}
             </a>
-            {writeup.frontmatter.attachments.length > 2 &&
-              i !== writeup.frontmatter.attachments.length - 1 && <>,&nbsp;</>}
-            {i === writeup.frontmatter.attachments.length - 2 && <>and</>}
+            {writeup.data.attachments!.length > 2 &&
+              i !== writeup.data.attachments!.length - 1 && <>,&nbsp;</>}
+            {i === writeup.data.attachments!.length - 2 && <>and</>}
           </>
         ))}
       </i>
     )
   }
 </p>
-<writeup.Content />
+<Content />
 
 <style lang="scss">
   .blockquote-wrapper {

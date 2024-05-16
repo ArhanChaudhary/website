@@ -1,21 +1,53 @@
 ---
-import Layout from "../layouts/Layout.astro";
+const allCTFs = [
+  {
+    ctfName: "CyberSecurityRumble Quals",
+    ctfLink: "https://ctftime.org/event/2224",
+  },
+  {
+    ctfName: "b01lers CTF 2024",
+    ctfLink: "https://ctftime.org/event/2250",
+  },
+  {
+    ctfName: "TAMUctf 2024",
+    ctfLink: "https://ctftime.org/event/2238",
+  },
+  {
+    ctfName: "GlacierCTF 2023",
+    ctfLink: "https://ctftime.org/event/1992",
+  },
+  {
+    ctfName: "Square CTF 2023",
+    ctfLink: "https://ctftime.org/event/2111",
+  },
+  {
+    ctfName: "HK Cyber Security New Generation CTF Challenge 2023",
+    ctfLink: "https://ctftime.org/event/2122",
+  },
+  {
+    ctfName: "HITCON CTF 2022",
+    ctfLink: "https://ctftime.org/event/1772",
+  },
+  {
+    ctfName: "GlacierCTF 2022",
+    ctfLink: "https://ctftime.org/event/1803",
+  },
+];
 
-const allWriteups = await Astro.glob("../pages/write-up/**/*.mdx");
-const CTFWriteupNames = new Set<string>();
-const allCTFs: { link: string; endDate: string; name: string }[] = [];
-for (const writeup of allWriteups) {
-  const writeupName = writeup.url!.split("/").at(-1)!;
-  const CTFName = writeup.url!.split("/").at(-2)!;
-  if (writeupName === "_") {
-    allCTFs.push({
-      ...(writeup.frontmatter as { link: string; endDate: string }),
-      name: CTFName,
-    });
-  } else {
-    CTFWriteupNames.add(CTFName);
-  }
-}
+import Layout from "../layouts/Layout.astro";
+import { getCollection } from "astro:content";
+
+const allWriteups = await getCollection("write-up");
+const CTFWriteupNames = new Set(
+  allWriteups.map((writeup) => {
+    const ret = writeup.id.split("/").at(-2)!;
+    if (allCTFs.some(({ ctfName }) => ret === ctfName)) {
+      return ret;
+    } else {
+      throw new Error("CTF name typo");
+    }
+  })
+);
 ---
 
 <Layout title="Arhan's CTF Page" sshUser="ctf">
@@ -84,29 +116,24 @@ for (const writeup of allWriteups) {
     </p>
     <ul id="ctf-list">
       {
-        allCTFs
-          .sort(
-            (a, b) =>
-              new Date(b.endDate).getTime() - new Date(a.endDate).getTime()
-          )
-          .map(({ name, link }) => (
-            <li>
-              <a href={link}>{name}</a> —
-              {(() => {
-                if (CTFWriteupNames.has(name)) {
-                  return (
-                    <a
-                      href={`/write-up/${name.toLowerCase().replaceAll(" ", "-")}`}
-                    >
-                      write-up
-                    </a>
-                  );
-                } else {
-                  return "(no write-up)";
-                }
-              })()}
-            </li>
-          ))
+        allCTFs.map(({ ctfName, ctfLink }) => (
+          <li>
+            <a href={ctfLink}>{ctfName}</a> —
+            {(() => {
+              if (CTFWriteupNames.has(ctfName)) {
+                return (
+                  <a
+                    href={`/write-up/${ctfName.toLowerCase().replaceAll(" ", "-")}`}
+                  >
+                    write-up
+                  </a>
+                );
+              } else {
+                return "(no write-up)";
+              }
+            })()}
+          </li>
+        ))
       }
     </ul>
   </div>
