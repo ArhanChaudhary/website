@@ -1,0 +1,33 @@
+---
+import type { CollectionEntry } from "astro:content";
+
+interface Props {
+  section: CollectionEntry<"reading">;
+}
+
+const { section } = Astro.props;
+const { Content } = await section.render();
+---
+
+<details>
+  <summary>{section.id.replace(".mdx", "")}</summary>
+  <div class="indent">
+    <Content />
+  </div>
+</details>
+
+<style lang="scss">
+  details {
+    margin: 1em 0;
+
+    summary {
+      font-size: 24px;
+      font-weight: bolder;
+      cursor: pointer;
+    }
+
+    .indent {
+      margin-left: 40px;
+    }
+  }
+</style>

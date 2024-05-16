@@ -34,7 +34,12 @@ const writeupCollection = defineCollection({
   }),
 });
 
+const readingCollection = defineCollection({
+  type: "content",
+});
+
 export const collections = {
   blog: blogCollection,
   "write-up": writeupCollection,
+  reading: readingCollection,
 };

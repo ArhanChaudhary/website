@@ -53,7 +53,7 @@ const { Content } = await writeup.render();
           <>
             <a
               class="attachment-link"
-              href={`/write-up/${writeup.id.replace(".mdx", "/")}${attachment}`}
+              href={`/write-up/${writeup.id.replace(".mdx", "")}/${attachment}`}
             >
               {attachment}
             </a>

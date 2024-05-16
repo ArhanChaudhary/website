@@ -1,7 +1,16 @@
 ---
 import Layout from "../layouts/Layout.astro";
+import ReadingSection from "../components/ReadingSection.astro";
+import { getCollection } from "astro:content";
+
+const allSections = await getCollection("reading");
+allSections.reverse();
 ---
 
 <Layout title="Arhan's Reading Notes" sshUser="reading">
-  This part of my website is a work in progress.
+  <div id="max-width-wrapper" class="system-ui">
+    <h1 class="input-mono">My reading notes</h1>
+    <hr />
+    {allSections.map((section) => <ReadingSection {section} />)}
+  </div>
 </Layout>
