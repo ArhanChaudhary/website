@@ -83,7 +83,7 @@ const CTFWriteupNames = new Set(
     </script>
     <p>
       Part of my love for competing in CTFs comes from having fun with my team.
-      My close high school friends <a href="https://rluo.dev/">Ruien</a>, <a
+      My close high school friends <a href="https://rluo.dev">Ruien</a>, <a
         href="https://bithole.dev">Adrian</a
       >, <a href="https://kot.pink">Kevin</a> and I form the CTF team <a
         href="https://ctftime.org/team/207689">asmhole</a
@@ -123,7 +123,7 @@ const CTFWriteupNames = new Set(
               if (CTFWriteupNames.has(ctfName)) {
                 return (
                   <a
-                    href={`/write-up/${ctfName.toLowerCase().replaceAll(" ", "-")}`}
+                    href={`/write-up/${ctfName.toLowerCase().replaceAll(" ", "-")}/`}
                   >
                     write-up
                   </a>

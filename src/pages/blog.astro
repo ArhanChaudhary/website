@@ -21,7 +21,7 @@ const publishedBlogs = await getCollection("blog", ({ data }) => data.pubDate);
             })}
             title={blog.id.replace(".mdx", "")}
             description={blog.data.description}
-            url={`/blog/${blog.slug}`}
+            url={`/blog/${blog.slug}/`}
             colorDotRed={i % 2 === 0}
             first={i === 0}
             last={i === publishedBlogs.length - 1}
