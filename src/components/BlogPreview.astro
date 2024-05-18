@@ -22,11 +22,18 @@ const { pubDate, title, description, url, colorDotRed, first, last } =
 </div>
 
 <style lang="scss">
+  @use "../assets/variables";
+
   .grid-wrapper {
     display: grid;
     align-items: center;
-    grid-template-columns: 8ch 2ch 10px 4ch minmax(0, 45ch);
-    grid-template-rows: auto 3px auto 50px;
+    --timeline-width: 10px;
+    --date-gap: 2ch;
+    grid-template-columns: 8ch var(--date-gap) var(--timeline-width) calc(
+        var(--date-gap) * 2
+      ) minmax(0, 45ch);
+    --description-gap: 2px;
+    grid-template-rows: auto var(--description-gap) auto 50px;
 
     .pub-date {
       color: hsl(0, 0%, 60%);
@@ -78,7 +85,7 @@ const { pubDate, title, description, url, colorDotRed, first, last } =
       align-self: normal;
       justify-self: center;
       background-color: hsl(0, 0%, 25%);
-      width: 3px;
+      width: 30%;
       position: relative;
       z-index: -1;
     }
@@ -106,6 +113,19 @@ const { pubDate, title, description, url, colorDotRed, first, last } =
 
       &.last {
         display: none;
+      }
+    }
+  }
+
+  @media (max-width: variables.$mobile-width) {
+    .grid-wrapper {
+      --date-gap: 1.5ch;
+      --timeline-width: 8px;
+      --description-gap: 0;
+      font-size: 16px;
+
+      a {
+        font-size: 21px;
       }
     }
   }
