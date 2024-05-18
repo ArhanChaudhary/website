@@ -3,7 +3,10 @@ import Layout from "../layouts/Layout.astro";
 import BlogPreview from "../components/BlogPreview.astro";
 import { getCollection } from "astro:content";
 
-const publishedBlogs = await getCollection("blog", ({ data }) => data.pubDate);
+const publishedBlogs = await getCollection(
+  "blog",
+  ({ data: { pubDate } }) => pubDate
+);
 ---
 
 <Layout title="Arhan's Blog" sshUser="blog">

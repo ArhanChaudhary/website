@@ -27,7 +27,7 @@ const writeupCollection = defineCollection({
       .array(
         z.object({
           name: z.string(),
-          url: z.string(),
+          url: z.string().url(),
         })
       )
       .optional(),
@@ -38,8 +38,19 @@ const readingCollection = defineCollection({
   type: "content",
 });
 
+const ctfsCollection = defineCollection({
+  type: "data",
+  schema: z.array(
+    z.object({
+      ctfName: z.string(),
+      ctfLink: z.string().url(),
+    })
+  ),
+});
+
 export const collections = {
   blog: blogCollection,
   "write-up": writeupCollection,
   reading: readingCollection,
+  ctfs: ctfsCollection,
 };

@@ -1,42 +1,8 @@
 ---
-const allCTFs = [
-  {
-    ctfName: "CyberSecurityRumble Quals",
-    ctfLink: "https://ctftime.org/event/2224",
-  },
-  {
-    ctfName: "b01lers CTF 2024",
-    ctfLink: "https://ctftime.org/event/2250",
-  },
-  {
-    ctfName: "TAMUctf 2024",
-    ctfLink: "https://ctftime.org/event/2238",
-  },
-  {
-    ctfName: "GlacierCTF 2023",
-    ctfLink: "https://ctftime.org/event/1992",
-  },
-  {
-    ctfName: "Square CTF 2023",
-    ctfLink: "https://ctftime.org/event/2111",
-  },
-  {
-    ctfName: "HK Cyber Security New Generation CTF Challenge 2023",
-    ctfLink: "https://ctftime.org/event/2122",
-  },
-  {
-    ctfName: "HITCON CTF 2022",
-    ctfLink: "https://ctftime.org/event/1772",
-  },
-  {
-    ctfName: "GlacierCTF 2022",
-    ctfLink: "https://ctftime.org/event/1803",
-  },
-];
-
 import Layout from "../layouts/Layout.astro";
-import { getCollection } from "astro:content";
+import { getCollection, getEntry } from "astro:content";
 
+const { data: allCTFs } = await getEntry("ctfs", "ctfs");
 const allWriteups = await getCollection("write-up");
 const CTFWriteupNames = new Set(
   allWriteups.map((writeup) => {
@@ -60,27 +26,6 @@ const CTFWriteupNames = new Set(
       or computer systems to find a "flag", a specific text string that serves
       as the answer to the challenge.
     </p>
-    <p>
-      For example, there's a secret message hidden in the following string. Can
-      you decipher its true meaning? (Hint: research binary encoding schemes)
-    </p>
-    <p>
-      <span class="input-mono" id="flag-plaintext"
-        >NHJlX3kwdV80X2g0Y2szciE/</span
-      >
-      <button id="reveal-flag">Reveal</button>
-      <span id="flag-explanation" hidden
-        ><a href="https://www.base64decode.org/">base64 decode</a> the text</span
-      >
-    </p>
-    <script>
-      document.getElementById("reveal-flag")!.addEventListener("click", () => {
-        document.getElementById("flag-plaintext")!.innerText = atob(
-          document.getElementById("flag-plaintext")!.innerText
-        );
-        document.getElementById("flag-explanation")!.hidden = false;
-      });
-    </script>
     <p>
       Part of my love for competing in CTFs comes from having fun with my team.
       My close high school friends <a href="https://rluo.dev">Ruien</a>, <a
@@ -108,12 +53,12 @@ const CTFWriteupNames = new Set(
         > in 2023
       </li>
     </ul>
-    <hr />
     <p>
-      The rest of this page is dedicated towards my CTF competitions and my
-      write-ups. Note that I've ommitted asmhole competitions I minimally
+      The rest of this page is dedicated towards my CTF competition history and
+      my write-ups. Note that I've ommitted asmhole competitions I minimally
       participated in.
     </p>
+    <hr />
     <ul id="ctf-list">
       {
         allCTFs.map(({ ctfName, ctfLink }) => (
