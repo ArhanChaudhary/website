@@ -32,7 +32,6 @@ if (highlightIndex === undefined) {
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="format-detection" content="telephone=no">
     <meta property="og:url" content={`https://arhan.sh${Astro.url.pathname}`} />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
@@ -82,7 +81,7 @@ if (highlightIndex === undefined) {
   <body>
     <div id="flex-wrapper">
       <div id="ssh-text" class="input-mono">
-        {sshUser}@arhan.sh:~$ <span id="troll"></span><span id="cursor">█</span>
+        {sshUser}&#64;arhan.sh:~$ <span id="troll"></span><span id="cursor">█</span>
       </div>
       <label id="nav-hamburger" for="nav-toggle">
         <div></div>
