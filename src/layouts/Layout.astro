@@ -81,7 +81,8 @@ if (highlightIndex === undefined) {
   <body>
     <div id="flex-wrapper">
       <div id="ssh-text" class="input-mono">
-        {sshUser}&#64;arhan.sh:~$ <span id="troll"></span><span id="cursor">█</span>
+        <!-- https://stackoverflow.com/a/77568291/12230735 -->
+        {sshUser}@&#8203;arhan.sh:~$ <span id="troll"></span><span id="cursor">█</span>
       </div>
       <label id="nav-hamburger" for="nav-toggle">
         <div></div>
