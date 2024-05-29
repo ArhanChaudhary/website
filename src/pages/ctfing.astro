@@ -64,19 +64,15 @@ const CTFWriteupNames = new Set(
         allCTFs.map(({ ctfName, ctfLink }) => (
           <li>
             <a href={ctfLink}>{ctfName}</a> —
-            {(() => {
-              if (CTFWriteupNames.has(ctfName)) {
-                return (
-                  <a
-                    href={`/write-up/${ctfName.toLowerCase().replaceAll(" ", "-")}/`}
-                  >
-                    write-up
-                  </a>
-                );
-              } else {
-                return "(no write-up)";
-              }
-            })()}
+            {CTFWriteupNames.has(ctfName) ? (
+              <a
+                href={`/write-up/${ctfName.toLowerCase().replaceAll(" ", "-")}/`}
+              >
+                write-up
+              </a>
+            ) : (
+              "(no write-up)"
+            )}
           </li>
         ))
       }

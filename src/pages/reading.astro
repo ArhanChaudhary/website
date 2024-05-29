@@ -1,33 +1,63 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import BookReview from "../components/BookReview.astro";
+import UnreadBook from "../components/UnreadBook.astro";
 import { getCollection } from "astro:content";
+import { getEntry } from "astro:content";
 import type { CollectionEntry } from "astro:content";
 
 const allBookReviews = await getCollection("book-review");
-allBookReviews.reverse();
-const yearsToReviews = new Map<number, CollectionEntry<"book-review">[]>();
+const yearsToBookReviews: [number, CollectionEntry<"book-review">[]][] = [];
 
-for (let section of allBookReviews) {
-  const year = section.data.read.getFullYear();
-  if (!yearsToReviews.has(year)) {
-    yearsToReviews.set(year, []);
+for (let bookReview of allBookReviews) {
+  let year = bookReview.data.read.getFullYear();
+  let yearToBookReviews = yearsToBookReviews.find(([y, _]) => y === year);
+  let bookReviews: CollectionEntry<"book-review">[];
+  if (yearToBookReviews) {
+    bookReviews = yearToBookReviews[1];
+  } else {
+    let i = 0;
+    while (i < yearsToBookReviews.length && yearsToBookReviews[i][0] > year) {
+      i++;
+    }
+    bookReviews = [];
+    yearsToBookReviews.splice(i, 0, [year, bookReviews]);
   }
-  const curr = yearsToReviews.get(year)!;
   let i = 0;
-  while (i < curr.length && curr[i].data.read > section.data.read) {
+  while (
+    i < bookReviews.length &&
+    bookReviews[i].data.read > bookReview.data.read
+  ) {
     i++;
   }
-  curr.splice(i, 0, section);
+  bookReviews.splice(i, 0, bookReview);
 }
+
+const { data: allUnreadBooks } = await getEntry("unread-books", "unread-books");
 ---
 
 <Layout title="Arhan's Reading Notes" sshUser="reading">
   <div id="max-width-wrapper" class="system-ui">
     <h1 class="input-mono">My reading notes & book reviews</h1>
     <hr />
+    <details>
+      <summary>Reading List</summary>
+      {
+        allUnreadBooks
+          .filter(({ inProgress }) => !inProgress)
+          .map((unreadBook) => <UnreadBook {...unreadBook} />)
+      }
+    </details>
+    <details>
+      <summary>Reading in Progress</summary>
+      {
+        allUnreadBooks
+          .filter(({ inProgress }) => inProgress)
+          .map((unreadBook) => <UnreadBook {...unreadBook} />)
+      }
+    </details>
     {
-      Array.from(yearsToReviews, ([year, bookReviews]) => (
+      yearsToBookReviews.map(([year, bookReviews]) => (
         <>
           <details>
             <summary>{year}</summary>
@@ -52,9 +82,11 @@ for (let section of allBookReviews) {
       font-weight: bolder;
       cursor: pointer;
     }
+  }
+</style>
 
-    .indent {
-      margin-left: 40px;
-    }
+<style lang="scss" is:global>
+  .indent {
+    margin-left: 40px;
   }
 </style>

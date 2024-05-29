@@ -1,0 +1,56 @@
+[
+    {
+        "title": "The Art of Electronics",
+        "author": "Paul Horowitz, Winfield Hill",
+        "url": "https://www.amazon.com/Art-Electronics-Paul-Horowitz/dp/0521809266",
+        "inProgress": false
+    },
+    {
+        "title": "Existentialism Is a Humanism",
+        "author": "Jean-Paul Sartre",
+        "url": "https://www.amazon.com/Existentialism-Humanism-Jean-Paul-Sartre/dp/0300115466",
+        "inProgress": false
+    },
+    {
+        "title": "The Hitchhiker's Guide to the Galaxy",
+        "author": "Douglas Adams",
+        "url": "https://www.amazon.com/Hitchhikers-Guide-Galaxy-Illustrated-dp-0593359445/dp/0593359445",
+        "inProgress": false
+    },
+    {
+        "title": "The Art of Computer Programming",
+        "author": "Donald Knuth",
+        "url": "https://www.amazon.com/Computer-Programming-Volumes-1-4B-Boxed-dp-0137935102/dp/0137935102",
+        "inProgress": false
+    },
+    {
+        "title": "Computer Networks and Internets",
+        "author": "Douglas Comer",
+        "url": "https://www.amazon.com/Computer-Networks-Internets-Douglas-Comer/dp/0133587932",
+        "inProgress": true
+    },
+    {
+        "title": "The Subtle Art of Not Giving a F*ck: A Counterintuitive Approach to Living a Good Life",
+        "author": "Mark Manson",
+        "url": "https://www.amazon.com/Subtle-Art-Not-Giving-Counterintuitive/dp/0062457713",
+        "inProgress": true
+    },
+    {
+        "title": "The Perfectionists: How Precision Engineers Created the Modern World",
+        "author": "Simon Winchester",
+        "url": "https://www.amazon.com/Perfectionists-Precision-Engineers-Created-Modern/dp/0062652559",
+        "inProgress": false
+    },
+    {
+        "title": "The Scientist & Engineer's Guide to Digital Signal Processing",
+        "author": "Steven Smith",
+        "url": "https://www.amazon.com/Scientist-Engineers-Digital-Signal-Processing/dp/0966017633",
+        "inProgress": false
+    },
+    {
+        "title": "This Is How You Lose the Time War",
+        "author": "Amal El-Mohtar, Max Gladstone",
+        "url": "https://www.amazon.com/This-How-You-Lose-Time/dp/1534430997",
+        "inProgress": false
+    }
+]
