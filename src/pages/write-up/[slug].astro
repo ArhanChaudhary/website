@@ -5,7 +5,7 @@ import { getCollection } from "astro:content";
 import { writeupCategory } from "../../content/config";
 
 export async function getStaticPaths() {
-  const allWriteups = await getCollection("write-up");
+  const allWriteups = await getCollection("ctf-write-up");
   const CTFWriteupNames = [
     ...new Set(allWriteups.map((writeup) => writeup.id.split("/").at(-2)!)),
   ];

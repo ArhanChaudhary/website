@@ -1,16 +1,60 @@
 ---
 import Layout from "../layouts/Layout.astro";
-import ReadingSection from "../components/ReadingSection.astro";
+import BookReview from "../components/BookReview.astro";
 import { getCollection } from "astro:content";
+import type { CollectionEntry } from "astro:content";
 
-const allSections = await getCollection("reading");
-allSections.reverse();
+const allBookReviews = await getCollection("book-review");
+allBookReviews.reverse();
+const yearsToReviews = new Map<number, CollectionEntry<"book-review">[]>();
+
+for (let section of allBookReviews) {
+  const year = section.data.read.getFullYear();
+  if (!yearsToReviews.has(year)) {
+    yearsToReviews.set(year, []);
+  }
+  const curr = yearsToReviews.get(year)!;
+  let i = 0;
+  while (i < curr.length && curr[i].data.read > section.data.read) {
+    i++;
+  }
+  curr.splice(i, 0, section);
+}
 ---
 
 <Layout title="Arhan's Reading Notes" sshUser="reading">
   <div id="max-width-wrapper" class="system-ui">
-    <h1 class="input-mono">My reading notes</h1>
+    <h1 class="input-mono">My reading notes & book reviews</h1>
     <hr />
-    {allSections.map((section) => <ReadingSection {section} />)}
+    {
+      Array.from(yearsToReviews, ([year, bookReviews]) => (
+        <>
+          <details>
+            <summary>{year}</summary>
+            <div class="indent">
+              {bookReviews.map((section) => (
+                <BookReview {section} />
+              ))}
+            </div>
+          </details>
+        </>
+      ))
+    }
   </div>
 </Layout>
+
+<style lang="scss">
+  details {
+    margin: 1em 0;
+
+    summary {
+      font-size: 24px;
+      font-weight: bolder;
+      cursor: pointer;
+    }
+
+    .indent {
+      margin-left: 40px;
+    }
+  }
+</style>

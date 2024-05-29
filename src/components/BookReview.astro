@@ -2,19 +2,17 @@
 import type { CollectionEntry } from "astro:content";
 
 interface Props {
-  section: CollectionEntry<"reading">;
+  section: CollectionEntry<"book-review">;
 }
 
 const { section } = Astro.props;
 const { Content } = await section.render();
 ---
 
-<details>
-  <summary>{section.id.replace(".mdx", "")}</summary>
-  <div class="indent">
-    <Content />
-  </div>
-</details>
+<h2>{section.id.replace(".mdx", "")}</h2>
+<div class="indent">
+  <Content />
+</div>
 
 <style lang="scss">
   details {

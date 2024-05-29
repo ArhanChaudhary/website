@@ -1,9 +1,20 @@
 ---
 import "normalize.css";
 
+const sshUsers = [
+  "home",
+  "projects",
+  "blog",
+  "ctf",
+  "reading",
+  "cubing",
+  "media",
+  "nuclear-bomb",
+] as const;
+
 interface Props {
   title: string;
-  sshUser: string;
+  sshUser: (typeof sshUsers)[number];
   description?: string;
 }
 
@@ -13,19 +24,7 @@ const {
   description = "Arhan's personal website",
 } = Astro.props;
 
-const highlightIndex = {
-  "home": 1,
-  "projects": 2,
-  "blog": 3,
-  "ctf": 4,
-  "reading": 5,
-  "cubing": 6,
-  "media": 7,
-  "nuclear-bomb": 8,
-}[sshUser];
-if (highlightIndex === undefined) {
-  throw new Error("invalid sshUser");
-}
+const highlightIndex = sshUsers.indexOf(sshUser) + 1;
 ---
 
 <!doctype html>
@@ -82,7 +81,9 @@ if (highlightIndex === undefined) {
     <div id="flex-wrapper">
       <div id="ssh-text" class="input-mono">
         <!-- https://stackoverflow.com/a/77568291/12230735 -->
-        {sshUser}@&#8203;arhan.sh:~$ <span id="troll"></span><span id="cursor">█</span>
+        {sshUser}@&#8203;arhan.sh:~$ <span id="troll"></span><span id="cursor"
+          >█</span
+        >
       </div>
       <label id="nav-hamburger" for="nav-toggle">
         <div></div>
@@ -230,7 +231,7 @@ if (highlightIndex === undefined) {
         <a href="/reading/">Reading</a>
         <a href="/cubing/">Cubing</a>
         <a href="/media/">Media</a>
-        {highlightIndex == 8 && <a href="/404">Not Found</a>}
+        {sshUser === "nuclear-bomb" && <a href="/404">Not Found</a>}
         <div id="nav-arrow" style={`--highlightIndex: ${highlightIndex}`}>
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="-41 0 41 34">
             <path

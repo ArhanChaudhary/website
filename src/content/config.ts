@@ -16,7 +16,7 @@ export const writeupCategory = [
   "Binary Exploitation",
 ] as const;
 
-const writeupCollection = defineCollection({
+const CTFWriteupCollection = defineCollection({
   type: "content",
   schema: z.object({
     description: z.string(),
@@ -34,8 +34,12 @@ const writeupCollection = defineCollection({
   }),
 });
 
-const readingCollection = defineCollection({
+const bookReviewCollection = defineCollection({
   type: "content",
+  schema: z.object({
+    rating: z.number().gte(1).lte(5).multipleOf(0.5),
+    read: z.date(),
+  }),
 });
 
 const ctfsCollection = defineCollection({
@@ -48,9 +52,22 @@ const ctfsCollection = defineCollection({
   ),
 });
 
+const unreadBooksCollection = defineCollection({
+  type: "data",
+  schema: z.array(
+    z.object({
+      title: z.string(),
+      author: z.string(),
+      url: z.string().url(),
+      inProgress: z.boolean(),
+    })
+  ),
+});
+
 export const collections = {
   blog: blogCollection,
-  "write-up": writeupCollection,
-  reading: readingCollection,
+  "ctf-write-up": CTFWriteupCollection,
+  "book-review": bookReviewCollection,
   ctfs: ctfsCollection,
+  "unread-books": unreadBooksCollection,
 };
