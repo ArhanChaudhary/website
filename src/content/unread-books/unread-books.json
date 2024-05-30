@@ -1,5 +1,29 @@
 [
   {
+    "title": "Project Hail Mary: A Novel",
+    "author": "Andy Weir",
+    "url": "https://www.amazon.com/Project-Hail-Mary-Andy-Weir/dp/0593135202",
+    "inProgress": false
+  },
+  {
+    "title": "The Cuckoo's Egg: Tracking a Spy Through the Maze of Computer Espionage",
+    "author": "Cliff Stoll",
+    "url": "https://www.amazon.com/Cuckoos-Egg-Tracking-Computer-Espionage/dp/1416507787",
+    "inProgress": false
+  },
+  {
+    "title": "2001: a Space Odyssey (Space Odyssey Series)",
+    "author": "Arthur Clarke",
+    "url": "https://www.amazon.com/2001-Space-Odyssey/dp/0451457994",
+    "inProgress": false
+  },
+  {
+    "title": "Designing Data-Intensive Applications: The Big Ideas Behind Reliable, Scalable, and Maintainable Systems",
+    "author": "Martin Kleppmann",
+    "url": "https://www.amazon.com/Designing-Data-Intensive-Applications-Reliable-Maintainable/dp/1449373321",
+    "inProgress": false
+  },
+  {
     "title": "The Art of Electronics",
     "author": "Paul Horowitz, Winfield Hill",
     "url": "https://www.amazon.com/Art-Electronics-Paul-Horowitz/dp/0521809266",
