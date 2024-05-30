@@ -34,14 +34,6 @@ const CTFWriteupCollection = defineCollection({
   }),
 });
 
-const bookReviewCollection = defineCollection({
-  type: "content",
-  schema: z.object({
-    rating: z.number().gte(1).lte(5).multipleOf(0.5),
-    read: z.date(),
-  }),
-});
-
 const ctfsCollection = defineCollection({
   type: "data",
   schema: z.array(
@@ -50,6 +42,16 @@ const ctfsCollection = defineCollection({
       ctfLink: z.string().url(),
     })
   ),
+});
+
+const bookReviewCollection = defineCollection({
+  type: "content",
+  schema: z.object({
+    rating: z.number().gte(1).lte(5).multipleOf(0.5),
+    read: z.date(),
+    author: z.string(),
+    url: z.string().url(),
+  }),
 });
 
 const unreadBooksCollection = defineCollection({

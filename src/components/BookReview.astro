@@ -6,11 +6,14 @@ interface Props {
 }
 
 const { section } = Astro.props;
-const { rating } = section.data;
+const { url, rating, author } = section.data;
 const { Content } = await section.render();
 ---
 
-<h2>{section.id.replace(".mdx", "")}</h2>
+<h2>
+  <a href={url}>{section.id.replace(".mdx", "")}</a>
+</h2>
+<div class="author">by {author}</div>
 <div class="stars">
   {Array.from({ length: Math.floor(rating) }, () => <>&#9733;</>)}
   {
@@ -29,6 +32,25 @@ const { Content } = await section.render();
 </div>
 
 <style lang="scss">
+  h2 {
+    margin-bottom: 2px;
+  }
+
+  a {
+    color: hsl(0, 0%, 95%);
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+      color: hsl(0, 0%, 85%);
+    }
+  }
+
+  .author {
+    color: hsl(0, 0%, 50%);
+    margin-bottom: 20px;
+  }
+
   .stars {
     color: yellow;
     display: flex;
@@ -53,16 +75,6 @@ const { Content } = await section.render();
         right: 0;
         direction: rtl;
       }
-    }
-  }
-
-  details {
-    margin: 1em 0;
-
-    summary {
-      font-size: 24px;
-      font-weight: bolder;
-      cursor: pointer;
     }
   }
 </style>

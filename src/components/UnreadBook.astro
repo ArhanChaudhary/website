@@ -11,12 +11,11 @@ const { title, author, url } = Astro.props;
 
 <div class="indent">
   <a href={url}>{title}</a>
-  <br>
-  <span>by {author}</span>
+  <div class="author">by {author}</div>
 </div>
 
 <style style="scss">
-  div {
+  .indent {
     padding: 0.75em 0;
   }
 
@@ -24,6 +23,7 @@ const { title, author, url } = Astro.props;
     color: hsl(0, 0%, 95%);
     font-size: 1.2em;
     text-decoration: none;
+    margin-bottom: 2px;
 
     &:hover {
       text-decoration: underline;
@@ -31,7 +31,7 @@ const { title, author, url } = Astro.props;
     }
   }
 
-  span {
+  .author {
     color: hsl(0, 0%, 50%);
   }
 </style>
