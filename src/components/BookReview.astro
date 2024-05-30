@@ -6,15 +6,56 @@ interface Props {
 }
 
 const { section } = Astro.props;
+const { rating } = section.data;
 const { Content } = await section.render();
 ---
 
 <h2>{section.id.replace(".mdx", "")}</h2>
+<div class="stars">
+  {Array.from({ length: Math.floor(rating) }, () => <>&#9733;</>)}
+  {
+    rating % 1 !== 0 && (
+      <span class="half-star">
+        <span class="hitbox">&#9733;</span>
+        <span class="first-half">&#9733;</span>
+        <span class="second-half">&#9734;</span>
+      </span>
+    )
+  }
+  {Array.from({ length: 5 - Math.ceil(rating) }, () => <>&#9734;</>)}
+</div>
 <div class="indent">
   <Content />
 </div>
 
 <style lang="scss">
+  .stars {
+    color: yellow;
+    display: flex;
+
+    .half-star {
+      position: relative;
+
+      .hitbox {
+        visibility: hidden;
+      }
+      .first-half,
+      .second-half {
+        position: absolute;
+        overflow: hidden;
+      }
+      .first-half {
+        width: 47%;
+        left: 0;
+      }
+      .second-half {
+        width: 53%;
+        right: 0;
+        direction: rtl;
+      }
+    }
+  }
+
   details {
     margin: 1em 0;
 
