@@ -49,6 +49,7 @@ const bookReviewCollection = defineCollection({
   schema: z.object({
     rating: z.number().gte(1).lte(5).multipleOf(0.5),
     read: z.date(),
+    genre: z.string(),
     author: z.string(),
     url: z.string().url(),
   }),
@@ -59,6 +60,7 @@ const unreadBooksCollection = defineCollection({
   schema: z.array(
     z.object({
       title: z.string(),
+      genre: z.string(),
       author: z.string(),
       url: z.string().url(),
       inProgress: z.boolean(),

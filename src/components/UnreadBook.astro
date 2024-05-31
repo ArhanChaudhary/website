@@ -3,15 +3,19 @@ interface Props {
   title: string;
   author: string;
   url: string;
+  genre: string;
 }
 
-const { title, author, url } = Astro.props;
+const { title, author, url, genre } = Astro.props;
 ---
-
 
 <div class="indent">
   <a href={url}>{title}</a>
-  <div class="author">by {author}</div>
+  <div class="info">
+    Genre: {genre}
+    <br />
+    Author{author.includes(",") && "s"}: {author}
+  </div>
 </div>
 
 <style style="scss">
@@ -31,7 +35,8 @@ const { title, author, url } = Astro.props;
     }
   }
 
-  .author {
+  .info {
     color: hsl(0, 0%, 50%);
+    margin-bottom: 5px;
   }
 </style>
