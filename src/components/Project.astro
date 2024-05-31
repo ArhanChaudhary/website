@@ -12,7 +12,7 @@ const { title, dateRange, link } = Astro.props;
     <a class="title" href={link} id={title}>{title}</a>
     {dateRange.replace("-", "—")}
   </div>
-  <div class="description">
+  <div class="description offwhite">
     <slot />
   </div>
 </div>

@@ -25,7 +25,9 @@ const { description, pubDate, title } = Astro.props;
       >
     </p>
     <hr />
-    <slot />
+    <span class="offwhite">
+      <slot />
+    </span>
     <script
       is:inline
       src="https://utteranc.es/client.js"
