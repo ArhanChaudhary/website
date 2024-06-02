@@ -19,7 +19,7 @@ const { Content } = await section.render();
   Author{author.includes(",") && "s"}: {author}
 </div>
 <div class="stars">
-  {Array.from({ length: Math.floor(rating) }, () => <>&#9733;</>)}
+  {Array.from({ length: Math.floor(rating) }, () => <span>&#9733;</span>)}
   {
     rating % 1 !== 0 && (
       <span class="half-star">
@@ -29,13 +29,17 @@ const { Content } = await section.render();
       </span>
     )
   }
-  {Array.from({ length: 5 - Math.ceil(rating) }, () => <>&#9734;</>)}
+  {Array.from({ length: 5 - Math.ceil(rating) }, () => <span>&#9734;</span>)}
 </div>
 <div class="indent">
   <Content />
 </div>
 
 <style lang="scss">
+  .indent {
+    margin-bottom: 3em;
+  }
+
   h2 {
     margin-bottom: 2px;
   }
