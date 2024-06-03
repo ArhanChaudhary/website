@@ -31,12 +31,13 @@ const { Content } = await section.render();
   }
   {Array.from({ length: 5 - Math.ceil(rating) }, () => <span>&#9734;</span>)}
 </div>
-<div class="indent">
+<div class="half-indent">
   <Content />
 </div>
 
 <style lang="scss">
-  .indent {
+  .half-indent {
+    margin-left: 30px;
     margin-bottom: 3em;
   }
 
