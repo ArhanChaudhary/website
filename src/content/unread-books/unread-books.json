@@ -1,5 +1,19 @@
 [
   {
+    "title": "The Road",
+    "genre": "Apocalyptic fiction",
+    "author": "Cormac McCarthy",
+    "url": "https://www.amazon.com/The-Road-Oprah-s-Book-Club/dp/0307387895",
+    "inProgress": false
+  },
+  {
+    "title": "No Country for Old Men",
+    "genre": "Thriller",
+    "author": "Cormac McCarthy",
+    "url": "https://www.amazon.com/Country-Old-Men-Cormac-McCarthy/dp/0375706674",
+    "inProgress": false
+  },
+  {
     "title": "Project Hail Mary: A Novel",
     "genre": "Science Fiction",
     "author": "Andy Weir",
