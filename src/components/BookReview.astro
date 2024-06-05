@@ -36,6 +36,8 @@ const { Content } = await section.render();
 </div>
 
 <style lang="scss">
+  @use "../assets/variables";
+
   .half-indent {
     margin-left: 30px;
     margin-bottom: 3em;
@@ -84,6 +86,12 @@ const { Content } = await section.render();
         right: 0;
         direction: rtl;
       }
+    }
+  }
+
+  @media (max-width: variables.$mobile-width) {
+    .half-indent {
+      margin-left: 0;
     }
   }
 </style>
