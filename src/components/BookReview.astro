@@ -1,5 +1,6 @@
 ---
 import type { CollectionEntry } from "astro:content";
+import { decodeFileName } from "../assets/utils";
 
 interface Props {
   section: CollectionEntry<"book-review">;
@@ -11,7 +12,7 @@ const { Content } = await section.render();
 ---
 
 <h2>
-  <a href={url}>{section.id.replace(".mdx", "")}</a>
+  <a href={url}>{decodeFileName(section.id)}</a>
 </h2>
 <div class="info">
   Genre: {genre}

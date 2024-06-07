@@ -28,15 +28,20 @@ const { description, pubDate, title } = Astro.props;
     <span class="offwhite">
       <slot />
     </span>
-    <script
-      is:inline
-      src="https://utteranc.es/client.js"
-      repo="ArhanChaudhary/website"
-      issue-term="title"
-      label="blog"
-      theme="github-dark"
-      crossorigin="anonymous"
-      async></script>
+    {
+      pubDate && (
+        <script
+          is:inline
+          src="https://utteranc.es/client.js"
+          repo="ArhanChaudhary/website"
+          issue-term="title"
+          label="blog"
+          theme="github-dark"
+          crossorigin="anonymous"
+          async
+        />
+      )
+    }
   </div>
 </Layout>
 

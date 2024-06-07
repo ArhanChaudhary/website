@@ -1,4 +1,5 @@
 ---
+import { decodeFileName, mySlugify } from "../../assets/utils.ts";
 import Layout from "../../layouts/Layout.astro";
 import Writeup from "../../components/Writeup.astro";
 import { getCollection } from "astro:content";
@@ -9,17 +10,17 @@ export async function getStaticPaths() {
   const CTFWriteupNames = [
     ...new Set(allWriteups.map((writeup) => writeup.id.split("/").at(-2)!)),
   ];
-  return CTFWriteupNames.map((CTFName) => {
+  return CTFWriteupNames.map((ctfName) => {
     const iteratorCTFWriteups = allWriteups.filter(
-      (writeup) => writeup.id.split("/").at(-2)! === CTFName
+      (writeup) => writeup.id.split("/").at(-2)! === ctfName
     );
     return {
       params: {
-        slug: CTFName.toLowerCase().replaceAll(" ", "-"),
+        slug: mySlugify(decodeFileName(ctfName, false)),
       },
       props: {
         writeups: iteratorCTFWriteups,
-        ctfName: CTFName,
+        ctfName: ctfName,
       },
     };
   });
@@ -48,8 +49,12 @@ writeups.sort((a, b) => {
               <li class="category-toc">{writeup.data.category}</li>
             )}
             <li class="writeup-toc">
-              <a href={`#${writeup.slug.split("/").at(-1)!}`}>
-                {writeup.id.split("/").at(-1)!.replace(".mdx", "")}
+              <a
+                href={`#${mySlugify(decodeFileName(writeup.id))
+                  .split("/")
+                  .at(-1)!}`}
+              >
+                {decodeFileName(writeup.id).split("/").at(-1)!}
               </a>
             </li>
           </>

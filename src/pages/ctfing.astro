@@ -1,4 +1,5 @@
 ---
+import { mySlugify } from "../assets/utils.ts";
 import Layout from "../layouts/Layout.astro";
 import { getCollection, getEntry } from "astro:content";
 
@@ -65,9 +66,7 @@ const CTFWriteupNames = new Set(
           <li>
             <a href={ctfLink}>{ctfName}</a> —
             {CTFWriteupNames.has(ctfName) ? (
-              <a
-                href={`/write-up/${ctfName.toLowerCase().replaceAll(" ", "-")}/`}
-              >
+              <a href={`/write-up/${mySlugify(decodeURIComponent(ctfName))}/`}>
                 write-up
               </a>
             ) : (

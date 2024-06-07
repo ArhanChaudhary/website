@@ -1,3 +1,4 @@
+import { decodeFileName, mySlugify } from "../assets/utils.ts";
 import rss from "@astrojs/rss";
 import { getCollection } from "astro:content";
 
@@ -11,10 +12,10 @@ export async function GET(context: { site: URL }) {
     description: "Arhan's personal website",
     site: context.site,
     items: publishedBlogs.map((post) => ({
-      title: post.id.replace(".mdx", ""),
+      title: decodeFileName(post.id),
       pubDate: post.data.pubDate,
       description: post.data.description,
-      link: `/blog/${post.slug}/`,
+      link: `/blog/${mySlugify(decodeFileName(post.id))}/`,
     })),
   });
 }
