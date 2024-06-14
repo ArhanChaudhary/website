@@ -16,7 +16,7 @@ export const writeupCategory = [
   "Binary Exploitation",
 ] as const;
 
-const CTFWriteupCollection = defineCollection({
+const ctfWriteupCollection = defineCollection({
   type: "content",
   schema: z.object({
     description: z.string(),
@@ -70,7 +70,7 @@ const unreadBooksCollection = defineCollection({
 
 export const collections = {
   blog: blogCollection,
-  "ctf-write-up": CTFWriteupCollection,
+  "ctf-write-up": ctfWriteupCollection,
   "book-review": bookReviewCollection,
   ctfs: ctfsCollection,
   "unread-books": unreadBooksCollection,

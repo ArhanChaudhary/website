@@ -3,15 +3,15 @@ import { mySlugify } from "../assets/utils.ts";
 import Layout from "../layouts/Layout.astro";
 import { getCollection, getEntry } from "astro:content";
 
-const { data: allCTFs } = await getEntry("ctfs", "ctfs");
+const { data: allCtfs } = await getEntry("ctfs", "ctfs");
 const allWriteups = await getCollection("ctf-write-up");
-const CTFWriteupNames = new Set(
+const ctfWriteupNames = new Set(
   allWriteups.map((writeup) => {
     const ret = writeup.id.split("/").at(-2)!;
-    if (allCTFs.some(({ ctfName }) => ret === ctfName)) {
+    if (allCtfs.some(({ ctfName }) => ret === ctfName)) {
       return ret;
     } else {
-      throw new Error("CTF name typo");
+      throw new Error("ctf name typo");
     }
   })
 );
@@ -20,6 +20,7 @@ const CTFWriteupNames = new Set(
 <Layout title="Arhan's CTF Page" sshUser="ctf">
   <div id="max-width-wrapper" class="system-ui offwhite">
     <h1 class="input-mono">My CTF page</h1>
+    <hr />
     <p>
       As a programming hobbyist, I believe that Capture the Flag competitions,
       or CTFs, are the greatest discipline of computer science. CTF competitions
@@ -59,13 +60,12 @@ const CTFWriteupNames = new Set(
       my write-ups. Note that I've ommitted asmhole competitions I minimally
       participated in.
     </p>
-    <hr />
     <ul id="ctf-list">
       {
-        allCTFs.map(({ ctfName, ctfLink }) => (
+        allCtfs.map(({ ctfName, ctfLink }) => (
           <li>
             <a href={ctfLink}>{ctfName}</a> —
-            {CTFWriteupNames.has(ctfName) ? (
+            {ctfWriteupNames.has(ctfName) ? (
               <a href={`/write-up/${mySlugify(decodeURIComponent(ctfName))}/`}>
                 write-up
               </a>

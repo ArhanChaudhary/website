@@ -7,7 +7,9 @@ import { getEntry } from "astro:content";
 import type { CollectionEntry } from "astro:content";
 
 const allBookReviews = await getCollection("book-review");
-const yearsToBookReviews: [number, CollectionEntry<"book-review">[]][] = [];
+const yearsToBookReviews = new Array<
+  [number, CollectionEntry<"book-review">[]]
+>();
 
 for (let bookReview of allBookReviews) {
   let year = bookReview.data.read.getFullYear();
