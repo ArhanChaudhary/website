@@ -244,6 +244,11 @@ const highlightIndex = sshUsers.indexOf(sshUser) + 1;
         document.querySelector(
           `nav a:nth-of-type(${highlightIndex})`
         ).style.color = "white";
+        for (let el of document.getElementsByClassName(
+          "content-image-alt-text"
+        )) {
+          el.style.maxWidth = el.previousElementSibling.getAttribute("width") + 'px';
+        }
       </script>
     </nav>
   </body>

@@ -25,11 +25,11 @@ const { description, pubDate, title } = Astro.props;
       >
     </p>
     <hr />
-    <span class="offwhite">
+    <div class="offwhite" id="blog-body">
       <slot />
-    </span>
+    </div>
     {
-      pubDate && (
+      pubDate && !import.meta.env.DEV && (
         <script
           is:inline
           src="https://utteranc.es/client.js"
@@ -48,14 +48,9 @@ const { description, pubDate, title } = Astro.props;
 <style lang="scss">
   #max-width-wrapper {
     margin-bottom: 10px;
-  }
-</style>
 
-<style lang="scss" is:global>
-  img {
-    max-width: 100%;
-    margin: 0 auto;
-    display: block;
-    height: auto;
+    #blog-body {
+      padding-bottom: 15px;
+    }
   }
 </style>

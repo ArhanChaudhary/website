@@ -2,30 +2,30 @@
 pubDate: 2024-05-04T08:00:00
 description: Welcome to my blog!
 ---
-import { Image } from 'astro:assets';
-import coding from '../../assets/blog/hello-world/coding.jpg';
-import videoGames from '../../assets/blog/hello-world/video-games.jpg';
-import skateboarding from '../../assets/blog/hello-world/skateboarding.jpg';
-import longHair from '../../assets/blog/hello-world/long-hair.jpg';
+import ContentImage from "../../components/ContentImage.astro";
+import coding from "../../assets/blog/hello-world/coding.jpg";
+import videoGames from "../../assets/blog/hello-world/video-games.jpg";
+import skateboarding from "../../assets/blog/hello-world/skateboarding.jpg";
+import longHair from "../../assets/blog/hello-world/long-hair.jpg";
 
 
 When I was younger, I never had the confidence to think of myself as an interesting guy, more or less a writer. But my high school and now collegiate friends have slowly made me more cognizant of the fact that, when it comes to my nerdy interests, I LOVE to talk, typically to an intolerable degree. "Yapping" as the youngers call it. A day of reckoning later, I asked myself: what if I start a blog?
 
 I thought I would give a brief life update to honor my celebratory first blog post. I've just finished my first year as a Computer Science major at Purdue University! Over the past school year, I...
 
-<Image src={coding} alt="A picture of my coding setup" height="600" />
+<ContentImage src={coding} alt="A picture of my coding setup" height="600" />
 
 I coded, a *lot*. I showed off my hobby project <a href="https://github.com/ArhanChaudhary/NAND">NAND</a> on Hacker News, and they <a href="https://news.ycombinator.com/item?id=40159278">really seamed to like it</a>.
 
-<Image src={videoGames} alt="A picture of me playing video games" height="600" />
+<ContentImage src={videoGames} alt="A picture of me playing video games" height="600" />
 
 I got back into video gaming, specifically Super Smash Bros Ultimate with my friends and Brawl Stars.
 
-<Image src={skateboarding} alt="A picture of my skateboard" height="600" />
+<ContentImage src={skateboarding} alt="A picture of my skateboard" height="600" />
 
 I learned to skateboard and cut my commute time by two-thirds.
 
-<Image src={longHair} alt="A picture of me with long hair" height="600" />
+<ContentImage src={longHair} alt="A picture of me with long hair" height="600" />
 
 I grew out my hair, and I'm totally rocking the style!
 
