@@ -75,7 +75,7 @@ const cubingCompetitionCollection = defineCollection({
     slugOverride: z.string().optional(),
     results: z.array(
       z.object({
-        round: z.number(),
+        round: z.union([z.literal("SEMI-FINALS"), z.literal("FINALS"), z.number()]),
         place: z.number().int(),
         times: z.array(z.union([z.literal("DNF"), z.number()])).length(5),
         plusTwos: z.array(z.number().int()).max(5).optional(),
