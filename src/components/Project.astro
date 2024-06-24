@@ -2,14 +2,24 @@
 interface Props {
   title: string;
   dateRange: string;
-  link: string;
+  link?: string;
 }
 const { title, dateRange, link } = Astro.props;
 ---
 
 <div>
   <div class="flex-container input-mono">
-    <a class="title" href={link} id={title}>{title}</a>
+    {
+      link ? (
+        <a class="title" href={link} id={title}>
+          {title}
+        </a>
+      ) : (
+        <span class="title" id={title}>
+          {title}
+        </span>
+      )
+    }
     {dateRange.replace("-", "—")}
   </div>
   <div class="description offwhite">
@@ -18,7 +28,7 @@ const { title, dateRange, link } = Astro.props;
 </div>
 
 <style lang="scss">
-  @use '../assets/variables';
+  @use "../assets/variables";
 
   .flex-container {
     display: flex;

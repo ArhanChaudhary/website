@@ -247,7 +247,8 @@ const highlightIndex = sshUsers.indexOf(sshUser) + 1;
         for (let el of document.getElementsByClassName(
           "content-image-alt-text"
         )) {
-          el.style.maxWidth = el.previousElementSibling.getAttribute("width") + 'px';
+          el.style.maxWidth =
+            el.previousElementSibling.getAttribute("width") + "px";
         }
       </script>
     </nav>
@@ -603,10 +604,33 @@ const highlightIndex = sshUsers.indexOf(sshUser) + 1;
     color: var(--offwhite);
   }
 
+  .white {
+    color: white !important;
+  }
+
   @media (max-width: variables.$mobile-width) {
     #max-width-wrapper {
       margin-right: auto;
       margin-left: auto;
+    }
+  }
+
+  .content-image-positioner {
+    padding: 10px 0;
+
+    .content-image-wrapper {
+      img {
+        margin: 0 auto;
+        max-width: 100%;
+        height: auto;
+        display: block;
+      }
+
+      .content-image-alt-text {
+        margin: 7px auto 0 auto;
+        font-style: italic;
+        color: hsl(0deg 0% 70%);
+      }
     }
   }
 </style>

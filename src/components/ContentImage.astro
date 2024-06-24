@@ -4,36 +4,16 @@ import { Image } from "astro:assets";
 interface Props {
   src: ImageMetadata;
   alt: string;
-  desc: string;
+  desc?: string;
+  [key: string]: any;
 }
 
 const { src, alt, desc, ...attrs } = Astro.props;
 ---
 
-<div class="image-positioner">
-  <span class="image-wrapper">
+<div class="content-image-positioner">
+  <span class="content-image-wrapper">
     <Image {src} {alt} {...attrs} />
     {desc && <div class="content-image-alt-text">{desc}</div>}
   </span>
 </div>
-
-<style lang="scss">
-  .image-positioner {
-    padding: 10px 0;
-
-    .image-wrapper {
-      img {
-        margin: 0 auto;
-        max-width: 100%;
-        height: auto;
-        display: block;
-      }
-
-      .content-image-alt-text {
-        margin: 0.25em auto 0 auto;
-        font-size: 0.9em;
-        color: hsl(0deg 0% 70%);
-      }
-    }
-  }
-</style>
