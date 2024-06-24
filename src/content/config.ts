@@ -68,10 +68,27 @@ const unreadBooksCollection = defineCollection({
   ),
 });
 
+const cubingCompetitionCollection = defineCollection({
+  type: "content",
+  schema: z.object({
+    date: z.date(),
+    slugOverride: z.string().optional(),
+    results: z.array(
+      z.object({
+        round: z.number(),
+        place: z.number().int(),
+        times: z.array(z.union([z.literal("DNF"), z.number()])).length(5),
+        plusTwos: z.array(z.number().int()).max(5).optional(),
+      })
+    ),
+  }),
+});
+
 export const collections = {
   blog: blogCollection,
   "ctf-write-up": ctfWriteupCollection,
   "book-review": bookReviewCollection,
   ctfs: ctfsCollection,
   "unread-books": unreadBooksCollection,
+  "cubing-competition": cubingCompetitionCollection,
 };

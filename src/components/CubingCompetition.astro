@@ -1,0 +1,47 @@
+---
+import type { CollectionEntry } from "astro:content";
+import slugify from "slugify";
+import { decodeFileName } from "../assets/utils";
+
+interface Props {
+  cubingCompetition: CollectionEntry<"cubing-competition">;
+}
+
+const { cubingCompetition } = Astro.props;
+const { Content } = await cubingCompetition.render();
+---
+
+<h3>
+  <a
+    href={"https://www.worldcubeassociation.org/competitions/" +
+      (cubingCompetition.data.slugOverride ||
+        slugify(decodeFileName(cubingCompetition.id), {
+          replacement: "",
+          remove: /[^a-zA-Z\d]/g,
+        }))}>{decodeFileName(cubingCompetition.id)}</a
+  >
+</h3>
+<p>
+  <i class="white">
+    Competition date: {
+      cubingCompetition.data.date.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      })
+    }
+  </i>
+</p>
+<Content />
+<div class="bottom-margin"></div>
+
+<style lang="scss">
+  h3 {
+    margin-top: 0;
+    margin-bottom: 0;
+  }
+
+  .bottom-margin {
+    height: 2em;
+  }
+</style>
