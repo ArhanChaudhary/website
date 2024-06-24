@@ -7,11 +7,11 @@ import { writeupCategory } from "../../content/config";
 
 export async function getStaticPaths() {
   const allWriteups = await getCollection("ctf-write-up");
-  const CTFWriteupNames = [
+  const ctfWriteupNames = [
     ...new Set(allWriteups.map((writeup) => writeup.id.split("/").at(-2)!)),
   ];
-  return CTFWriteupNames.map((ctfName) => {
-    const iteratorCTFWriteups = allWriteups.filter(
+  return ctfWriteupNames.map((ctfName) => {
+    const iteratorCtfWriteups = allWriteups.filter(
       (writeup) => writeup.id.split("/").at(-2)! === ctfName
     );
     return {
@@ -19,7 +19,7 @@ export async function getStaticPaths() {
         slug: mySlugify(decodeFileName(ctfName, false)),
       },
       props: {
-        writeups: iteratorCTFWriteups,
+        writeups: iteratorCtfWriteups,
         ctfName: ctfName,
       },
     };
