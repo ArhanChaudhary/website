@@ -29,9 +29,9 @@ const { pubDate, title, description, url, colorDotRed, first, last } =
     align-items: center;
     --timeline-width: 10px;
     --date-gap: 2ch;
-    grid-template-columns: 8ch var(--date-gap) var(--timeline-width) calc(
-        var(--date-gap) * 2
-      ) minmax(0, 45ch);
+    grid-template-columns:
+      8ch var(--date-gap) var(--timeline-width) calc(var(--date-gap) * 2)
+      minmax(0, 45ch);
     --description-gap: 2px;
     grid-template-rows: auto var(--description-gap) auto 50px;
 
@@ -74,7 +74,7 @@ const { pubDate, title, description, url, colorDotRed, first, last } =
 
     .description {
       word-wrap: break-word;
-      grid-row-start: 3;
+      row-start: 3;
       grid-column-start: 5;
       color: hsl(0, 0%, 65%);
     }

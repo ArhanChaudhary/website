@@ -292,7 +292,7 @@ const highlightIndex = sshUsers.indexOf(sshUser) + 1;
   body {
     display: flex;
     height: 100dvh;
-    background-color: hsl(240, 6%, 10%);
+    background-color: var(--background);
 
     #flex-wrapper {
       flex: 1;
@@ -434,7 +434,7 @@ const highlightIndex = sshUsers.indexOf(sshUser) + 1;
       flex-flow: column;
       align-items: center;
       justify-content: space-between;
-      background-color: hsl(240, 6%, 10%);
+      background-color: var(--background);
       cursor: pointer;
 
       div {
@@ -504,6 +504,7 @@ const highlightIndex = sshUsers.indexOf(sshUser) + 1;
     font-size: 18px;
     --lb: hsl(180, 75%, 51%);
     --lr: hsl(333, 100%, 62%);
+    --background: hsl(240, 6%, 10%);
     --offwhite: hsl(0, 0%, 88%);
     --outer-padding: 50px;
     --mobile-outer-padding: 20px;

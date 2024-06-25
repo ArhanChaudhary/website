@@ -6,7 +6,7 @@ import { getCollection } from "astro:content";
 
 const publishedBlogs = await getCollection(
   "blog",
-  ({ data: { pubDate } }) => pubDate
+  ({ data: { pubDate } }) => import.meta.env.DEV || pubDate
 );
 ---
 
@@ -15,14 +15,20 @@ const publishedBlogs = await getCollection(
     <h1>My blog</h1>
     {
       publishedBlogs
-        .sort((a, b) => b.data.pubDate!.getTime() - a.data.pubDate!.getTime())
+        .sort((a, b) => {
+          if (!a.data.pubDate) return -1;
+          if (!b.data.pubDate) return 1;
+          return b.data.pubDate.getTime() - a.data.pubDate.getTime();
+        })
         .map((blog, i) => (
           <BlogPreview
-            pubDate={blog.data.pubDate!.toLocaleDateString("en-US", {
-              year: "2-digit",
-              month: "numeric",
-              day: "numeric",
-            })}
+            pubDate={
+              blog.data.pubDate?.toLocaleDateString("en-US", {
+                year: "2-digit",
+                month: "numeric",
+                day: "numeric",
+              }) || "PREVIEW"
+            }
             title={decodeFileName(blog.id)}
             description={blog.data.description}
             url={`/blog/${mySlugify(decodeFileName(blog.id))}/`}
