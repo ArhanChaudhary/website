@@ -9,6 +9,39 @@ interface Props {
 
 const { cubingCompetition } = Astro.props;
 const { Content } = await cubingCompetition.render();
+
+function bestSingle(times: (number | "DNF")[]): string {
+  let ret = times.reduce((best, time) => {
+    if (time === "DNF") {
+      return best;
+    }
+    if (best === "DNF") {
+      return time;
+    }
+    return Math.min(best, time);
+  });
+  return ret === "DNF" ? "DNF" : ret.toFixed(2);
+}
+
+function averageOf5(times: (number | "DNF")[]): string {
+  let sortedTimes = times
+    .sort((a, b) => {
+      if (a === "DNF") {
+        return 1;
+      }
+      if (b === "DNF") {
+        return -1;
+      }
+      return a - b;
+    })
+    .slice(1, -1);
+  if (sortedTimes.includes("DNF")) {
+    return "DNF";
+  }
+  return (
+    sortedTimes.reduce((sum: number, time) => sum + (time as number), 0) / 3
+  ).toFixed(2);
+}
 ---
 
 <h3>
@@ -32,6 +65,24 @@ const { Content } = await cubingCompetition.render();
     }
   </i>
 </p>
+{
+  cubingCompetition.data.results.length !== 0 && (
+    <div class="results">
+      <span>Round</span>
+      <span>Place</span>
+      <span class="break-word">Best Single</span>
+      <span class="break-word">Average of 5</span>
+      {cubingCompetition.data.results.map((result) => (
+        <>
+          <span>{result.round}</span>
+          <span>{result.place}</span>
+          <span>{bestSingle(result.times)}</span>
+          <span>{averageOf5(result.times)}</span>
+        </>
+      ))}
+    </div>
+  )
+}
 <Content />
 <div class="bottom-margin"></div>
 
@@ -43,5 +94,18 @@ const { Content } = await cubingCompetition.render();
 
   .bottom-margin {
     height: 2em;
+  }
+
+  .results {
+    background-color: var(--offwhite);
+    display: inline-grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1.5px;
+    padding: 1.5px;
+
+    span {
+      padding: 5px 8px;
+      background-color: var(--background);
+    }
   }
 </style>
