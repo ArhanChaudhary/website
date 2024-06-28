@@ -41,45 +41,23 @@ How would I find 100,000 users? GitHub provides a Search API for querying for us
 Putting everything together, my API scraper will:
 
 1. First use the Search API to find the most followed users on GitHub
-2. Use the followers API endpoint to loop through each user's followers
-3. Use the "hack" as described earlier to find each follower's email
+2. Use the followers API endpoint to loop through each user's followers *(In retrospect, another approach could be a web crawling algorithm)*
+3. Use the "hack" as described earlier to find each follower's email address
+4. Filter each email address for private email addresses only valid within GitHub and format the co-author message
+
+*The situation here is strange. For reasons unknown, the GitHub GraphQL API straight up doesn't expose the majority of users' public emails... UNLESS you use the GitHub REST API; in which case only this works... UNLESS you use the [GitHub GraphQL explorer](https://docs.github.com/en/graphql/overview/explorer) which seems to work with perfect accuracy. It's really weird.
 
 # The Script
 
-I decided to write my API scraper in JavaScript so I could utilize [octokit.js](https://github.com/octokit/octokit.js), which provided useful built in functionality such as throttling and retrying.
-graphql > rest
+I decided to write my API scraper in JavaScript so I could utilize [octokit.js](https://github.com/octokit/octokit.js), which provided useful built-in functionality such as throttling and retrying. I also decided to use the GitHub GraphQL API instead of the GitHub REST API. Initial testing showed that the GraphQL API had the potential to be orders of magnitudes more efficient, especially given the fact you can batch multiple queries in a single request.
 
-noreply
-
-My script would use the GitHub Search REST API to query every user by followed and
-
-
-
-information is made public for a reason attribution and contact is pretty important from an open source perspective
-Even better way: Co author commits
-Search and followers
-could have used bfs in retrospect
-
-The action/running the script?
-
-original: 1238 in 5000 requests, 884 valid
 partially verified
-ratelimited by search
-graphql explorer vs api is different for email
-
-With two exceptions.
-rest email, graphql no email except in the explorer
-i only want private
-
-https://bounty.github.com/#legal_safe_harbor
-
-Error log
-https://github.com/Fonseca004/MyWebsite
-timezone is wrong
-
 1500/5000 Scarily efficient
 
-6 kernels:
+Error log
+
+
+11 variants of linux:
 
 https://github.com/DAMON-BIN/linux
 https://github.com/zhijie-zhang/rdma
@@ -99,31 +77,27 @@ The mystery of "MDQ6VXNlcjUxODE1MDgy"
 
 `history(first: 1, author: {id: "MDQ6VXNlcjUxODE1MDgy"})` always crashes
 
+The mystery of MyWebsite
+
 https://github.com/Fonseca004/MyWebsite
+timezone is wrong
 
 commit 1955381b566e4e161b969e4d566e35b2caacacc9 (HEAD -> main, origin/main, origin/HEAD)
-Author: Fonseca
+Author: Fonseca <...>
 Date:   Fri Dec 2 10:14:22 3194 +25627400
-
-Implications
-
-spoof pair extraordinaire
-https://github.com/EpicGames/Signup/pull/21
-Email and terms and how it’s legal
-People still get mad https://iliana.fyi/blog/everything-that-lives-is-designed-to-end/
-
-Does this even matter?
-
-Nope, nada. Not at all. But I think that’s what makes this accident of an art project so beautiful. In the words of Yusuke Endoh, "[Why not? Why not? Why not?](https://github.com/mame/quine-relay/issues/11)" I would be lying if I said I didn’t learn anything.
-
-A fireplace of ghosts, a bizarre pit stop of GitHub users.
-
-Phew! Not bad for my second blog, don’t you think? Until next time!
 
 scp root@147.182.243.54:everyone/results.txt .
 git commit --allow-empty -F results.txt
 
-https://docs.github.com/en/site-policy/acceptable-use-policies/github-disrupting-the-experience-of-other-users
-https://docs.github.com/en/site-policy/github-terms/github-terms-of-service#h-api-terms
-https://iliana.fyi/blog/everything-that-lives-is-designed-to-end/
-my github ping (image)
+Implications
+
+spoof pair extraordinaire
+
+Does this even matter?
+
+Nope, nada. Not at all. But I think that’s what makes this accident of an art project so beautiful. In the words of Yusuke Endoh, "[Why not? Why not? Why not?](https://github.com/mame/quine-relay/issues/11)" I would be lying if I said I didn’t learn anything.
+A fireplace of ghosts, a bizarre pit stop of GitHub users.
+
+good chance people will hate on this project https://iliana.fyi/blog/everything-that-lives-is-designed-to-end/
+
+Phew! Not bad for my second blog, don’t you think? Until next time!
