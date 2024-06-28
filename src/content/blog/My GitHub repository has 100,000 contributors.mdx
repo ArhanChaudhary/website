@@ -2,7 +2,7 @@
 description: A parody of "everything" from npm
 ---
 
-{/* cspell:ignore ineffectuating */}
+{/* cspell:ignore ineffectuating nmap irregardlessly */}
 
 Your eyes don’t deceive you. You can check right now: my [GitHub repository](https://github.com/ArhanChaudhary/everyone) has 100,000 contributors.
 
@@ -10,7 +10,7 @@ Before I explain the how and the why, we first need to go back to a few weeks ag
 
 *(Before continuing, I would like to point out that users can sign their commits to cryptographically verify their identity, ineffectuating impersonation. Even then, impersonation is against GitHub's [Acceptable Use Policies](https://docs.github.com/en/site-policy/acceptable-use-policies/github-impersonation). Please be wary.)*
 
-I wasn't trying to make 100,000 commits faking a different GitHub user each time, so I did some research and found a more efficient way. If you add two new lines under a commit message, you can co-author GitHub users as shown.
+I wasn't trying to make 100,000 commits faking a different GitHub user each time, so I did some research and found a more efficient way. If you add two new lines under a commit message, you can co-author GitHub users with their username and email address as shown.
 
 ```bash
 $ git commit -m "Refactor usability tests.
@@ -28,9 +28,26 @@ Manually adding this many GitHub users to a commit message obviously isn’t pra
 
 > We do allow the use of automated tools so long as they do not produce excessive amounts of traffic. For example, running one nmap scan against one host is allowed, but sending 65,000 requests in two minutes using Burp Suite Intruder is excessive.
 
-So, I got to brainstorming. One big conceptual hurdle was figuring out how to get a user's email address. Even if a user makes their email address address publicly visible on their profile, the API doesn't reliably expose it*.
+So, I got to brainstorming. The most important conceptual hurdle was figuring out how to get a user's email address, as you can't co-author a user without it. The problem was, even if a user makes their email address address publicly visible on their profile, the GitHub API doesn't reliably expose it*. Surprisingly, there is a very well-known way to circumvent this and find almost anyone's email address on GitHub.
 
-With these types of technical projects that work with big data, social conduct is extremely important and should be taken seriously. I don't want to end up in a similar situation to [this guy](https://github.com/EpicGames/Signup/pull/24) and piss off 100,000 people by publicly leaking their e-mail addresses.
+Simply navigate to any commit authored by a user on GitHub and append `.patch` to the commit's url. Et voilà! The second line from the top enclosed within angle brackets lies their email address, in full form and glory. It sounds concerning that this type of information is so easy to access, but if you think about it, emails are made public for a reason. Attribution and contact are pretty important from an open source perspective.
+
+With these types of technical projects that work with big data, social conduct should be taken seriously. I don't want to end up in a similar situation to [this guy](https://github.com/EpicGames/Signup/pull/24) and piss off 100,000 people by publicly leaking their email addresses. So, I decided to only co-author private email addresses that are only valid within GitHub.
+
+Admittedly, a small amount of real email addresses were committed at the beginning, but only for testing purposes. I believe that this amount is small enough to be insignificant and inconsequential.
+
+How would I find 100,000 users? GitHub provides a Search API for querying for users, but this was problematic because it had a rate limit of... wait for it... 30 requests per hour. Ba dum, tss! Instead, I opted to use the API endpoint for followers to feed my API scraper its users, which had a marginally higher rate limit I could work with.
+
+Putting everything together, my API scraper will:
+
+1. First use the Search API to find the most followed users on GitHub
+2. Use the followers API endpoint to loop through each user's followers
+3. Use the "hack" as described earlier to find each follower's email
+
+# The Script
+
+I decided to write my API scraper in JavaScript so I could utilize [octokit.js](https://github.com/octokit/octokit.js), which provided useful built in functionality such as throttling and retrying.
+graphql > rest
 
 noreply
 
