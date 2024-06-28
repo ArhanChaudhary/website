@@ -1,0 +1,112 @@
+---
+description: A parody of "everything" from npm
+---
+
+{/* cspell:ignore ineffectuating */}
+
+Your eyes don’t deceive you. You can check right now: my [GitHub repository](https://github.com/ArhanChaudhary/everyone) has 100,000 contributors.
+
+Before I explain the how and the why, we first need to go back to a few weeks ago. I was routinely moving around some configuration files, and I accidentally swapped my `~/.gitconfig` file with that of my alternate account. When I pushed to one of my repositories, I was surprised to notice that my alt account was added as a contributor! Its rendered profile picture, username, and hyperlink — all neatly displayed under "Contributors". There's a good chance you've already seen something [similar](https://github.com/Amog-OS/AmogOS/commit/0bb33e31e2a529bfd13c6013d1ad2dffa2485b61) to this; it isn't hard or particularly new to fake a commit from another user. But my curiosity was sparked. In my mind, the next logical question to ask was: how many contributors could I fake? And thereafter: could I get to exactly 100,000 contributors?
+
+*(Before continuing, I would like to point out that users can sign their commits to cryptographically verify their identity, ineffectuating impersonation. Even then, impersonation is against GitHub's [Acceptable Use Policies](https://docs.github.com/en/site-policy/acceptable-use-policies/github-impersonation). Please be wary.)*
+
+I wasn't trying to make 100,000 commits faking a different GitHub user each time, so I did some research and found a more efficient way. If you add two new lines under a commit message, you can co-author GitHub users as shown.
+
+```bash
+$ git commit -m "Refactor usability tests.
+>
+>
+Co-authored-by: NAME <NAME@EXAMPLE.COM>
+Co-authored-by: ANOTHER-NAME <ANOTHER-NAME@EXAMPLE.COM>"
+```
+
+And so on, with seemingly no co-author limit. Luckily for my case, each one is added as a contributor! Armed with this knowledge, I began to formulate a plan.
+
+# The plan
+
+Manually adding this many GitHub users to a commit message obviously isn’t practical. I needed to write an API scraper, and a quick check of GitHub's [policies](https://bounty.github.com/#legal_safe_harbor) affirms I'm allowed to do this if I'm not too excessive.
+
+> We do allow the use of automated tools so long as they do not produce excessive amounts of traffic. For example, running one nmap scan against one host is allowed, but sending 65,000 requests in two minutes using Burp Suite Intruder is excessive.
+
+So, I got to brainstorming. One big conceptual hurdle was figuring out how to get a user's email address. Even if a user makes their email address address publicly visible on their profile, the API doesn't reliably expose it*.
+
+With these types of technical projects that work with big data, social conduct is extremely important and should be taken seriously. I don't want to end up in a similar situation to [this guy](https://github.com/EpicGames/Signup/pull/24) and piss off 100,000 people by publicly leaking their e-mail addresses.
+
+noreply
+
+My script would use the GitHub Search REST API to query every user by followed and
+
+
+
+information is made public for a reason attribution and contact is pretty important from an open source perspective
+Even better way: Co author commits
+Search and followers
+could have used bfs in retrospect
+
+The action/running the script?
+
+original: 1238 in 5000 requests, 884 valid
+partially verified
+ratelimited by search
+graphql explorer vs api is different for email
+
+With two exceptions.
+rest email, graphql no email except in the explorer
+i only want private
+
+https://bounty.github.com/#legal_safe_harbor
+
+Error log
+https://github.com/Fonseca004/MyWebsite
+timezone is wrong
+
+1500/5000 Scarily efficient
+
+6 kernels:
+
+https://github.com/DAMON-BIN/linux
+https://github.com/zhijie-zhang/rdma
+https://github.com/xlab-uiuc/seccomp-ebpf-upstream
+https://github.com/summ9919/motorola_esp_kernel_19.1
+https://github.com/dandelion64-Archives/android_kernel_mediatek_mt6765g
+https://github.com/MyTimeToShine777/msm-4.14
+https://github.com/lu9944/KernelSU_msm-4.14
+https://github.com/selurvedu/msm-4.14_kernel_xiaomi_laurel_sprout
+https://github.com/Sailfy/android_kernel_redmi_mt6785
+https://github.com/Sm680-Development/kernel_motorola_sm6225
+https://github.com/MK-986123/kernel_samsung_sm8550
+
+transition into:
+
+The mystery of "MDQ6VXNlcjUxODE1MDgy"
+
+`history(first: 1, author: {id: "MDQ6VXNlcjUxODE1MDgy"})` always crashes
+
+https://github.com/Fonseca004/MyWebsite
+
+commit 1955381b566e4e161b969e4d566e35b2caacacc9 (HEAD -> main, origin/main, origin/HEAD)
+Author: Fonseca
+Date:   Fri Dec 2 10:14:22 3194 +25627400
+
+Implications
+
+spoof pair extraordinaire
+https://github.com/EpicGames/Signup/pull/21
+Email and terms and how it’s legal
+People still get mad https://iliana.fyi/blog/everything-that-lives-is-designed-to-end/
+
+Does this even matter?
+
+Nope, nada. Not at all. But I think that’s what makes this accident of an art project so beautiful. In the words of Yusuke Endoh, "[Why not? Why not? Why not?](https://github.com/mame/quine-relay/issues/11)" I would be lying if I said I didn’t learn anything.
+
+A fireplace of ghosts, a bizarre pit stop of GitHub users.
+
+Phew! Not bad for my second blog, don’t you think? Until next time!
+
+scp root@147.182.243.54:everyone/results.txt .
+git commit --allow-empty -F results.txt
+
+https://docs.github.com/en/site-policy/acceptable-use-policies/github-disrupting-the-experience-of-other-users
+https://docs.github.com/en/site-policy/github-terms/github-terms-of-service#h-api-terms
+https://iliana.fyi/blog/everything-that-lives-is-designed-to-end/
+my github ping (image)

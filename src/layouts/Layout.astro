@@ -556,6 +556,17 @@ const highlightIndex = sshUsers.indexOf(sshUser) + 1;
     color: white !important;
   }
 
+  blockquote {
+    font-style: italic;
+    padding-left: 11px;
+    border-left: 4px solid hsl(0, 0%, 80%);
+    color: hsl(0deg 0% 70%) !important;
+
+    * {
+      color: inherit !important;
+    }
+  }
+
   @font-face {
     font-family: "Input Mono";
     src: url("/fonts/InputMono/InputMono-Bold.ttf") format("truetype");
