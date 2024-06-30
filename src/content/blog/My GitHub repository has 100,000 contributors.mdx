@@ -86,7 +86,7 @@ I'm so sorry if it feels like I'm cutting you off, but I first wanted to discuss
 
 # The mystery of U_kgDOAMbr8w
 
-Out of those half a million users, exactly two of them always crash the GraphQL API. That's a *0.0004%* fallthrough rate. Following some investigation, I was able to narrow down the crashing to any valid query containing the substring `history(author: {id: "U_kgDOAMbr8w"})`, where `id` is the user's GraphQL node id. If you want to try yourself, execute this on the [GitHub GraphQL explorer](https://docs.github.com/en/graphql/overview/explorer):
+Out of those half a million users, exactly two of them always crash the GraphQL API. That's a *0.0004%* fallthrough rate. Following some investigation, I was able to narrow down the crashing to any valid query containing the substring `history(author: {id: "..."})`, where the `id` parameter is either of their GraphQL user IDs. If you want to try yourself, execute this on the [GitHub GraphQL explorer](https://docs.github.com/en/graphql/overview/explorer):
 
 ```graphql
 query {
