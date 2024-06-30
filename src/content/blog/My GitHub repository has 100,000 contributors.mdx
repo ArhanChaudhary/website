@@ -1,7 +1,7 @@
 ---
 description: A parody of "everything" from npm
 ---
-{/* cspell:ignore ineffectuating nmap irregardlessly nlcj yusuke endoh booyah */}
+{/* cspell:ignore ineffectuating nmap irregardlessly nlcj booyah */}
 
 import ContentImage from "../../components/ContentImage.astro";
 import partiallyVerified from "../../assets/blog/my-github-repository-has-100000-contributors/partially-verified.png";
@@ -106,7 +106,7 @@ query {
 
 It doesn't matter which repository you specify, the results are the same.
 
-I emailed both users to inquire about anything they might know about this issue. The second user responded, and they were equally as puzzled as I was. After exchanging Discords, we spent a few hours discussing theories and possible security concerns, but despite our research we weren't able to come to a conclusion. I ultimately ended up filing a bug report to GitHub support.
+I emailed both users to inquire about anything they might know about this issue. The second user responded, equally as puzzled as I was. After exchanging Discords, we spent a few hours discussing theories and possible security concerns, but despite our research we weren't able to come to a conclusion. I ultimately ended up filing a bug report to GitHub support.
 
 I will provide an update to this section when my ticket receives a response.
 
@@ -129,19 +129,21 @@ Date:   Fri Dec 2 10:14:22 3194 +25627400
 ...
 ```
 
-From a prior CTF competition, I already knew that GitHub was [perfectly fine](https://github.com/l3rnds/Ft_IRC/commits/main/) with future commit dates. I didn't want to accidentally corrupt my own GitHub account, so I created a test account and tried to replicate this commit.
+From a prior CTF competition, I already knew that GitHub was [perfectly fine](https://github.com/l3rnds/Ft_IRC/commits/main/) with future commit dates. I wasn't sure why this was happening, so I replicated this commit on a test repository.
 
 ```bash
 Test % git commit --allow-empty -m "Testing"
 Test % commit=$(git rev-parse HEAD)
 Test % git cat-file commit $commit > commit.txt
-Test % vim commit.txt # change the date to Fri Dec 2 10:14:22 3194 +25627400
+Test % vim commit.txt # change both timestamps to 38654734462000 +25627400
 Test % new_commit=$(git hash-object -t commit -w commit.txt)
 Test % git update-ref refs/heads/main $new_commit
 Test % git push
 ```
 
-This only works on Git v2.38.2 or earlier, don't ask me how I know that. Sure enough, after pushing, my test repository similarly nuked itself with the same message. I was able to pinpoint this behavior to the invalid UTC offset on the commit date, it seems like GitHub isn't able to properly parse it. I took this a step further and wanted to see what would happen I if opened a pull request that referenced this commit. Feast your eyes on...
+These commands only work on Git v2.38.2 or earlier, don't ask me how I know that.
+
+Sure enough, after pushing, my test repository similarly nuked itself with the same message. I was able to pinpoint this behavior to the invalid UTC offset on the commit date, a classic parsing oversight. I took this a step further and wanted to see what would happen if I opened a pull request referencing this commit. Feast your eyes on...
 
 <ContentImage src={github500} width={null} alt="GitHub throwing an internal server error"></ContentImage>
 
