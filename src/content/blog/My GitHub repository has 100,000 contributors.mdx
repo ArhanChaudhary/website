@@ -1,19 +1,27 @@
 ---
 description: A parody of "everything" from npm
 ---
+{/* cspell:ignore ineffectuating nmap irregardlessly nlcj yusuke endoh booyah */}
 
-{/* cspell:ignore ineffectuating nmap irregardlessly */}
+import ContentImage from "../../components/ContentImage.astro";
+import partiallyVerified from "../../assets/blog/my-github-repository-has-100000-contributors/partially-verified.png";
+import commitLoading from "../../assets/blog/my-github-repository-has-100000-contributors/commit-loading.png";
+import corruptedRepository from "../../assets/blog/my-github-repository-has-100000-contributors/corrupted-repository.png";
+import _100000Contributors from "../../assets/blog/my-github-repository-has-100000-contributors/100000-contributors.png";
+import github500 from "../../assets/blog/my-github-repository-has-100000-contributors/github-500.png";
 
 Your eyes don’t deceive you. You can check right now: my [GitHub repository](https://github.com/ArhanChaudhary/everyone) has 100,000 contributors.
 
-Before I explain the how and the why, we first need to go back to a few weeks ago. I was routinely moving around some configuration files, and I accidentally swapped my `~/.gitconfig` file with that of my alternate account. When I pushed to one of my repositories, I was surprised to notice that my alt account was added as a contributor! Its rendered profile picture, username, and hyperlink — all neatly displayed under "Contributors". There's a good chance you've already seen something [similar](https://github.com/Amog-OS/AmogOS/commit/0bb33e31e2a529bfd13c6013d1ad2dffa2485b61) to this; it isn't hard or particularly new to fake a commit from another user. But my curiosity was sparked. In my mind, the next logical question to ask was: how many contributors could I fake? And thereafter: could I get to exactly 100,000 contributors?
+Before I explain the how and the why, we first need to go back to a few weeks ago. I was routinely moving around some configuration files, and I accidentally swapped my `~/.gitconfig` file with that of my alternate account. When I pushed to one of my repositories, I was surprised to notice that my alt account was added as a contributor! Its rendered profile picture, username, and hyperlink — all neatly displayed under "Contributors".
+
+There's a good chance you've already seen something [similar](https://github.com/Amog-OS/AmogOS/commit/0bb33e31e2a529bfd13c6013d1ad2dffa2485b61) to this; it isn't hard or particularly new to fake a commit from another user. But my curiosity was sparked. In my mind, the next logical question to ask was: how many contributors could I fake? And thereafter: could I get to exactly 100,000 contributors? It would be a fireplace of ghosts, a bizarre pit stop of GitHub users.
 
 *(Before continuing, I would like to point out that users can sign their commits to cryptographically verify their identity, ineffectuating impersonation. Even then, impersonation is against GitHub's [Acceptable Use Policies](https://docs.github.com/en/site-policy/acceptable-use-policies/github-impersonation). Please be wary.)*
 
 I wasn't trying to make 100,000 commits faking a different GitHub user each time, so I did some research and found a more efficient way. If you add two new lines under a commit message, you can co-author GitHub users with their username and email address as shown.
 
 ```bash
-$ git commit -m "Refactor usability tests.
+~ % git commit -m "Refactor usability tests.
 >
 >
 Co-authored-by: NAME <NAME@EXAMPLE.COM>
@@ -24,11 +32,11 @@ And so on, with seemingly no co-author limit. Luckily for my case, each one is a
 
 # The plan
 
-Manually adding this many GitHub users to a commit message obviously isn’t practical. I needed to write an API scraper, and a quick check of GitHub's [policies](https://bounty.github.com/#legal_safe_harbor) affirms I'm allowed to do this if I'm not too excessive.
+Manually adding this many GitHub users to a commit message obviously isn’t practical. I needed to write an API scraper, and a quick check of GitHub's [policies](https://bounty.github.com/#legal_safe_harbor) affirms I'm allowed to do this provided that I'm not excessive.
 
 > We do allow the use of automated tools so long as they do not produce excessive amounts of traffic. For example, running one nmap scan against one host is allowed, but sending 65,000 requests in two minutes using Burp Suite Intruder is excessive.
 
-So, I got to brainstorming. The most important conceptual hurdle was figuring out how to get a user's email address, as you can't co-author a user without it. The problem was, even if a user makes their email address address publicly visible on their profile, the GitHub API doesn't reliably expose it*. Surprisingly, there is a very well-known way to circumvent this and find almost anyone's email address on GitHub.
+So, I got to brainstorming. The most important conceptual hurdle was figuring out how to get a user's email address, as you can't co-author a user without it. The problem was, even if a user makes their email address address publicly visible on their profile, the GitHub API doesn't reliably expose it *. Surprisingly, there is a very well-known way to circumvent this and find almost anyone's email address on GitHub.
 
 Simply navigate to any commit authored by a user on GitHub and append `.patch` to the commit's url. Et voilà! The second line from the top enclosed within angle brackets lies their email address, in full form and glory. It sounds concerning that this type of information is so easy to access, but if you think about it, emails are made public for a reason. Attribution and contact are pretty important from an open source perspective.
 
@@ -36,7 +44,7 @@ With these types of technical projects that work with big data, social conduct s
 
 Admittedly, a small amount of real email addresses were committed at the beginning, but only for testing purposes. I believe that this amount is small enough to be insignificant and inconsequential.
 
-How would I find 100,000 users? GitHub provides a Search API for querying for users, but this was problematic because it had a rate limit of... wait for it... 30 requests per hour. Ba dum, tss! Instead, I opted to use the API endpoint for followers to feed my API scraper its users, which had a marginally higher rate limit I could work with.
+How would I find 100,000 users? GitHub provides a Search API for querying for users, but this was problematic because it had a rate limit of... wait for it... 30 requests per hour. Ba dum, tss! Instead, I opted to use the API endpoint for followers to feed my scraper its users, which had a marginally higher rate limit I could work with.
 
 Putting everything together, my API scraper will:
 
@@ -49,55 +57,141 @@ Putting everything together, my API scraper will:
 
 # The Script
 
-I decided to write my API scraper in JavaScript so I could utilize [octokit.js](https://github.com/octokit/octokit.js), which provided useful built-in functionality such as throttling and retrying. I also decided to use the GitHub GraphQL API instead of the GitHub REST API. Initial testing showed that the GraphQL API had the potential to be orders of magnitudes more efficient, especially given the fact you can batch multiple queries in a single request.
+I decided to write the scraper in JavaScript so I could utilize [octokit.js](https://github.com/octokit/octokit.js), an API wrapper that provides useful built-in functionality such as throttling and retrying. I also decided to use GitHub's GraphQL API instead of their REST API because multiple GraphQL queries could be batched in a single request.
 
-partially verified
-1500/5000 Scarily efficient
+After hacking up a prototype, I tested my first commit.
 
-Error log
+<ContentImage src={partiallyVerified} desc={`In ironic fashion, because I sign my commits, the commit was labeled "Partially verified" in green`} width="450" quality="high" alt="A commit with 2,000 contributors"></ContentImage>
 
+It works!
 
-11 variants of linux:
+I would spend the next week polishing response edge cases and ironing out inefficiencies, before I was finally ready to run my scraper.
 
-https://github.com/DAMON-BIN/linux
-https://github.com/zhijie-zhang/rdma
-https://github.com/xlab-uiuc/seccomp-ebpf-upstream
-https://github.com/summ9919/motorola_esp_kernel_19.1
-https://github.com/dandelion64-Archives/android_kernel_mediatek_mt6765g
-https://github.com/MyTimeToShine777/msm-4.14
-https://github.com/lu9944/KernelSU_msm-4.14
-https://github.com/selurvedu/msm-4.14_kernel_xiaomi_laurel_sprout
-https://github.com/Sailfy/android_kernel_redmi_mt6785
-https://github.com/Sm680-Development/kernel_motorola_sm6225
-https://github.com/MK-986123/kernel_samsung_sm8550
+I didn't feel like running it locally because I knew from testing it would take a long time. Instead I bought a DigitalOcean VM, imported my script, and ran it as a background process.
 
-transition into:
+```bash
+:~# git clone https://github.com/ArhanChaudhary/everyone
+:~# cd everyone
+:~/everyone# nohup node index.mjs --co-author-count=100000 > results.txt 2> log.txt &
+[1] 104705
+```
 
-The mystery of "MDQ6VXNlcjUxODE1MDgy"
+I think it's worth mentioning how surprisingly lenient the GraphQL API rate limits are. Even though my scraper was continuously and asynchronously parallelizing multiple requests at once, the highest I ever saw the GraphQL hourly rate limit quota reach was 1,500 out of 5,000 points.
 
-`history(first: 1, author: {id: "MDQ6VXNlcjUxODE1MDgy"})` always crashes
+Nine hours later, combing through approximately half a million GitHub users, my scraper yielded 100,000 co-authors, each ready to become a contributor. Hooray!
 
-The mystery of MyWebsite
+I'm so sorry if it feels like I'm cutting you off, but I first wanted to discuss a few API anomalies on the error log before we get to the committing. Trust me, what I've found is equally, if not more interesting.
 
-https://github.com/Fonseca004/MyWebsite
-timezone is wrong
+# The mystery of U_kgDOAMbr8w
 
-commit 1955381b566e4e161b969e4d566e35b2caacacc9 (HEAD -> main, origin/main, origin/HEAD)
-Author: Fonseca `<...>`
+Out of those half a million GitHub users, exactly two of them always crash the GraphQL API. That's a *0.0004%* fallthrough rate. Following some investigation, I was able to narrow down the crashing to any valid query containing the substring `history(author: {id: "U_kgDOAMbr8w"})`, where `id` is the user's GraphQL node id. If you want to try yourself, execute this on the [GitHub GraphQL explorer](https://docs.github.com/en/graphql/overview/explorer):
+
+```graphql
+query {
+  repository(owner: "torvalds", name: "linux") {
+    defaultBranchRef {
+      target {
+        ... on Commit {
+          history(author: {id: "U_kgDOAMbr8w"}) {
+            totalCount
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+It doesn't matter which repository you specify, the results are the same.
+
+I emailed both users to inquire about anything they might know about this issue. The second user responded, and they were equally as puzzled as I was. After exchanging Discords, we spent a few hours discussing theories and possible security concerns, but despite our research we weren't able to come to a conclusion. I ultimately ended up filing a bug report to GitHub support.
+
+I will provide an update to this section when my ticket receives a response.
+
+# The mystery of MyWebsite
+
+Have you ever seen a corrupted repository?
+
+<ContentImage src={corruptedRepository} desc="I won't be revealing the author nor the link to respect their privacy" alt="A repository that is corrupted"></ContentImage>
+
+Well, it ended up crashing my script half way through. Having to re-run it was more annoying than it should have been.
+
+It turns out you can still clone this repository. Checking the commit history presents something interesting.
+
+```bash
+Desktop % git clone https://github.com/.../MyWebsite.git
+Desktop % cd MyWebsite
+MyWebsite % git log -n 1
+...
 Date:   Fri Dec 2 10:14:22 3194 +25627400
+...
+```
 
-scp root@147.182.243.54:everyone/results.txt .
-git commit --allow-empty -F results.txt
+I knew from a prior CTF competition that GitHub is [perfectly fine](https://github.com/l3rnds/Ft_IRC/commits/main/) with future commit dates. I didn't want to mess around with the chance to corrupt my own account, so I created a test account and replicated the date of this commit.
 
-Implications
+```bash
+Test % git commit --allow-empty -m "Testing"
+Test % commit=$(git rev-parse HEAD)
+Test % git cat-file commit $commit > commit.txt
+Test % vim commit.txt # change the date to Fri Dec 2 10:14:22 3194 +25627400
+Test % new_commit=$(git hash-object -t commit -w commit.txt)
+Test % git update-ref refs/heads/main $new_commit
+Test % git push
+```
 
-spoof pair extraordinaire
+This only works on Git v2.38.2 or earlier, don't ask me how I know that. Sure enough, after pushing, my test repository nuked itself with the same message. I was able to pinpoint this behavior to the invalid UTC offset on the commit. I took it a step further and wanted to see what would happen I if opened a pull request that referenced this commit. Feast your eyes on...
 
-Does this even matter?
+<ContentImage src={github500} width={null} alt="GitHub throwing an error 500"></ContentImage>
 
-Nope, nada. Not at all. But I think that’s what makes this accident of an art project so beautiful. In the words of Yusuke Endoh, "[Why not? Why not? Why not?](https://github.com/mame/quine-relay/issues/11)" I would be lying if I said I didn’t learn anything.
-A fireplace of ghosts, a bizarre pit stop of GitHub users.
+I really wish I could say I found a denial-of-service PoC and [became $1,000 (or more) richer](https://hackerone.com/github#user-content-performing-your-research). Imagine how cool of a resolution that would sound! Like before, following triage with some of my other programming friends, I surrendered empty-handed and filed a bug report to GitHub support.
 
-good chance people will hate on this project https://iliana.fyi/blog/everything-that-lives-is-designed-to-end/
+# 100,000 Contributors
 
-Phew! Not bad for my second blog, don’t you think? Until next time!
+Where were we? Oh right, apologies for the side-tangents, I sometimes tend to get distracted. Now that we have all of our co-authors, let's get the party started!
+
+```bash
+everyone % scp root@147.182.243.54:everyone/results.txt .
+everyone % echo -e "👀\n\n$(cat $i)" | git commit --allow-empty -F -
+everyone % git push
+```
+
+...
+
+...
+
+Thirty minutes later, nothing happens.
+
+<ContentImage src={commitLoading} alt="A screenshot showing GitHub commits unable to load"></ContentImage>
+
+Uh oh.
+
+I'm just messing with you, it wasn't that dramatic. After force git-resetting, simply splitting up the co-authors into commits of 5,000 at a time did the trick.
+
+`everyone.sh`
+```bash
+#!/bin/bash
+
+split -l 5000 -a 5 results.txt split_
+FIRST_ITERATION=1
+
+for i in split_*
+do
+    if [ $FIRST_ITERATION -eq 0 ]; then
+        sleep 120
+    fi
+    FIRST_ITERATION=0
+    echo -e "👀\n\n$(cat $i)" | git commit --allow-empty -F -
+    git push
+done
+
+rm split_*
+echo "Co-authors successfully processed!"
+```
+
+After running the script, around half an hour later:
+
+<ContentImage src={_100000Contributors} desc="The last 14 contributors are represented by the icons up top. Though, this number seems to gradually decrease over time, probably because changing email addresses can cause it to fluctuate" width="500" alt="A screenshot showing 100,000 contributors"></ContentImage>
+
+Booyah! \*drops mic\*
+
+Not bad for my second blog, don’t you think? Until next time!

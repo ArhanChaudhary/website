@@ -5,15 +5,16 @@ interface Props {
   src: ImageMetadata;
   alt: string;
   desc?: string;
+  width?: number;
   [key: string]: any;
 }
 
-const { src, alt, desc, ...attrs } = Astro.props;
+const { src, alt, desc, width, ...attrs } = Astro.props;
 ---
 
 <div class="content-image-positioner">
   <span class="content-image-wrapper">
-    <Image {src} {alt} {...attrs} />
+    <Image {src} {alt} {...attrs} width={width === undefined ? 1000 : width} />
     {desc && <div class="content-image-alt-text">{desc}</div>}
   </span>
 </div>

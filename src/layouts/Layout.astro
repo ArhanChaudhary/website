@@ -620,13 +620,6 @@ const highlightIndex = sshUsers.indexOf(sshUser) + 1;
     color: white !important;
   }
 
-  @media (max-width: variables.$mobile-width) {
-    #max-width-wrapper {
-      margin-right: auto;
-      margin-left: auto;
-    }
-  }
-
   .content-image-positioner {
     padding: 10px 0;
 
@@ -643,6 +636,17 @@ const highlightIndex = sshUsers.indexOf(sshUser) + 1;
         font-style: italic;
         color: hsl(0deg 0% 70%);
       }
+    }
+  }
+
+  @media (max-width: variables.$mobile-width) {
+    #max-width-wrapper {
+      margin-right: auto;
+      margin-left: auto;
+    }
+
+    blockquote {
+      margin-inline-start: 20px !important;
     }
   }
 </style>
