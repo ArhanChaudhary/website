@@ -1,5 +1,6 @@
 ---
 description: A parody of "everything" from npm
+pubDate: 2024-07-01T08:00:00
 ---
 {/* cspell:ignore ineffectuating nmap irregardlessly nlcj booyah */}
 
@@ -143,7 +144,7 @@ Test % git push
 
 These commands only work on Git v2.38.2 or earlier, don't ask me how I know that.
 
-Sure enough, after pushing, my test repository similarly nuked itself with the same message. I was able to pinpoint this behavior to the invalid UTC offset on the commit date, a classic parsing oversight. I took this a step further and wanted to see what would happen if I opened a pull request referencing this commit. Feast your eyes on...
+Sure enough, after pushing, my test repository also nuked itself in a similar fashion with the same error message. I was able to pinpoint this behavior to the invalid UTC offset on the commit date, a classic parsing oversight. I took this a step further and wanted to see what would happen if I opened a pull request referencing this commit. Feast your eyes on...
 
 <ContentImage src={github500} width={null} alt="GitHub throwing an internal server error"></ContentImage>
 
