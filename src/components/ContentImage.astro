@@ -14,7 +14,12 @@ const { src, alt, desc, width, ...attrs } = Astro.props;
 
 <div class="content-image-positioner">
   <span class="content-image-wrapper">
-    <Image {src} {alt} {...attrs} width={width === undefined ? 1000 : width} />
+    <Image
+      {src}
+      {alt}
+      {...attrs}
+      width={width === undefined && attrs.height === undefined ? 1000 : width}
+    />
     {desc && <div class="content-image-alt-text">{desc}</div>}
   </span>
 </div>
