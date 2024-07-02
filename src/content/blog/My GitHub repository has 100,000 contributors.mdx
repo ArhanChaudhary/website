@@ -119,13 +119,61 @@ Have you ever seen a corrupted repository?
 
 Well, it ended up crashing my script half way through. Having to re-run it was more annoying than it should have been.
 
-It turns out you can still clone this repository. Inspecting the commit history presented something interesting. I won't disclose what for security reasons, because from there I was able to cause...
+It turns out you can still clone this repository. Inspecting the commit history presents something interesting.
+
+```bash
+Desktop % git clone https://github.com/.../MyWebsite.git
+Desktop % cd MyWebsite
+MyWebsite % git log -n 1
+...
+Date:   Fri Dec 2 10:14:22 3194 +25627400
+...
+```
+
+From a prior CTF competition, I already knew that GitHub was [perfectly fine](https://github.com/l3rnds/Ft_IRC/commits/main/) with future commit dates. I wasn't sure why this was happening, so I replicated this commit on a test repository.
+
+```bash
+Test % git commit --allow-empty -m "Testing"
+Test % commit=$(git rev-parse HEAD)
+Test % git cat-file commit $commit > commit.txt
+Test % vim commit.txt # change both timestamps to 38654734462000 +25627400
+Test % new_commit=$(git hash-object -t commit -w commit.txt)
+Test % git update-ref refs/heads/main $new_commit
+Test % git push
+```
+
+These commands only work on Git v2.38.2 or earlier, don't ask me how I know that.
+
+Sure enough, after pushing, my test repository also nuked itself in a similar fashion with the same error message. I was able to pinpoint this behavior to the invalid UTC offset on the commit date, a classic parsing oversight. I took this a step further and wanted to see what would happen if I opened a pull request referencing this commit. Feast your eyes on...
 
 <ContentImage src={github500} width={null} alt="GitHub throwing an internal server error"></ContentImage>
 
 I really wish I could say I found a denial-of-service PoC and [became $1,000 (or more) richer](https://hackerone.com/github#user-content-performing-your-research). Imagine how cool of a resolution that would sound! Like before, following triage with some of my friends, I surrendered empty-handed and filed a bug report to GitHub support.
 
-Once I'm given the OK from GitHub to talk about the bug, I'll update this section.
+I would receive this response two days later.
+
+```
+Hey Arhan,
+
+Thanks for getting in touch and flagging this. I take it you've been exploring
+different ways to edit git commits manually and exploring how they behave on
+GitHub? :)
+
+We're not able to gracefully handle every possible sort of malformed/corrupted
+commit that might occur, as much as we'd like to.
+
+Given the extensive steps required to achieve this outcome, it's unlikely this
+would be encountered as part of regular work when collaborating on GitHub.
+Because of this, it's unlikely that if I raised this with one of our engineering
+teams that it'd be picked up to be worked on/improved.
+
+I hope you can understand why we're not always able to work on all bug reports
+we receive, but if you identify a way this occurs as part of regular activity,
+please write back and let us know - we'd be happy to investigate further.
+...
+```
+
+Understandable, but nevertheless an interesting endeavor.
 
 # 100,000 Contributors
 
