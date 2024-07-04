@@ -62,7 +62,7 @@ Hopefully you can see that, through some intuitional ingenuity, the idea no long
 
 *The situation here is strange. For reasons unknown, the GitHub GraphQL API straight up doesn't expose the majority of users' public emails... UNLESS you use the GitHub REST API; in which case only this method works... UNLESS you use the [GitHub GraphQL explorer](https://docs.github.com/en/graphql/overview/explorer) which seems to work with the same level of accuracy. I know I'm not going crazy. It's really weird.
 
-# The Script
+# The script
 
 I decided to write the scraper in JavaScript so I could utilize [octokit.js](https://github.com/octokit/octokit.js), an API wrapper that provides useful built-in functionality such as throttling and retrying. I also decided to use GitHub's GraphQL API instead of their REST API because multiple GraphQL queries could be batched in a single request and other smaller efficiencies.
 
@@ -83,7 +83,7 @@ I didn't feel like running it locally because I knew from testing it would take 
 [1] 104705
 ```
 
-I think it's worth mentioning how surprisingly lenient the GraphQL API rate limits are. Even though my scraper was continuously and asynchronously parallelizing multiple batched queries at once, the highest I ever saw the GraphQL hourly rate limit quota reach was 1,500 out of 5,000 points.
+I think it's worth mentioning how surprisingly lenient the GraphQL API rate limits are, given how [notoriously restrictive](https://stackoverflow.com/questions/13394077/is-there-a-way-to-increase-the-api-rate-limit-or-to-bypass-it-altogether-for-git) the Rest API rate limits are. Even though my scraper was continuously and asynchronously parallelizing multiple batched queries at once, the highest I ever saw the GraphQL hourly rate limit quota reach was 1,500 out of 5,000 points.
 
 Nine hours later, combing through approximately half a million GitHub users, my scraper yielded 100,000 co-authors, each ready to become a contributor. Hooray!
 
@@ -113,7 +113,20 @@ It doesn't matter which repository you specify, the results are the same.
 
 I emailed both users to inquire about anything they might know about this issue. The second user responded, equally as puzzled as I was. After exchanging Discords, we spent a few hours discussing theories and possible security concerns, but despite our research we weren't able to come to a conclusion. I ultimately ended up filing a bug report to GitHub support.
 
-I will provide an update to this section when my ticket receives a response.
+I would receive this response.
+
+> Hi Arhan,
+>
+> Thanks for reaching out!
+>
+> I was able to reproduce the error and it seems the bug is related to some odd
+> author information associated with user accounts.
+>
+> I have filed an internal issue with the engineering team to look into this bug.
+> While I don't have an ETA on a fix now, we appreciate you reaching out on how we
+> can make things better.
+>
+> ...
 
 # The mystery of MyWebsite
 
@@ -156,28 +169,27 @@ I really wish I could say I found a denial-of-service PoC and [became $1,000 (or
 
 I would receive this response two days later.
 
-```
-Hey Arhan,
+> Hey Arhan,
+>
+> Thanks for getting in touch and flagging this. I take it you've been exploring
+> different ways to edit git commits manually and exploring how they behave on
+> GitHub? :)
+>
+> We're not able to gracefully handle every possible sort of malformed/corrupted
+> commit that might occur, as much as we'd like to.
+>
+> Given the extensive steps required to achieve this outcome, it's unlikely this
+> would be encountered as part of regular work when collaborating on GitHub.
+> Because of this, it's unlikely that if I raised this with one of our engineering
+> teams that it'd be picked up to be worked on/improved.
+>
+> I hope you can understand why we're not always able to work on all bug reports
+> we receive, but if you identify a way this occurs as part of regular activity,
+> please write back and let us know - we'd be happy to investigate further.
+>
+> ...
 
-Thanks for getting in touch and flagging this. I take it you've been exploring
-different ways to edit git commits manually and exploring how they behave on
-GitHub? :)
-
-We're not able to gracefully handle every possible sort of malformed/corrupted
-commit that might occur, as much as we'd like to.
-
-Given the extensive steps required to achieve this outcome, it's unlikely this
-would be encountered as part of regular work when collaborating on GitHub.
-Because of this, it's unlikely that if I raised this with one of our engineering
-teams that it'd be picked up to be worked on/improved.
-
-I hope you can understand why we're not always able to work on all bug reports
-we receive, but if you identify a way this occurs as part of regular activity,
-please write back and let us know - we'd be happy to investigate further.
-...
-```
-
-Understandable, but nevertheless an interesting endeavor.
+Understandable, but nevertheless interesting.
 
 # 100,000 Contributors
 

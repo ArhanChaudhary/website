@@ -5,5 +5,5 @@
       "ignoreRegExpList": ["/```[\\s\\S]*?```|`[\\s\\S]*?`|---[\\s\\S]*?---/gm"]
     }
   ],
-  "cSpell.words": ["astro", "astrojs", "NAND"]
+  "cSpell.words": ["astro", "astrojs", "NAND", "Arhan"]
 }
