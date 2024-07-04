@@ -12,7 +12,7 @@ const { Content } = await section.render();
 ---
 
 <h2>
-  <a href={url}>{decodeFileName(section.id)}</a>
+  <a href={url} class="white-link">{decodeFileName(section.id)}</a>
 </h2>
 <div class="info">
   Genre: {genre}
@@ -50,12 +50,6 @@ const { Content } = await section.render();
 
   a {
     color: hsl(0, 0%, 95%);
-    text-decoration: none;
-
-    &:hover {
-      text-decoration: underline;
-      color: hsl(0, 0%, 85%);
-    }
   }
 
   .info {

@@ -567,38 +567,6 @@ const highlightIndex = sshUsers.indexOf(sshUser) + 1;
     }
   }
 
-  @font-face {
-    font-family: "Input Mono";
-    src: url("/fonts/InputMono/InputMono-Bold.ttf") format("truetype");
-    font-weight: 700;
-    font-style: normal;
-    font-display: swap;
-  }
-
-  @font-face {
-    font-family: "Input Mono";
-    src: url("/fonts/InputMono/InputMono-Medium.ttf") format("truetype");
-    font-weight: 500;
-    font-style: normal;
-    font-display: swap;
-  }
-
-  @font-face {
-    font-family: "Input Mono";
-    src: url("/fonts/InputMono/InputMono-Regular.ttf") format("truetype");
-    font-weight: 400;
-    font-style: normal;
-    font-display: swap;
-  }
-
-  @font-face {
-    font-family: "Input Mono";
-    src: url("/fonts/InputMono/InputMono-ExtraLight.ttf") format("truetype");
-    font-weight: 200;
-    font-style: normal;
-    font-display: swap;
-  }
-
   .input-mono {
     font-family: "Input Mono", Helvetica;
   }
@@ -639,6 +607,24 @@ const highlightIndex = sshUsers.indexOf(sshUser) + 1;
     }
   }
 
+  #table-of-contents + ul {
+    > li {
+      margin-top: 1em;
+      margin-bottom: 1em;
+      color: white !important;
+      text-decoration: none;
+    }
+  }
+
+  a.white-link {
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+      color: hsl(0, 0%, 85%) !important;
+    }
+  }
+
   @media (max-width: variables.$mobile-width) {
     #max-width-wrapper {
       margin-right: auto;
@@ -646,7 +632,39 @@ const highlightIndex = sshUsers.indexOf(sshUser) + 1;
     }
 
     blockquote {
-      margin-inline-start: 20px !important;
+      margin-inline-start: 0 !important;
     }
+  }
+
+  @font-face {
+    font-family: "Input Mono";
+    src: url("/fonts/InputMono/InputMono-Bold.ttf") format("truetype");
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+  }
+
+  @font-face {
+    font-family: "Input Mono";
+    src: url("/fonts/InputMono/InputMono-Medium.ttf") format("truetype");
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+  }
+
+  @font-face {
+    font-family: "Input Mono";
+    src: url("/fonts/InputMono/InputMono-Regular.ttf") format("truetype");
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+  }
+
+  @font-face {
+    font-family: "Input Mono";
+    src: url("/fonts/InputMono/InputMono-ExtraLight.ttf") format("truetype");
+    font-weight: 200;
+    font-style: normal;
+    font-display: swap;
   }
 </style>

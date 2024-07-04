@@ -15,7 +15,7 @@ const { pubDate, title, description, url, colorDotRed, first, last } =
 <div class="grid-wrapper">
   <span class="pub-date">{pubDate}</span>
   <span class:list={["boop", { lb: !colorDotRed, lr: colorDotRed }]}></span>
-  <a href={url}>{title}</a>
+  <a href={url} class="white-link">{title}</a>
   <div class="description">{description}</div>
   <div class:list={["timeline-1", { first, last }]}></div>
   <div class:list={["timeline-2", { first, last }]}></div>
@@ -64,12 +64,6 @@ const { pubDate, title, description, url, colorDotRed, first, last } =
       font-weight: 700;
       justify-self: left;
       color: white;
-      text-decoration: none;
-
-      &:hover {
-        text-decoration: underline;
-        color: hsl(0, 0%, 85%);
-      }
     }
 
     .description {
