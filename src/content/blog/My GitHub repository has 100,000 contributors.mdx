@@ -68,7 +68,13 @@ I decided to write the scraper in JavaScript so I could utilize [octokit.js](htt
 
 After hacking up a prototype, I tested my first commit.
 
-<ContentImage src={partiallyVerified} desc={`In ironic fashion, because I sign my commits, the commit was labeled "Partially verified" in green`} width="450" quality="high" alt="A commit with 2,000 contributors"></ContentImage>
+<ContentImage
+  src={partiallyVerified}
+  desc={`In ironic fashion, because I sign my commits, the commit was labeled "Partially verified" in green`
+  width="450"
+  quality="high"
+  alt="A commit with 2,000 contributors"
+/>
 
 It works!
 
@@ -132,7 +138,12 @@ I would receive this response.
 
 Have you ever seen a corrupted repository?
 
-<ContentImage src={corruptedRepository} desc="I won't be revealing the author nor the link to respect their privacy" alt="A repository that is corrupted" width="700"></ContentImage>
+<ContentImage
+  src={corruptedRepository}
+  desc="I won't be revealing the author nor the link to respect their privacy"
+  alt="A repository that is corrupted"
+  width="700"
+/>
 
 Well, it ended up crashing my script half way through. Having to re-run it was more annoying than it should have been.
 
@@ -163,7 +174,11 @@ These commands only work on Git v2.38.2 or earlier, don't ask me how I know that
 
 Sure enough, after pushing, my test repository also nuked itself in a similar fashion with the same error message. I was able to pinpoint this behavior to the invalid UTC offset on the commit date, a classic parsing oversight. I took this a step further and wanted to see what would happen if I opened a pull request referencing this commit. Feast your eyes on...
 
-<ContentImage src={github500} width={null} alt="GitHub throwing an internal server error"></ContentImage>
+<ContentImage
+  src={github500}
+  width={null}
+  alt="GitHub throwing an internal server error"
+/>
 
 I really wish I could say I found a denial-of-service PoC and [became $1,000 (or more) richer](https://hackerone.com/github#user-content-performing-your-research). Imagine how cool of a resolution that would sound! Like before, following triage with some of my friends, I surrendered empty-handed and filed a bug report to GitHub support.
 
@@ -207,7 +222,11 @@ everyone % git push
 
 Thirty minutes later, nothing happens.
 
-<ContentImage src={commitLoading} width="600" alt="A screenshot showing GitHub commits unable to load"></ContentImage>
+<ContentImage
+  src={commitLoading}
+  width="600"
+  alt="A screenshot showing GitHub commits unable to load"
+/>
 
 Uh oh.
 
@@ -236,7 +255,12 @@ echo "Co-authors successfully processed!"
 
 After running the script, around half an hour later:
 
-<ContentImage src={_100000Contributors} desc="The last 14 contributors are on the icons up top" width="500" alt="A screenshot showing 100,000 contributors"></ContentImage>
+<ContentImage
+  src={_100000Contributors}
+  desc="The last 14 contributors are on the icons up top"
+  width="500"
+  alt="A screenshot showing 100,000 contributors"
+/>
 
 Booyah! \*drops mic\*
 
