@@ -608,15 +608,26 @@ const highlightIndex = sshUsers.indexOf(sshUser) + 1;
   }
 
   #table-of-contents + ul {
-    > li {
-      margin-top: 1em;
-      margin-bottom: 1em;
-      color: white !important;
-      text-decoration: none;
+    li {
+      margin-top: 4px;
+      margin-bottom: 4px;
+
+      &.even::marker {
+        color: var(--lr) !important;
+      }
+      &.odd::marker {
+        color: var(--lb) !important;
+      }
+    }
+
+    ul {
+      list-style-type: disc;
     }
   }
 
-  a.white-link {
+  a.white-link,
+  #table-of-contents + ul a {
+    color: hsl(0, 0%, 95%);
     text-decoration: none;
 
     &:hover {
