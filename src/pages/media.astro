@@ -1,7 +1,38 @@
 ---
 import Layout from "../layouts/Layout.astro";
+import * as MediaContent from "../assets/media/content.mdx";
 ---
 
 <Layout title="Arhan's Media Recommendations" sshUser="media">
-  This part of my website is a work in progress.
+  <div id="max-width-wrapper" class="system-ui offwhite">
+    <h1>Media Recommendations</h1>
+    <hr />
+    <MediaContent.Content />
+    <script>
+      document.querySelectorAll("ul li a").forEach((li) => {
+        li.classList.add("white-link");
+      });
+    </script>
+  </div>
 </Layout>
+
+<style lang="scss" is:global>
+  @use "../assets/variables";
+
+  #max-width-wrapper {
+    a.white-link {
+      color: hsl(0, 0%, 95%);
+    }
+
+    ul li {
+      margin-top: 3px;
+      margin-bottom: 3px;
+    }
+  }
+
+  @media (max-width: variables.$mobile-width) {
+    #max-width-wrapper ul {
+      padding-left: 30px;
+    }
+  }
+</style>

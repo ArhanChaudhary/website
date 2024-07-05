@@ -28,11 +28,6 @@ const { description, pubDate, title } = Astro.props;
     <div class="offwhite" id="blog-body">
       <slot />
     </div>
-    <script>
-      document.querySelectorAll("#table-of-contents + ul li").forEach((li, i) => {
-        li.classList.add(i % 2 ? "odd" : "even");
-      });
-    </script>
     {
       pubDate && !import.meta.env.DEV && (
         <script
