@@ -27,13 +27,14 @@ const { pubDate, title, description, url, colorDotRed, first, last } =
   .grid-wrapper {
     display: grid;
     align-items: center;
+    font-size: 17px;
     --timeline-width: 10px;
-    --date-gap: 2ch;
+    --date-gap: 1.5ch;
     grid-template-columns:
       8ch var(--date-gap) var(--timeline-width) calc(var(--date-gap) * 2)
       minmax(0, 45ch);
     --description-gap: 2px;
-    grid-template-rows: auto var(--description-gap) auto 50px;
+    grid-template-rows: auto var(--description-gap) auto 3.5em;
 
     .pub-date {
       color: hsl(0, 0%, 60%);
@@ -60,7 +61,7 @@ const { pubDate, title, description, url, colorDotRed, first, last } =
 
     a {
       grid-column-start: 5;
-      font-size: 26px;
+      font-size: 23px;
       font-weight: 700;
       justify-self: left;
       color: white;
@@ -113,16 +114,14 @@ const { pubDate, title, description, url, colorDotRed, first, last } =
 
   @media (max-width: variables.$mobile-width) {
     .grid-wrapper {
-      --date-gap: 1.5ch;
+      --date-gap: 1ch;
       --timeline-width: 8px;
-      --description-gap: 0;
+      --description-gap: 1px;
       font-size: 14px;
+      margin-left: -7px;
 
-      .description {
-        font-size: 15px;
-      }
       a {
-        font-size: 20px;
+        font-size: 17px;
       }
     }
   }
