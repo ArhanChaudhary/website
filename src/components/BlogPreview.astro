@@ -33,7 +33,7 @@ const { pubDate, title, description, url, colorDotRed, first, last } =
     grid-template-columns:
       8ch var(--date-gap) var(--timeline-width) calc(var(--date-gap) * 2)
       minmax(0, 45ch);
-    --description-gap: 2px;
+    --description-gap: 0px;
     grid-template-rows: auto var(--description-gap) auto 3.5em;
 
     .pub-date {
@@ -116,7 +116,6 @@ const { pubDate, title, description, url, colorDotRed, first, last } =
     .grid-wrapper {
       --date-gap: 1ch;
       --timeline-width: 8px;
-      --description-gap: 1px;
       font-size: 14px;
       margin-left: -7px;
 
