@@ -54,7 +54,7 @@ function averageOf5(times: (number | "DNF")[]): string {
         }))}>{decodeFileName(cubingCompetition.id)}</a
   >
 </h3>
-<p>
+<p class="competition-date">
   <i class="white">
     Competition date: {
       cubingCompetition.data.date.toLocaleDateString("en-US", {
@@ -90,6 +90,10 @@ function averageOf5(times: (number | "DNF")[]): string {
   h3 {
     margin-top: 0;
     margin-bottom: 0;
+  }
+
+  .competition-date {
+    margin-top: 0.5em;
   }
 
   .bottom-margin {
