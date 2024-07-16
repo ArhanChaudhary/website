@@ -3,7 +3,7 @@ import slugify from "slugify";
 export function mySlugify(str: string) {
   return str
     .split("/")
-    .map((val) => slugify(val, { lower: true }))
+    .map((val) => slugify(val, { lower: true, strict: true }))
     .join("/");
 }
 
