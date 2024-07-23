@@ -1,0 +1,104 @@
+---
+description: A puzzle for hobbyists and computer nerds
+---
+
+I know you people (protocol)
+
+https://stackoverflow.com/questions/69022999/chrome-debugger-sendcommand-doesnt-work-on-extension-but-works-on-console
+Code run in the Chrome console can access private properties outside the class. This is a DevTools-only relaxation of the JavaScript syntax restriction.
+
+ideally be non structuredClone able
+
+https://github.com/w3c/webextensions/issues/154
+
+One of the first programming concepts you learn is the private variable, and the notion of encapsulation. We're going to set aside the theory for now and take the term "private variable" literally
+
+Hell, I was going to end off this blog with () => {} meme at the end draw on paper
+
+Enter our villain: Chromium DevTools
+
+localStorage, Cookies, WebSql, Chrome.storage, service worker, wasm I was missing the bigger, more abstract picture. cant be possible to hide state or reference count will gc. Well, I mean, duh, but saying it out loud made me realize I needed to reproach
+
+mark-and-sweep alg
+
+variable not referenced means its not in scoped (gced)
+
+content script cant store secret its in memory inspector
+
+https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes/Private_properties
+
+(in Java for example you can access private fields using reflection)
+
+One of the first programming concepts you're exposed to are private variables
+
+https://github.com/microsoft/TypeScript/issues/9950
+
+```js
+// 1 first start of with node make it sound hard
+class Secret {
+  #secret;
+
+  constructor(secret) {
+    this.#secret = secret;
+  }
+
+  get() {
+    return this.#secret;
+  }
+}
+
+// 2
+const _secrets = new WeakMap();
+function Secret(secret) {
+  _secrets.set(this, secret);
+}
+let mySecret = new Secret();
+_secrets.get(mySecret)
+
+// 3
+var Secret = (() => {
+  let _secret;
+  return class Secret {
+    constructor(secret) {
+      _secret = secret;
+    }
+    get() {
+      return _secret;
+    }
+  };
+})();
+
+// 5
+class Secret {
+  constructor(secret) {
+    this.get = () => {
+      // cheeky obnoxious grin
+      return window["ev" + "al"]("sec" + "ret");
+    };
+  }
+}
+
+// 6
+class Secret {
+  constructor(secret) {
+    this.get = Function(`return JSON.parse('${JSON.stringify(secret)}')`)
+      .bind()
+      .bind();
+  }
+}
+
+// 7
+class Secret {
+  constructor(secret) {
+    this.init(secret);
+  }
+  init(secret) {
+    this.secret = new Promise((resolve) => {
+      this.updateState = resolve;
+    }).then(() => {
+      this.init(secret);
+      return secret;
+    });
+  }
+}
+```
