@@ -1,0 +1,144 @@
+---
+description: Hiding data on the front-end from DevTools
+---
+
+One of the first programming concepts you learn is the private variable, and the notion of encapsulation.
+
+For no reason at all, we're just going to set aside the theory, and take the term "private variable" literally.
+
+misnomer
+
+```js
+class Secret {
+  // ...
+}
+let s = new Secret(Math.random());
+
+```
+
+ideally be non structuredClone able, single access point, multiple instances, can be called multiple time, must exist inside chrome no networking
+
+Enter our villain: Chromium DevTools, seems a bit arbitrary
+
+[private property access image]
+
+[this](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes/Private_properties#sect1)
+> Code run in the Chrome console can access private properties outside the class. This is a DevTools-only relaxation of the JavaScript syntax restriction.
+
+https://github.com/w3c/webextensions/issues/154
+
+Hell, I was going to end off this blog with () => {} meme at the end draw on paper
+
+localStorage, Cookies, WebSql, Chrome.storage, service worker, wasm I was missing the bigger, more abstract picture. cant be possible to hide state or reference count will gc. Well, I mean, duh, but saying it out loud made me realize I needed to reproach
+
+mark-and-sweep alg
+
+content script cant store secret its in memory inspector
+
+One of the first programming concepts you're exposed to are private variables
+
+(in Java for example you can access private fields using reflection)
+
+https://github.com/microsoft/TypeScript/issues/9950
+
+```js
+class Secret {
+  constructor(secret) {
+    this._secret = secret;
+  }
+
+  get() {
+    return this._secret;
+  }
+}
+
+// 1 first start of with node make it sound hard
+class Secret {
+  #secret;
+
+  constructor(secret) {
+    this.#secret = secret;
+  }
+
+  get() {
+    return this.#secret;
+  }
+}
+
+// 2
+const _secrets = new WeakMap();
+function Secret(secret) {
+  _secrets.set(this, secret);
+}
+let mySecret = new Secret();
+_secrets.get(mySecret);
+
+// 3
+var Secret = (() => {
+  let _secret;
+  return class Secret {
+    constructor(secret) {
+      _secret = secret;
+    }
+    get() {
+      return _secret;
+    }
+  };
+})();
+
+// 4 scopeInspect
+
+
+
+// 5
+class Secret {
+  constructor(secret) {
+    this.get = () => {
+      // cheeky obnoxious grin
+      return window["ev" + "al"]("sec" + "ret");
+    };
+  }
+}
+
+// 6
+class Secret {
+  constructor(secret) {
+    this.get = Function(`return JSON.parse('${JSON.stringify(secret)}')`)
+      .bind()
+      .bind();
+  }
+}
+
+// 7
+class Secret {
+  constructor(secret) {
+    this.init(secret);
+  }
+  init(secret) {
+    this.secret = new Promise((resolve) => {
+      this.updateState = resolve;
+    }).then(() => {
+      this.init(secret);
+      return secret;
+    });
+  }
+}
+
+class Secret {
+  static secretId = 0;
+
+  constructor(secret) {
+    this.secretId = Secret.secretId++;
+    return fetch(`https://myshitty.website/set`, {
+      method: "POST",
+      body: JSON.stringify({ secret, secretId: this.secretId }),
+    }).then(() => this);
+  }
+
+  async get() {
+    return await (
+      await fetch(`https://myshitty.website/get?secretId=${this.secretId}`)
+    ).text();
+  }
+}
+```
