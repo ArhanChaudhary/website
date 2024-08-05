@@ -1,58 +1,89 @@
 ---
-description: Hiding data on the front-end from DevTools
+description: Front-end Obfuscation without Network or Cryptography
 ---
 
-One of the first programming concepts you learn is the private variable, and the notion of encapsulation.
+### Table of Contents
 
-For no reason at all, we're just going to set aside the theory, and take the term "private variable" literally.
+# What is "true" private state?
 
-misnomer
+One of the first programming concepts you learn is the private variable, and the notion of encapsulation. These are fundamental concepts of object-oriented programming, a paradigm that emphasizes data structures, message passing, and abstraction.
 
-```js
-class Secret {
-  // ...
+For no reason at all, we're going to casually set aside the theory, and take the term "private variable" (or "private state") literally.
+
+What do I think true private state should actually mean? For a class definition in a given programming language:
+
+1. There must not exist a way to **directly** access a private variable's value given an instance of the class.
+1. There must exist exactly one **indirect** way to access a private variable's value given an instance of the class.
+1. The first step of the indirect access must be performed from within the language (no CheatEngine/GDB).
+1. The class implementation's source cannot be modified (to counter archaic solutions similar to [this](https://stackoverflow.com/a/59424277/12230735))
+1. The class implementation must not use cryptography or network programming.
+
+Direct access refers to code that aliases into a private variable's value, for example by property accessor syntax such as `rectangle.length` or direct memory access. Indirect access refers to code that evaluates to a private variable's value, but doesn't actually alias into it in the same manner. While the expression `rectangle.getLength()` retrieves the private variable's value, the expression alone doesn't alias into it.
+
+My definitions inherently make the distinction between direct and indirect access subjective because they are based on high-level programming abstractions. After all, the processor sees every operation as just reading and writing to memory, thereby entirely voiding the concept of indirect access at the low level. Hopefully, the following examples and the rest of the blog will help draw the line between what qualifies access as "direct" or "indirect".
+
+These five implementation requirements will be the key criteria in assessing whether or not a class implementation provides true private state. Generalizing them across many popular programming languages unmasks true identity of the term "private variable"... as a shameless misnomer!
+
+Let's first look at Java, a language whose primary purpose is to provide strong encapsulation boundaries. So, implementing true private state seems like it would simple enough, right?
+
+```java
+public class Secret {
+    private Object secret;
+
+    public Secret(Object secret) {
+        this.secret = secret;
+    }
+
+    public Object get() {
+        return secret;
+    }
 }
-let s = new Secret(Math.random());
-
 ```
 
-ideally be non structuredClone able, single access point, multiple instances, can be called multiple time, must exist inside chrome no networking
+Red buzzer. It's easy to hijack private fields using Java's reflection services, breaking the requirement of no direct memory access for true private state.
 
-Enter our villain: Chromium DevTools, seems a bit arbitrary
+```java
+import java.lang.reflect.Field;
 
-[private property access image]
+public class Main {
+    public static void main(String[] args) throws NoSuchFieldException, IllegalAccessException {
+        Secret secret = new Secret(Character.toString(65).repeat(10));
+        Field secretField = secret.getClass().getDeclaredField("secret");
+        secretField.setAccessible(true);
+        System.out.println(secretField.get(secret));
+        // Output: AAAAAAAAAA
+    }
+}
+```
 
-[this](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes/Private_properties#sect1)
-> Code run in the Chrome console can access private properties outside the class. This is a DevTools-only relaxation of the JavaScript syntax restriction.
+You may point out that reflection can be disabled with the `-Djava.security.manager` flag. But because this flag is opt-in, it doesn't matter; recall that there must not exist <u>a</u> way of direct access into a private variable. Even then, you could alternatively use Java's Native Interface API demonstrated [here](https://gist.github.com/ArhanChaudhary/20200eda359458aa72f748c285c139fd).
 
-https://github.com/w3c/webextensions/issues/154
+Looking at something else, Python barely even tries!
 
-Hell, I was going to end off this blog with () => {} meme at the end draw on paper
+```py
+class Secret:
+    def __init__(self, secret):
+        self.__secret = secret
 
-localStorage, Cookies, WebSql, Chrome.storage, service worker, wasm I was missing the bigger, more abstract picture. cant be possible to hide state or reference count will gc. Well, I mean, duh, but saying it out loud made me realize I needed to reproach
+    def get(self):
+        return self.__secret
 
-mark-and-sweep alg
+secret = Secret(chr(65) * 10)
+print(secret._Secret__secret)
+# Output: AAAAAAAAAA
+```
 
-content script cant store secret its in memory inspector
+Such is the case with C++, C#, and so on — there's always a way to alias into private fields in such a way that breaks either requirement for true private state.
 
-One of the first programming concepts you're exposed to are private variables
+I want to make clear that I understand that these escape hatches are the results of intentional and thought-out design efforts. If you discount cryptography and network programming and really think about it, "privacy" in modern object-oriented programming is by obscurity and discomfort. The general philosophy is to show a massive "Here be dragons" warning when people decide to access the internals of an object anyways, typically through discomfort and community disapproval.
 
-(in Java for example you can access private fields using reflection)
+In the Python example, `_Secret__secret` is already intimidating enough to discourage its usage, actively making the programmer feel bad and uncomfortable. Endowing the programmer with full access to the internals of an object is OK, because it is assumed that they understand the consequences and implications of utilizing internal and volatile class APIs.
 
-https://github.com/microsoft/TypeScript/issues/9950
+# True private state in DevTools
+
+In regards to true private state, what does JavaScript offer?
 
 ```js
-class Secret {
-  constructor(secret) {
-    this._secret = secret;
-  }
-
-  get() {
-    return this._secret;
-  }
-}
-
-// 1 first start of with node make it sound hard
 class Secret {
   #secret;
 
@@ -64,39 +95,49 @@ class Secret {
     return this.#secret;
   }
 }
+```
 
-// 2
-const _secrets = new WeakMap();
-function Secret(secret) {
-  _secrets.set(this, secret);
-}
-let mySecret = new Secret();
-_secrets.get(mySecret);
+Believe it or not, for how historically chaotically-evil JavaScript has been as a language. This is our answer!
 
+You can see the length of the rest of the blog
+
+Private fields provide a strong encapsulation boundary: It's impossible to access the private field from outside of the class, unless there is some explicit code to expose it (for example, providing a getter). (https://github.com/tc39/proposal-class-fields) show reflection doesn't work, (no need for Symbol?)
+
+Alas, our treasure lands on another island.
+
+No need for fancy Symbol logic
+
+it seems almost too easy... so let's make it harder Enter our villain: Chromium DevTools, seems a bit arbitrary
+
+[private property access image]
+
+[this](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes/Private_properties#sect1)
+> Code run in the Chrome console can access private properties outside the class. This is a DevTools-only relaxation of the JavaScript syntax restriction.
+
+ideally be non structuredClone able, single access point, multiple instances, can be called multiple time, must exist inside chrome no networking (offline tab, no iframes as well), optional: unique to single object ie other Secrets cant access
+
+If you don't define boundaries, then you can make arguments that any encapsulation is not truly "hard"
+
+```js
 // 3
 var Secret = (() => {
-  let _secret;
+  let _secrets = new WeakMap();
   return class Secret {
     constructor(secret) {
-      _secret = secret;
+      _secrets.set(this, secret);
     }
     get() {
-      return _secret;
+      return _secrets.get(this);
     }
   };
 })();
 
 // 4 scopeInspect
 
-
-
-// 5
+// 5 cheeky obnoxious grin
 class Secret {
   constructor(secret) {
-    this.get = () => {
-      // cheeky obnoxious grin
-      return window["ev" + "al"]("sec" + "ret");
-    };
+    this.get = () => window["ev" + "al"]("sec" + "ret");
   }
 }
 
@@ -109,36 +150,79 @@ class Secret {
   }
 }
 
+// 6.5 wasm doesnt work because of Memories
+
+// 6.75 web worker & chrome.storage
+
+// index.html
+// <script>
+//   new Worker("secret.js").postMessage(String.fromCharCode(65).repeat(10));
+// </script>
+
+// secret.js
+// let secret;
+// self.onmessage = ({ data }) => {
+//   secret = data;
+// };
+
 // 7
 class Secret {
   constructor(secret) {
     this.init(secret);
   }
+
   init(secret) {
     this.secret = new Promise((resolve) => {
       this.updateState = resolve;
-    }).then(() => {
-      this.init(secret);
-      return secret;
-    });
+    }).then(this.init.bind(this, secret));
+    return secret;
   }
 }
 
+// 7.5 test = window.open("", "_blank", "popup");test.close() doesnt work because still in memory inspector
+
+
+// I was missing the bigger, more abstract picture. cant be possible to hide state or reference count will gc. Well, I mean, duh, but saying it out loud made me realize I needed to reproach
+// content script cant store secret its in memory inspector
+
+// 7.75 chrome.storage secret  (doesn't work because available in content scripts await chrome.storage.local.get(null), show switching contexts in devtools)
+
+// 8 indexeddb secret (checkout old)
+
+await openDbStore("readonly").then(
+  (store) =>
+    new Promise((resolve) => {
+      store.getAll().onsuccess = (e) => resolve(e.target.result);
+    })
+);
+
+// 9 native-app-secret, can be attacked by requestId?
+```
+
+browser.secureStorage and (https://issues.chromium.org/issues/40283676#comment5 https://github.com/w3c/webauthn/wiki/Explainer:-WebAuthn-Large-Blob-Extension phone or security key) and (Crypto and indexeddb https://www.w3.org/TR/WebCryptoAPI/#concepts-key-storage)
+
+TODO https://developer.mozilla.org/en-US/docs/Web/API/Credential_Management_API:
+```js
 class Secret {
   static secretId = 0;
 
   constructor(secret) {
     this.secretId = Secret.secretId++;
-    return fetch(`https://myshitty.website/set`, {
-      method: "POST",
-      body: JSON.stringify({ secret, secretId: this.secretId }),
-    }).then(() => this);
+    let credential = new PasswordCredential({
+      id: this.secretId,
+      password: secret,
+    });
+    this.storeCredential = navigator.credentials.store(credential);
   }
 
   async get() {
-    return await (
-      await fetch(`https://myshitty.website/get?secretId=${this.secretId}`)
-    ).text();
+    await this.storeCredential;
+    let credential = await navigator.credentials.get({
+      password: true,
+    });
+    return credential.password;
   }
 }
+
+let secret = new Secret(String.fromCharCode(65).repeat(10));
 ```
