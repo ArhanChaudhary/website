@@ -1,6 +1,12 @@
 ---
 description: Front-end Obfuscation without Network or Cryptography
 ---
+{/* cspell:ignore backdoors weakmap */}
+
+import ContentImage from "../../components/ContentImage.astro";
+import privateAccessor from "../../assets/blog/true-private-state-in-javascript-a-chromium-rabbit-hole/private-accessor.png";
+import weakmapDevtools from "../../assets/blog/true-private-state-in-javascript-a-chromium-rabbit-hole/weakmap-devtools.png";
+
 
 ### Table of Contents
 
@@ -8,19 +14,19 @@ description: Front-end Obfuscation without Network or Cryptography
 
 One of the first programming concepts you learn is the private variable, and the notion of encapsulation. These are fundamental concepts of object-oriented programming, a paradigm that emphasizes data structures, message passing, and abstraction.
 
-For no reason at all, we're going to casually set aside the theory, and take the term "private variable" (or "private state") literally.
+For no reason at all, we're going to casually set aside the intended theory, and take the term "private variable" (or "private state") literally.
 
 What do I think true private state should actually mean? For a class definition in a given programming language:
 
 1. There must not exist a way to **directly** access a private variable's value given an instance of the class.
 1. There must exist exactly one **indirect** way to access a private variable's value given an instance of the class.
-1. The first step of the indirect access must be performed from within the language (no CheatEngine/GDB).
-1. The class implementation's source cannot be modified (to counter archaic solutions similar to [this](https://stackoverflow.com/a/59424277/12230735))
+1. The first step of the private variable access must be performed from within the language (no CheatEngine/GDB).
+1. The class implementation's source cannot be modified by the private variable access (to counter archaic solutions similar to [this](https://stackoverflow.com/a/59424277/12230735))
 1. The class implementation must not use cryptography or network programming.
 
 Direct access refers to code that aliases into a private variable's value, for example by property accessor syntax such as `rectangle.length` or direct memory access. Indirect access refers to code that evaluates to a private variable's value, but doesn't actually alias into it in the same manner. While the expression `rectangle.getLength()` retrieves the private variable's value, the expression alone doesn't alias into it.
 
-My definitions inherently make the distinction between direct and indirect access subjective because they are based on high-level programming abstractions. After all, the processor sees every operation as just reading and writing to memory, thereby entirely voiding the concept of indirect access at the low level. Hopefully, the following examples and the rest of the blog will help draw the line between what qualifies access as "direct" or "indirect".
+My definitions inherently make the meaning of indirect access subjective. After all, these concepts and ideas are based on high-level programming abstractions. The processor sees every operation as just reading and writing to memory, thereby voiding the concept of indirect access at the low level. Hopefully, the following examples and the rest of the blog will help draw the line between what qualifies access as "direct" or "indirect".
 
 These five implementation requirements will be the key criteria in assessing whether or not a class implementation provides true private state. Generalizing them across many popular programming languages unmasks true identity of the term "private variable"... as a shameless misnomer!
 
@@ -28,15 +34,15 @@ Let's first look at Java, a language whose primary purpose is to provide strong 
 
 ```java
 public class Secret {
-    private Object secret;
+  private Object secret;
 
-    public Secret(Object secret) {
-        this.secret = secret;
-    }
+  public Secret(Object secret) {
+    this.secret = secret;
+  }
 
-    public Object get() {
-        return secret;
-    }
+  public Object get() {
+    return secret;
+  }
 }
 ```
 
@@ -46,38 +52,38 @@ Red buzzer. It's easy to hijack private fields using Java's reflection services,
 import java.lang.reflect.Field;
 
 public class Main {
-    public static void main(String[] args) throws NoSuchFieldException, IllegalAccessException {
-        Secret secret = new Secret(Character.toString(65).repeat(10));
-        Field secretField = secret.getClass().getDeclaredField("secret");
-        secretField.setAccessible(true);
-        System.out.println(secretField.get(secret));
-        // Output: AAAAAAAAAA
-    }
+  public static void main(String[] args) throws NoSuchFieldException, IllegalAccessException {
+    Secret secret = new Secret(Character.toString(65).repeat(10));
+    Field secretField = secret.getClass().getDeclaredField("secret");
+    secretField.setAccessible(true);
+    System.out.println(secretField.get(secret));
+    // Output: AAAAAAAAAA
+  }
 }
 ```
 
-You may point out that reflection can be disabled with the `-Djava.security.manager` flag. But because this flag is opt-in, it doesn't matter; recall that there must not exist <u>a</u> way of direct access into a private variable. Even then, you could alternatively use Java's Native Interface API demonstrated [here](https://gist.github.com/ArhanChaudhary/20200eda359458aa72f748c285c139fd).
+You may point out that reflection can be disabled with the `-Djava.security.manager` flag. But because this flag is opt-in, it doesn't matter; recall that there must not exist <u>a</u> way of direct access into a private variable. Even then, you could alternatively use Java's Native Interface API as demonstrated [here](https://gist.github.com/ArhanChaudhary/20200eda359458aa72f748c285c139fd).
 
 Looking at something else, Python barely even tries!
 
 ```py
 class Secret:
-    def __init__(self, secret):
-        self.__secret = secret
+  def __init__(self, secret):
+    self.__secret = secret
 
-    def get(self):
-        return self.__secret
+  def get(self):
+    return self.__secret
 
 secret = Secret(chr(65) * 10)
 print(secret._Secret__secret)
 # Output: AAAAAAAAAA
 ```
 
-Such is the case with C++, C#, and so on — there's always a way to alias into private fields in such a way that breaks either requirement for true private state.
+Such is the case with C++, C#, and so on — there's always a way to alias into private fields in such a way that breaks the requirements for true private state, most notably through foreign function interfaces.
 
-I want to make clear that I understand that these escape hatches are the results of intentional and thought-out design efforts. If you discount cryptography and network programming and really think about it, "privacy" in modern object-oriented programming is by obscurity and discomfort. The general philosophy is to show a massive "Here be dragons" warning when people decide to access the internals of an object anyways, typically through discomfort and community disapproval.
+I want to make clear that I understand that these escape hatches are the results of intentional and thought-out design efforts. If you discount cryptography and network programming and really think about it, "privacy" in modern object-oriented programming is by obscurity. The general philosophy is to present a massive "Here be dragons" warning when people decide to access the internals of an object anyways, typically through discomfort and community disapproval.
 
-In the Python example, `_Secret__secret` is already intimidating enough to discourage its usage, actively making the programmer feel bad and uncomfortable. Endowing the programmer with full access to the internals of an object is OK, because it is assumed that they understand the consequences and implications of utilizing internal and volatile class APIs.
+In the Python example, `_Secret__secret` is intimidating enough to discourage its usage, actively making the programmer feel bad and uncomfortable. Endowing the programmer with full access to the internals of an object is OK, because it is assumed that they understand the consequences and implications of utilizing internal and volatile class APIs.
 
 # True private state in DevTools
 
@@ -97,30 +103,33 @@ class Secret {
 }
 ```
 
-Believe it or not, for how historically chaotically-evil JavaScript has been as a language. This is our answer!
-
-You can see the length of the rest of the blog
-
-Private fields provide a strong encapsulation boundary: It's impossible to access the private field from outside of the class, unless there is some explicit code to expose it (for example, providing a getter). (https://github.com/tc39/proposal-class-fields) show reflection doesn't work, (no need for Symbol?)
-
-Alas, our treasure lands on another island.
-
-No need for fancy Symbol logic
-
-it seems almost too easy... so let's make it harder Enter our villain: Chromium DevTools, seems a bit arbitrary
-
-[private property access image]
-
-[this](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes/Private_properties#sect1)
-> Code run in the Chrome console can access private properties outside the class. This is a DevTools-only relaxation of the JavaScript syntax restriction.
-
-ideally be non structuredClone able, single access point, multiple instances, can be called multiple time, must exist inside chrome no networking (offline tab, no iframes as well), optional: unique to single object ie other Secrets cant access
-
-If you don't define boundaries, then you can make arguments that any encapsulation is not truly "hard"
+Believe it or not, for how historically chaotically-evil JavaScript has been as a language, this is our silly little answer. True private state!
 
 ```js
-// 3
+let secret = new Secret(String.fromCharCode(65).repeat(10));
+// There is no other way to get the value
+console.log(secret.get())
+// Output: AAAAAAAAAA
+```
+
+The [proposal](https://github.com/tc39/proposal-class-fields) for private JavaScript class fields guarantees:
+
+> Private fields provide a strong encapsulation boundary: It's impossible to access the private field from outside of the class, unless there is some explicit code to expose it (for example, providing a getter).
+
+If this is it, what was the deal with the mumbo jumbo from the beginning? Well, you can see from the remaining length of this blog post that there's far more to the story than just private fields. Our treasure lands on another island; I'm going to introduce a seemingly arbitrary liberation: Chromium DevTools. As I will soon demonstrate, the environment enables a myriad of backdoors that makes the quest for true private state far more interesting.
+
+<ContentImage src={privateAccessor} alt="An image demonstrating that you can directly access private variables in DevTools" />
+
+Something is already wrong right off the bat. Some research unveils [this documentation](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes/Private_properties#sect1).
+
+> Code run in the Chrome console can access private properties outside the class. This is a DevTools-only relaxation of the JavaScript syntax restriction.
+
+Okay, we just need to try a little harder.
+
+```js
 var Secret = (() => {
+  // The difference between WeakMap and
+  // Map is irrelevant for this blog
   let _secrets = new WeakMap();
   return class Secret {
     constructor(secret) {
@@ -131,17 +140,39 @@ var Secret = (() => {
     }
   };
 })();
+```
 
-// 4 scopeInspect
+This approach is widely used as a polyfill for private JavaScript class fields, by [Babel](https://babeljs.io/repl#?browsers=defaults%2C%20not%20ie%2011%2C%20not%20ie_mob%2011&build=&builtIns=false&corejs=3.21&spec=false&loose=false&code_lz=MYGwhgzhAEDKCmwBO8Au0DeAoa0DEEiKqA3FjtMAPYB2EqSArsKlUgBSHJoCUmFuVAAsAlhAB0BImmgBeaF2JlcAX3K4A5mnZ9suXMUZIa0YWMmK0y6GpVA&debug=false&forceAllTransforms=false&modules=false&shippedProposals=false&evaluate=false&fileSize=false&timeTravel=false&sourceType=module&lineWrap=true&presets=env%2Creact%2Cstage-2&prettier=false&targets=&version=7.25.3&externalPlugins=babel-plugin-iife-wrap%401.1.0&assumptions=%7B%7D) for instance. There's seemingly no way for external code to access the closure variable `_secrets`; is this true private state? Unfortunately, no. DevTools reveals the first trick of many up its sleeve.
 
-// 5 cheeky obnoxious grin
+<ContentImage src={weakmapDevtools} alt="An image demonstrating that you can directly access scope information in DevTools" height="600" />
+
+Recall my definition of direct access as "aliasing into a private variable's value". This is evidently what's happening, thus discrediting closure variables as a solution, perhaps our biggest weapon so far. The DevTools memory inspector gives you access to practically *every* internal variable within a class. To put the nail in the coffin, I developed a way to programmatically access closure variables within DevTools; exactly how is a story for another blog.
+
+```js
+let secret = new Secret(String.fromCharCode(65).repeat(10));
+await scopeInspect("secret");
+// {value: 'AAAAAAAAAA'}
+```
+
+Hm, ok. Let's see if we can exploit the dynamic nature of the `eval` function. Directly calling `eval` still captures closure variables for the memory inspector and doesn't help. Could we instead use a reference to `eval` to conditionally capture closure variables?
+
+```js
 class Secret {
   constructor(secret) {
     this.get = () => window["ev" + "al"]("sec" + "ret");
   }
 }
+```
 
-// 6
+Complete static analysis for a program has been proven to be [undecidable](https://en.wikipedia.org/wiki/Rice%27s_theorem), meaning `"ev" + "al"` is a placeholder for
+
+. In theory, the closure variable shouldn't be available to the memory inspector until we call the getter function.
+
+The expression `"ev" + "al"` can only be evaluated at runtime,
+
+At this point during my research phase of this blog, I realized that what I was trying to achieve was going to be much more difficult than intended.
+
+```js
 class Secret {
   constructor(secret) {
     this.get = Function(`return JSON.parse('${JSON.stringify(secret)}')`)
@@ -199,7 +230,7 @@ await openDbStore("readonly").then(
 // 9 native-app-secret, can be attacked by requestId?
 ```
 
-browser.secureStorage and (https://issues.chromium.org/issues/40283676#comment5 https://github.com/w3c/webauthn/wiki/Explainer:-WebAuthn-Large-Blob-Extension phone or security key) and (Crypto and indexeddb https://www.w3.org/TR/WebCryptoAPI/#concepts-key-storage)
+browser.secureStorage and (https://issues.chromium.org/issues/40283676#comment5 https://github.com/w3c/webauthn/wiki/Explainer:-WebAuthn-Large-Blob-Extension phone or security key) and (Crypto and IndexedDB https://www.w3.org/TR/WebCryptoAPI/#concepts-key-storage)
 
 TODO https://developer.mozilla.org/en-US/docs/Web/API/Credential_Management_API:
 ```js
