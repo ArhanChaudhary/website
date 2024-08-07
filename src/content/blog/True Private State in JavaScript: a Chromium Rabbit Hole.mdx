@@ -6,6 +6,10 @@ description: Front-end Obfuscation without Network or Cryptography
 import ContentImage from "../../components/ContentImage.astro";
 import privateAccessor from "../../assets/blog/true-private-state-in-javascript-a-chromium-rabbit-hole/private-accessor.png";
 import weakmapDevtools from "../../assets/blog/true-private-state-in-javascript-a-chromium-rabbit-hole/weakmap-devtools.png";
+import bindDebunked from "../../assets/blog/true-private-state-in-javascript-a-chromium-rabbit-hole/bind-debunked.png";
+import wasmMemory from "../../assets/blog/true-private-state-in-javascript-a-chromium-rabbit-hole/wasm-memory.png";
+import heapProfiler from "../../assets/blog/true-private-state-in-javascript-a-chromium-rabbit-hole/heap-profiler.png";
+import secretDiagram from "../../assets/blog/true-private-state-in-javascript-a-chromium-rabbit-hole/secret-diagram.png";
 
 
 ### Table of Contents
@@ -79,13 +83,13 @@ print(secret._Secret__secret)
 # Output: AAAAAAAAAA
 ```
 
-Such is the case with C++, C#, and so on — there's always a way to alias into private fields in such a way that breaks the requirements for true private state, most notably through foreign function interfaces.
+Such is the case with C++, C#, and so on — there's always a way to alias into private fields in such a way that breaks the requirements for true private state, most namely through foreign function interfaces.
 
-I want to make clear that I understand that these escape hatches are the results of intentional and thought-out design efforts. If you discount cryptography and network programming and really think about it, "privacy" in modern object-oriented programming is by obscurity. The general philosophy is to present a massive "Here be dragons" warning when people decide to access the internals of an object anyways, typically through discomfort and community disapproval.
+I want to make clear that I understand that these escape hatches are the results of intentional and thought-out design efforts. If you discount cryptography and network programming and really think about it, private state in modern object-oriented programming is by obscurity. The general philosophy is to present a massive "Here be dragons" warning when people decide to access the internals of an object anyways, typically through discomfort and community disapproval.
 
-In the Python example, `_Secret__secret` is intimidating enough to discourage its usage, actively making the programmer feel bad and uncomfortable. Endowing the programmer with full access to the internals of an object is OK, because it is assumed that they understand the consequences and implications of utilizing internal and volatile class APIs.
+In the Python example, `_Secret__secret` is intimidating enough to discourage its usage, actively making the programmer feel bad. Endowing the programmer with full access to the internals of an object is OK, because it is assumed that they understand the consequences of utilizing internal and volatile class APIs.
 
-# True private state in DevTools
+# True private state in JavaScript
 
 In regards to true private state, what does JavaScript offer?
 
@@ -101,24 +105,21 @@ class Secret {
     return this.#secret;
   }
 }
-```
 
-Believe it or not, for how historically chaotically-evil JavaScript has been as a language, this is our silly little answer. True private state!
-
-```js
 let secret = new Secret(String.fromCharCode(65).repeat(10));
-// There is no other way to get the value
-console.log(secret.get())
+console.log(secret.get());
 // Output: AAAAAAAAAA
 ```
 
-The [proposal](https://github.com/tc39/proposal-class-fields) for private JavaScript class fields guarantees:
+Believe it or not, for how historically chaotically-evil JavaScript has proven itself as a language, this is our silly little answer. True private state! The [proposal](https://github.com/tc39/proposal-class-fields) for private JavaScript class fields guarantees their soundness:
 
 > Private fields provide a strong encapsulation boundary: It's impossible to access the private field from outside of the class, unless there is some explicit code to expose it (for example, providing a getter).
 
-If this is it, what was the deal with the mumbo jumbo from the beginning? Well, you can see from the remaining length of this blog post that there's far more to the story than just private fields. Our treasure lands on another island; I'm going to introduce a seemingly arbitrary liberation: Chromium DevTools. As I will soon demonstrate, the environment enables a myriad of backdoors that makes the quest for true private state far more interesting.
+If this is it, what was the deal with the mumbo jumbo at the beginning? Well, you can see from the remaining length of this blog post that there's far more to the story than just private fields. Our treasure lands on another island; I'm going to introduce a seemingly arbitrary liberation to the challenge: Chromium DevTools. What you see when you "inspect element" a web page. As I will soon demonstrate, this environment enables a myriad of backdoors that makes true private state far more interesting.
 
-<ContentImage src={privateAccessor} alt="An image demonstrating that you can directly access private variables in DevTools" />
+# True private state in DevTools
+
+<ContentImage src={privateAccessor} alt="An image demonstrating that you can directly access private variables in DevTools" width="600" />
 
 Something is already wrong right off the bat. Some research unveils [this documentation](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes/Private_properties#sect1).
 
@@ -140,13 +141,17 @@ var Secret = (() => {
     }
   };
 })();
+
+let secret = new Secret(String.fromCharCode(65).repeat(10));
+console.log(secret.get());
+// Output: AAAAAAAAAA
 ```
 
-This approach is widely used as a polyfill for private JavaScript class fields, by [Babel](https://babeljs.io/repl#?browsers=defaults%2C%20not%20ie%2011%2C%20not%20ie_mob%2011&build=&builtIns=false&corejs=3.21&spec=false&loose=false&code_lz=MYGwhgzhAEDKCmwBO8Au0DeAoa0DEEiKqA3FjtMAPYB2EqSArsKlUgBSHJoCUmFuVAAsAlhAB0BImmgBeaF2JlcAX3K4A5mnZ9suXMUZIa0YWMmK0y6GpVA&debug=false&forceAllTransforms=false&modules=false&shippedProposals=false&evaluate=false&fileSize=false&timeTravel=false&sourceType=module&lineWrap=true&presets=env%2Creact%2Cstage-2&prettier=false&targets=&version=7.25.3&externalPlugins=babel-plugin-iife-wrap%401.1.0&assumptions=%7B%7D) for instance. There's seemingly no way for external code to access the closure variable `_secrets`; is this true private state? Unfortunately, no. DevTools reveals the first trick of many up its sleeve.
+This approach is widely used as a polyfill for private JavaScript class fields, by [Babel](https://babeljs.io/repl#?browsers=&build=&builtIns=false&corejs=3.21&spec=false&loose=false&code_lz=KYDwDg9gTgLgBAYwDYEMDOa4GVgKseAbwCg44BiNXfGAbmNMQgDs0YoBXBGaACirwEAlHBJkyMABYBLNADpK1AnAC8cATXpkAvgzIBzArxFjxNDlGZwpshRoJa4u7UA&debug=false&forceAllTransforms=false&modules=false&shippedProposals=false&evaluate=false&fileSize=false&timeTravel=false&sourceType=module&lineWrap=true&presets=stage-3&prettier=false&targets=&version=7.25.3&externalPlugins=babel-plugin-iife-wrap%401.1.0&assumptions=%7B%7D) for instance. There's seemingly no way for external code to access the closure variable `_secrets`, is this true private state? Unfortunately, no. DevTools reveals the first trick of many up its sleeve.
 
 <ContentImage src={weakmapDevtools} alt="An image demonstrating that you can directly access scope information in DevTools" height="600" />
 
-Recall my definition of direct access as "aliasing into a private variable's value". This is evidently what's happening, thus discrediting closure variables as a solution, perhaps our biggest weapon so far. The DevTools memory inspector gives you access to practically *every* internal variable within a class. To put the nail in the coffin, I developed a way to programmatically access closure variables within DevTools; exactly how is a story for another blog.
+Recall my definition of direct access as "aliasing into a private variable's value". This is evidently what's happening, thus discrediting closure variables as a solution, perhaps our biggest weapon so far. The DevTools scope inspector gives you access to practically *every* internal variable within a class. To put the nail in the coffin, I developed a way to programmatically access closure variables within DevTools, and exactly how is a story for another blog.
 
 ```js
 let secret = new Secret(String.fromCharCode(65).repeat(10));
@@ -154,7 +159,7 @@ await scopeInspect("secret");
 // {value: 'AAAAAAAAAA'}
 ```
 
-Hm, ok. Let's see if we can exploit the dynamic nature of the `eval` function. Directly calling `eval` still captures closure variables for the memory inspector and doesn't help. Could we instead use a reference to `eval` to conditionally capture closure variables?
+Hm, ok. Let's see if we can exploit the dynamic nature of the `eval` function. Directly calling `eval` still reveals closure variables to the scope inspector. Could we instead use a reference to `eval` to conditionally capture closure variables?
 
 ```js
 class Secret {
@@ -162,41 +167,61 @@ class Secret {
     this.get = () => window["ev" + "al"]("sec" + "ret");
   }
 }
+
+let secret = new Secret(String.fromCharCode(65).repeat(10));
+console.log(secret.get());
+// Output: AAAAAAAAAA
 ```
 
-Complete static analysis for a program has been proven to be [undecidable](https://en.wikipedia.org/wiki/Rice%27s_theorem), meaning `"ev" + "al"` is a placeholder for
+Considering that complete static analysis for a program has been proven to be [undecidable](https://en.wikipedia.org/wiki/Rice%27s_theorem), `window["ev" + "al"]` can only be evaluated at runtime. In theory, the scope inspector wouldn't know to capture closure variables until the `eval` in the getter function is called.
 
-. In theory, the closure variable shouldn't be available to the memory inspector until we call the getter function.
+As it turns out, the V8 engine is one step ahead of us. The above code throws a ReferenceError because smarter people than me have already thought of ways to compensate for this issue. `eval` captures local scope only when [directly](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/eval#direct_and_indirect_eval) called and captures global scope otherwise, bringing us back to square one.
 
-The expression `"ev" + "al"` can only be evaluated at runtime,
-
-At this point during my research phase of this blog, I realized that what I was trying to achieve was going to be much more difficult than intended.
+At this point during the research phase of this blog, I realized that what I was trying to achieve was going to be much more difficult than expected. A day of tinkering later, I stumbled upon this solution.
 
 ```js
 class Secret {
   constructor(secret) {
+    console.warn("`Secret` may not properly serialize complex JavaScript values");
     this.get = Function(`return JSON.parse('${JSON.stringify(secret)}')`)
       .bind()
       .bind();
   }
 }
 
-// 6.5 wasm doesnt work because of Memories
+let secret = new Secret(String.fromCharCode(65).repeat(10));
+console.log(secret.get());
+// Output: AAAAAAAAAA
+```
 
-// 6.75 web worker & chrome.storage
+To my credit, this was a surprisingly witty solution. It avoided the use of closures and utilized the `Function` constructor to hide the secret. Calling `valueOf` or `toString` on a function reveals it source code, however postfixing two `.bind()`s tricks DevTools into revealing `function () { [native code] }` instead.
 
-// index.html
-// <script>
-//   new Worker("secret.js").postMessage(String.fromCharCode(65).repeat(10));
-// </script>
+It's a shame that my friend Adrian debunked my findings two days later.
 
-// secret.js
-// let secret;
-// self.onmessage = ({ data }) => {
-//   secret = data;
-// };
+<ContentImage src={bindDebunked} alt="An image demonstrating that my solution was invalid" height="800" quality="max" desc="Check out Adrian's <a href=https://bithole.dev/>website</a>, he makes some pretty cool stuff" />
 
-// 7
+Pivoting once again, does DevTools reveal WebAssembly memory?
+
+```bash
+~ % echo "(module (memory 1))" | wat2wasm - --output=- | base64
+AGFzbQEAAAAFAwEAAQ==
+```
+
+```js
+let wasmBuffer = "AGFzbQEAAAAFAwEAAQ==";
+let arrayBuffer = Uint8Array.from(atob(wasmBuffer), (letter) =>
+  letter.charCodeAt(0)
+);
+let wasm = new WebAssembly.Instance(new WebAssembly.Module(arrayBuffer));
+```
+
+Yes, it does as a form of direct memory access.
+
+<ContentImage src={wasmMemory} alt="An image demonstrating that DevTools reveals WebAssembly memory" height="500" />
+
+Now you may be inclined to think that true private state within DevTools is impossible, but
+
+```js
 class Secret {
   constructor(secret) {
     this.init(secret);
@@ -210,25 +235,39 @@ class Secret {
   }
 }
 
-// 7.5 test = window.open("", "_blank", "popup");test.close() doesnt work because still in memory inspector
+let secret = new Secret(String.fromCharCode(65).repeat(10));
+secret.updateState(), console.log(await secret.secret);
+// Output: AAAAAAAAAA
+```
 
+... Except I lied :D . True private state within DevTools is impossible because of the heap profiler.
 
-// I was missing the bigger, more abstract picture. cant be possible to hide state or reference count will gc. Well, I mean, duh, but saying it out loud made me realize I needed to reproach
-// content script cant store secret its in memory inspector
+<ContentImage src={heapProfiler} alt="An image showing off the DevTools heap profiler" />
 
-// 7.75 chrome.storage secret  (doesn't work because available in content scripts await chrome.storage.local.get(null), show switching contexts in devtools)
+I was missing the bigger, more abstract picture. cant be possible to hide state or reference count will gc. I mean, duh, but saying it out loud made me realize I needed to reproach
 
-// 8 indexeddb secret (checkout old)
+window.open, web worker
 
+# True private state in DevTools: the extension way
+
+content script Chrome.storage (doesn't work because available in content scripts await chrome.storage.local.get(null), show switching contexts in devtools)
+
+indexeddb secret (checkout old)
+
+```js
 await openDbStore("readonly").then(
   (store) =>
     new Promise((resolve) => {
       store.getAll().onsuccess = (e) => resolve(e.target.result);
     })
 );
-
-// 9 native-app-secret, can be attacked by requestId?
 ```
+
+native-app-secret, entrypoint is postMessage in extension
+
+<ContentImage src={secretDiagram} alt="An image diagramming the native app secret implementation" quality="max" />
+
+# True private state in DevTools: the proper way
 
 browser.secureStorage and (https://issues.chromium.org/issues/40283676#comment5 https://github.com/w3c/webauthn/wiki/Explainer:-WebAuthn-Large-Blob-Extension phone or security key) and (Crypto and IndexedDB https://www.w3.org/TR/WebCryptoAPI/#concepts-key-storage)
 
