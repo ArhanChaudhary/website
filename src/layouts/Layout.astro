@@ -78,6 +78,9 @@ const highlightIndex = sshUsers.indexOf(sshUser) + 1;
     <title>{title}</title>
   </head>
   <body>
+    <div id="content-image-overlay">
+      <img />
+    </div>
     <div id="flex-wrapper">
       <div id="ssh-text" class="input-mono">
         <!-- https://stackoverflow.com/a/77568291/12230735 -->
@@ -194,6 +197,20 @@ const highlightIndex = sshUsers.indexOf(sshUser) + 1;
         document
           .getElementById("ssh-text")!
           .addEventListener("click", onSSHClick, { once: true });
+
+        let overlay = document.getElementById("content-image-overlay")!;
+        let overlayImg = overlay.firstElementChild!;
+        overlay.addEventListener("click", () => {
+          overlay.style.display = "none";
+        });
+        for (let img of document.querySelectorAll<HTMLImageElement>(
+          ".content-image-positioner img"
+        )) {
+          img.addEventListener("click", () => {
+            overlay.style.display = "flex";
+            overlayImg.setAttribute("src", img.src);
+          });
+        }
       </script>
       <main>
         <slot class="slot" />
@@ -233,7 +250,11 @@ const highlightIndex = sshUsers.indexOf(sshUser) + 1;
         <a href="/media/">Media</a>
         {sshUser === "nuclear-bomb" && <a href="/404">Not Found</a>}
         <div id="nav-arrow" style={`--highlightIndex: ${highlightIndex}`}>
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="-41 0 41 34" width="21">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="-41 0 41 34"
+            width="21"
+          >
             <path
               d="M 0 0 V 24 H -28 V 34 L -41 21 L -28 8 V 18 H -6 V 0"
               fill="white"></path>
@@ -293,6 +314,24 @@ const highlightIndex = sshUsers.indexOf(sshUser) + 1;
     display: flex;
     height: 100dvh;
     background-color: var(--background);
+
+    #content-image-overlay {
+      display: none;
+      justify-content: center;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(0, 0, 0, 0.95);
+      z-index: 9999;
+      cursor: zoom-out;
+
+      img {
+        object-fit: contain;
+        max-width: 100%;
+      }
+    }
 
     #flex-wrapper {
       flex: 1;
@@ -597,6 +636,7 @@ const highlightIndex = sshUsers.indexOf(sshUser) + 1;
   .content-image-positioner {
     .content-image-wrapper {
       img {
+        cursor: zoom-in;
         margin: 0 auto;
         max-width: 100%;
         height: auto;
