@@ -46,11 +46,22 @@ const { description, pubDate, title } = Astro.props;
 </Layout>
 
 <style lang="scss">
+
   #max-width-wrapper {
     margin-bottom: 10px;
+    margin-right: auto;
+    margin-left: auto;
 
     #blog-body {
       padding-bottom: 15px;
     }
+  }
+
+  :global(:is(#nav-hamburger, nav)) {
+    display: none !important;
+  }
+
+  :global(main) {
+    margin-left: var(--mobile-outer-padding) !important;
   }
 </style>
