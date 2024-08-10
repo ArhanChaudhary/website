@@ -1,7 +1,7 @@
 ---
 description: Front-end Obfuscation without Network or Cryptography
 ---
-{/* cspell:ignore backdoors weakmap */}
+{/* cspell:ignore backdoors weakmap sandboxing reapproach */}
 
 import ContentImage from "../../components/ContentImage.astro";
 import privateAccessor from "../../assets/blog/true-private-state-in-javascript-a-chromium-rabbit-hole/private-accessor.png";
@@ -159,7 +159,7 @@ await scopeInspect("secret");
 // {value: 'AAAAAAAAAA'}
 ```
 
-Hm, ok. Let's see if we can exploit the dynamic nature of the `eval` function. Directly calling `eval` still reveals closure variables to the scope inspector. Could we instead use a reference to `eval` to conditionally capture closure variables?
+Hm, let's see if we can exploit the dynamic nature of the `eval` function. Directly calling `eval` still reveals closure variables to the scope inspector. Could we instead use a reference to `eval` to conditionally capture closure variables?
 
 ```js
 class Secret {
@@ -219,7 +219,9 @@ Yes, it does as a form of direct memory access.
 
 <ContentImage src={wasmMemory} alt="An image demonstrating that DevTools reveals WebAssembly memory" height="500" />
 
-Now you may be inclined to think that true private state within DevTools is impossible, but
+Okay, that was a little rapid-fire, so let's take a breather. We've looked at closures, `eval`, stateful built-ins, and WebAssembly, but have yet to implement private state that satisfies all five specified requirements within the DevTools environment.
+
+Now, our first real breakthrough!
 
 ```js
 class Secret {
@@ -240,19 +242,138 @@ secret.updateState(), console.log(await secret.secret);
 // Output: AAAAAAAAAA
 ```
 
-... Except I lied :D . True private state within DevTools is impossible because of the heap profiler.
+This is similar to the closure solution except unlike the `eval` solution, we've *actually* tricked DevTools. For brevity I won't show an image, but this time `secret` is hidden from the scope inspector. Binding `this.updateState` directly to `resolve` relinquishes its need to display `secret` because it doesn't canonically create a closure. Simply calling the resolver and awaiting the promise gives back the original value!
 
-<ContentImage src={heapProfiler} alt="An image showing off the DevTools heap profiler" />
+In a cruel twist of fate, this solution is invalid as well.
 
-I was missing the bigger, more abstract picture. cant be possible to hide state or reference count will gc. I mean, duh, but saying it out loud made me realize I needed to reproach
+<ContentImage src={heapProfiler} alt="An image showing off the DevTools heap profiler" desc="The heap profiler exposes variables from web workers and popups as well" />
 
-window.open, web worker
+Enough teasing around. My definition of "true" private state within DevTools is impossible because of the heap profiler.
+
+However, that doesn't mean there isn't more to the story. I was missing the bigger, more abstract picture. JavaScript is inherently a garbage collected language. Logically speaking, attempting to remove all references to a secret variable causes it to become garbage collected. I mean, duh, but saying this out loud made me realize I needed to completely reapproach my strategy.
 
 # True private state in DevTools: the extension way
 
+You could argue I'm pushing the limits of the DevTools environment, but I like to think of this as thinking outside the box. Chrome extensions provide a secure sandboxing environment to uphold their security guarantees. We can utilize this to our advantage.
+
+Content scripts and the `chrome.storage` API, isolated Chrome extension environments on the web page, are both available within DevTools. We'll have to go deeper
+
 content script Chrome.storage (doesn't work because available in content scripts await chrome.storage.local.get(null), show switching contexts in devtools)
 
-indexeddb secret (checkout old)
+<details>
+<summary>Test</summary>
+`manifest.json`
+```json
+{
+  "name": "Secret",
+  "description": "An extension that provides private state within DevTools",
+  "version": "0.1",
+  "manifest_version": 3,
+  "host_permissions": ["http://*/*", "https://*/*"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["contentScript.js"]
+    },
+    {
+      "matches": ["<all_urls>"],
+      "js": ["secret.js"],
+      "world": "MAIN"
+    }
+  ]
+}
+```
+`secret.js`
+```js
+class Secret {
+  static secretId = 0;
+
+  constructor(secret) {
+    this.secretId = Secret.secretId++;
+    document.dispatchEvent(
+      new CustomEvent("set", { detail: { secret, secretId: this.secretId } })
+    );
+  }
+
+  async get() {
+    document.dispatchEvent(new CustomEvent("get", { detail: this.secretId }));
+    return await new Promise((resolve) => {
+      document.addEventListener(
+        "getResponse",
+        (e) => {
+          resolve(e.detail);
+        },
+        { once: true }
+      );
+    });
+  }
+}
+```
+`contentScript.js`
+```js
+document.addEventListener("set", function ({ detail: { secret, secretId } }) {
+  chrome.runtime.sendMessage({ type: "set", secret, secretId }, () => {
+    document.dispatchEvent(new CustomEvent("setResponse"));
+  });
+});
+
+document.addEventListener("get", function ({ detail: secretId }) {
+  chrome.runtime.sendMessage({ type: "get", secretId }, (secret) => {
+    document.dispatchEvent(new CustomEvent("getResponse", { detail: secret }));
+  });
+});
+```
+`background.js`
+```js
+const DB_NAME = "SecretsDB";
+const DB_VERSION = 1;
+const OBJECT_STORE_NAME = "secrets";
+
+chrome.runtime.onMessage.addListener(function (
+  message,
+  { documentId },
+  sendResponse
+) {
+  if (message.type === "set") {
+    openDbStore("readwrite").then((store) => {
+      store.get(documentId).onsuccess = (e) => {
+        let data = e.target.result || { documentId, secrets: {} };
+        data.secrets[message.secretId] = message.secret;
+        store.put(data).onsuccess = sendResponse;
+      };
+    });
+    return true;
+  } else if (message.type === "get") {
+    openDbStore("readonly").then((store) => {
+      store.get(documentId).onsuccess = (e) => {
+        let data = e.target.result;
+        sendResponse(data?.secrets[message.secretId]);
+      };
+    });
+    return true;
+  }
+});
+
+async function openDbStore(mode) {
+  let request = indexedDB.open(DB_NAME, DB_VERSION);
+  request.onupgradeneeded = function (e) {
+    let db = e.target.result;
+    db.createObjectStore(OBJECT_STORE_NAME, { keyPath: "documentId" });
+  };
+  let db = await new Promise((resolve) => {
+    request.onsuccess = (e) => resolve(e.target.result);
+  });
+  let store = db
+    .transaction(OBJECT_STORE_NAME, mode)
+    .objectStore(OBJECT_STORE_NAME);
+  return store;
+}
+```
+</details>
+
 
 ```js
 await openDbStore("readonly").then(
@@ -296,3 +417,7 @@ class Secret {
 
 let secret = new Secret(String.fromCharCode(65).repeat(10));
 ```
+
+# Closing thoughts
+
+Was this pointless? Yes. Was this a waste of your time? Maybe. Hopefully you learned something about JavaScript or DevTools debugging or the theory behind object-oriented programming. If you didn't I don't really care.
