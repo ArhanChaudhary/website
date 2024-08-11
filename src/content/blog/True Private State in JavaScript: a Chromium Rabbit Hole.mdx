@@ -1,7 +1,7 @@
 ---
 description: Front-end Obfuscation without Network or Cryptography
 ---
-{/* cspell:ignore backdoors weakmap sandboxing reapproach */}
+{/* cspell:ignore backdoors weakmap sandboxing reapproach keychain */}
 
 import ContentImage from "../../components/ContentImage.astro";
 import privateAccessor from "../../assets/blog/true-private-state-in-javascript-a-chromium-rabbit-hole/private-accessor.png";
@@ -10,6 +10,7 @@ import bindDebunked from "../../assets/blog/true-private-state-in-javascript-a-c
 import wasmMemory from "../../assets/blog/true-private-state-in-javascript-a-chromium-rabbit-hole/wasm-memory.png";
 import heapProfiler from "../../assets/blog/true-private-state-in-javascript-a-chromium-rabbit-hole/heap-profiler.png";
 import secretDiagram from "../../assets/blog/true-private-state-in-javascript-a-chromium-rabbit-hole/secret-diagram.png";
+import secretContext from "../../assets/blog/true-private-state-in-javascript-a-chromium-rabbit-hole/secret-context.png";
 
 
 ### Table of Contents
@@ -202,24 +203,9 @@ It's a shame that my friend Adrian debunked my findings two days later.
 
 Pivoting once again, does DevTools reveal WebAssembly memory?
 
-```bash
-~ % echo "(module (memory 1))" | wat2wasm - --output=- | base64
-AGFzbQEAAAAFAwEAAQ==
-```
-
-```js
-let wasmBuffer = "AGFzbQEAAAAFAwEAAQ==";
-let arrayBuffer = Uint8Array.from(atob(wasmBuffer), (letter) =>
-  letter.charCodeAt(0)
-);
-let wasm = new WebAssembly.Instance(new WebAssembly.Module(arrayBuffer));
-```
-
-Yes, it does as a form of direct memory access.
-
 <ContentImage src={wasmMemory} alt="An image demonstrating that DevTools reveals WebAssembly memory" height="500" />
 
-Okay, that was a little rapid-fire, so let's take a breather. We've looked at closures, `eval`, stateful built-ins, and WebAssembly, but have yet to implement private state that satisfies all five specified requirements within the DevTools environment.
+Yes, it does as a form of direct memory access.
 
 Now, our first real breakthrough!
 
@@ -250,18 +236,19 @@ In a cruel twist of fate, this solution is invalid as well.
 
 Enough teasing around. My definition of "true" private state within DevTools is impossible because of the heap profiler.
 
-However, that doesn't mean there isn't more to the story. I was missing the bigger, more abstract picture. JavaScript is inherently a garbage collected language. Logically speaking, attempting to remove all references to a secret variable causes it to become garbage collected. I mean, duh, but saying this out loud made me realize I needed to completely reapproach my strategy.
+However, that doesn't mean there isn't more to the story. I was missing the bigger, more abstract picture. JavaScript is inherently a garbage collected language. Logically speaking, it's impossible to remove all references to a secret variable or else it would become garbage collected. I mean, duh, but saying this out loud made me realize I needed to completely reapproach my strategy.
 
 # True private state in DevTools: the extension way
 
 You could argue I'm pushing the limits of the DevTools environment, but I like to think of this as thinking outside the box. Chrome extensions provide a secure sandboxing environment to uphold their security guarantees. We can utilize this to our advantage.
 
-Content scripts and the `chrome.storage` API, isolated Chrome extension environments on the web page, are both available within DevTools. We'll have to go deeper
+Here is an implementation of private state in JavaScript that satisfies all five of my requirements. It utilizes IndexedDB on a Chrome extension background script to store secret variables in an isolated execution context.
 
-content script Chrome.storage (doesn't work because available in content scripts await chrome.storage.local.get(null), show switching contexts in devtools)
+You've seen enough code blocks so far, so as to not ruin your patience I've taken the liberty of hiding the code implementation in a dropdown.
 
 <details>
-<summary>Test</summary>
+<summary>The code</summary>
+
 `manifest.json`
 ```json
 {
@@ -374,6 +361,16 @@ async function openDbStore(mode) {
 ```
 </details>
 
+Instantiate and retrieve the secret like so.
+```js
+let secret = new Secret(String.fromCharCode(65).repeat(10));
+console.log(await secret.get());
+// Output: AAAAAAAAAA
+```
+
+We have our answer. There's no way for code on the web page to "directly access" IndexedDB. The secret can only be retrieved indirectly, through the `get` method.
+
+I could just end the blog here, but there's one thing left to address. It's still *possible* to access the secret within Chrome if you navigate to `chrome://extensions`, open the background script DevTools window, and run this.
 
 ```js
 await openDbStore("readonly").then(
@@ -384,40 +381,16 @@ await openDbStore("readonly").then(
 );
 ```
 
-native-app-secret, entrypoint is postMessage in extension
+For no reason at all, following the theme of this blog post, let's make this even more unnecessarily complicated. Utilizing the native application API, it's possible to store the secret outside of Chrome entirely! I've documented my exact findings in this [GitHub repository](https://github.com/ArhanChaudhary/chrome-secret-js). Instead of providing the code's source like before, I had some free time and thought it would be cool to diagram how it worked. Some eye candy:
 
 <ContentImage src={secretDiagram} alt="An image diagramming the native app secret implementation" quality="max" />
 
-# True private state in DevTools: the proper way
-
-browser.secureStorage and (https://issues.chromium.org/issues/40283676#comment5 https://github.com/w3c/webauthn/wiki/Explainer:-WebAuthn-Large-Blob-Extension phone or security key) and (Crypto and IndexedDB https://www.w3.org/TR/WebCryptoAPI/#concepts-key-storage)
-
-TODO https://developer.mozilla.org/en-US/docs/Web/API/Credential_Management_API:
-```js
-class Secret {
-  static secretId = 0;
-
-  constructor(secret) {
-    this.secretId = Secret.secretId++;
-    let credential = new PasswordCredential({
-      id: this.secretId,
-      password: secret,
-    });
-    this.storeCredential = navigator.credentials.store(credential);
-  }
-
-  async get() {
-    await this.storeCredential;
-    let credential = await navigator.credentials.get({
-      password: true,
-    });
-    return credential.password;
-  }
-}
-
-let secret = new Secret(String.fromCharCode(65).repeat(10));
-```
-
 # Closing thoughts
 
-Was this pointless? Yes. Was this a waste of your time? Maybe. Hopefully you learned something about JavaScript or DevTools debugging or the theory behind object-oriented programming. If you didn't I don't really care.
+It's time to address the elephant in the room. The reason why basically this entire blog post isn't even remotely practical is because of cryptography and networking services on the front-end.
+
+First, cryptography. Take your pick. [WebAuthn large blobs](https://webauthn-large-blob.glitch.me/) and [credential management API](https://developer.mozilla.org/en-US/docs/Web/API/Credential_Management_API) use your operation system keychain to store credentials, with some obscure [limitations](https://issues.chromium.org/issues/40283676#comment5). The [browser.secureStorage](https://github.com/w3c/webextensions/issues/154) API might become a reality soon. SubtleCrypto can be [used with](https://www.w3.org/TR/WebCryptoAPI/#concepts-key-storage) IndexedDB for cryptographically secure key management. Common password managers use this method.
+
+Networking is self-explanatory, and is what 99% websites do. Store the secret on the server, rather than risk the user meddling with its value.
+
+So... was this blog basically pointless? Yes. I will openly admit that my requirements for "true" private state seem arbitrary. And I will also accept criticism that my blog deviated from the original intention behind object-oriented programming towards the end. Was this a waste of your time? Maybe. Hopefully you learned something about JavaScript or DevTools debugging or the theory behind object-oriented programming. If you didn't then I don't really care. Until next time!
