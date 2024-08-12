@@ -30,6 +30,7 @@ const { description, pubDate, title } = Astro.props;
     </div>
     {
       pubDate && !import.meta.env.DEV && (
+        // @ts-ignore
         <script
           is:inline
           src="https://utteranc.es/client.js"
@@ -59,6 +60,11 @@ const { description, pubDate, title } = Astro.props;
 
   :global(:is(#nav-hamburger, nav)) {
     display: none !important;
+  }
+
+  :global(#flex-wrapper) {
+    margin-right: initial !important;
+    padding-right: initial !important;
   }
 
   :global(main) {
