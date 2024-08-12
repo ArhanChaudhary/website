@@ -1,5 +1,6 @@
 ---
 description: Front-end Obfuscation without Network or Cryptography
+pubDate: 2024-08-11T08:00:00
 ---
 {/* cspell:ignore backdoors weakmap sandboxing reapproach keychain */}
 
@@ -67,6 +68,8 @@ public class Main {
 }
 ```
 
+(Note that we will use `Character.toString(65).repeat(10)` throughout the blog as our secret value as to not hardcode it)
+
 You may point out that reflection can be disabled with the `-Djava.security.manager` flag. But because this flag is opt-in, it doesn't matter; recall that there must not exist <u>a</u> way of direct access into a private variable. Even then, you could alternatively use Java's Native Interface API as demonstrated [here](https://gist.github.com/ArhanChaudhary/20200eda359458aa72f748c285c139fd).
 
 Looking at something else, Python barely even tries!
@@ -84,7 +87,7 @@ print(secret._Secret__secret)
 # Output: AAAAAAAAAA
 ```
 
-Such is the case with C++, C#, and so on — there's always a way to alias into private fields in such a way that breaks the requirements for true private state, most namely through foreign function interfaces.
+Such is the case with C++, C#, Ruby, and so on — there's always a way to alias into private fields in such a way that breaks the requirements for true private state, most namely through foreign function interfaces.
 
 I want to make clear that I understand that these escape hatches are the results of intentional and thought-out design efforts. If you discount cryptography and network programming and really think about it, private state in modern object-oriented programming is by obscurity. The general philosophy is to present a massive "Here be dragons" warning when people decide to access the internals of an object anyways, typically through discomfort and community disapproval.
 
@@ -195,13 +198,13 @@ console.log(secret.get());
 // Output: AAAAAAAAAA
 ```
 
-To my credit, this was a surprisingly witty solution. It avoided the use of closures and utilized the `Function` constructor to hide the secret. Calling `valueOf` or `toString` on a function reveals it source code, however postfixing two `.bind()`s tricks DevTools into revealing `function () { [native code] }` instead.
+To my credit, this was a surprisingly witty solution. It avoided the use of closures and utilized the `Function` constructor to hide the secret. Calling `valueOf` or `toString` on a function normally reveals it source code, however postfixing two `.bind()`s tricks DevTools into revealing `function () { [native code] }` instead.
 
 It's a shame that my friend Adrian debunked my findings two days later.
 
 <ContentImage src={bindDebunked} alt="An image demonstrating that my solution was invalid" height="800" quality="max" desc="Check out Adrian's <a href=https://bithole.dev/>website</a>, he makes some pretty cool stuff" />
 
-Pivoting once again, does DevTools reveal WebAssembly memory?
+Pivoting once again, does DevTools reveal WebAssembly memory? If not, we could interface with it to our advantage.
 
 <ContentImage src={wasmMemory} alt="An image demonstrating that DevTools reveals WebAssembly memory" height="500" />
 
@@ -228,7 +231,7 @@ secret.updateState(), console.log(await secret.secret);
 // Output: AAAAAAAAAA
 ```
 
-This is similar to the closure solution except unlike the `eval` solution, we've *actually* tricked DevTools. For brevity I won't show an image, but this time `secret` is hidden from the scope inspector. Binding `this.updateState` directly to `resolve` relinquishes its need to display `secret` because it doesn't canonically create a closure. Simply calling the resolver and awaiting the promise gives back the original value!
+This is similar to the closure solution except unlike the `eval` solution, we've *actually* tricked DevTools. For brevity I won't show an image, but this time `secret` is hidden from the scope inspector. Binding `this.updateState` directly to `resolve` relinquishes its need to display `secret` because the binding doesn't canonically create a closure. Simply calling the resolver and awaiting the promise gives back the original value!
 
 In a cruel twist of fate, this solution is invalid as well.
 
@@ -242,7 +245,7 @@ However, that doesn't mean there isn't more to the story. I was missing the bigg
 
 You could argue I'm pushing the limits of the DevTools environment, but I like to think of this as thinking outside the box. Chrome extensions provide a secure sandboxing environment to uphold their security guarantees. We can utilize this to our advantage.
 
-Here is an implementation of private state in JavaScript that satisfies all five of my requirements. It utilizes IndexedDB on a Chrome extension background script to store secret variables in an isolated execution context.
+Here is an implementation of private state in JavaScript that satisfies all five of my requirements. It utilizes IndexedDB on a Chrome extension background script to store secret variables in an isolated execution context (the `chrome.storage` API works too).
 
 You've seen enough code blocks so far, so as to not ruin your patience I've taken the liberty of hiding the code implementation in a dropdown.
 
@@ -368,7 +371,7 @@ console.log(await secret.get());
 // Output: AAAAAAAAAA
 ```
 
-We have our answer. There's no way for code on the web page to "directly access" IndexedDB. The secret can only be retrieved indirectly, through the `get` method.
+We have our answer. There's no way for code on the web page to "directly access" the background script's IndexedDB. The secret can only be retrieved indirectly, through the `get` method.
 
 I could just end the blog here, but there's one thing left to address. It's still *possible* to access the secret within Chrome if you navigate to `chrome://extensions`, open the background script DevTools window, and run this.
 
@@ -389,8 +392,10 @@ For no reason at all, following the theme of this blog post, let's make this eve
 
 It's time to address the elephant in the room. The reason why basically this entire blog post isn't even remotely practical is because of cryptography and networking services on the front-end.
 
-First, cryptography. Take your pick. [WebAuthn large blobs](https://webauthn-large-blob.glitch.me/) and [credential management API](https://developer.mozilla.org/en-US/docs/Web/API/Credential_Management_API) use your operation system keychain to store credentials, with some obscure [limitations](https://issues.chromium.org/issues/40283676#comment5). The [browser.secureStorage](https://github.com/w3c/webextensions/issues/154) API might become a reality soon. SubtleCrypto can be [used with](https://www.w3.org/TR/WebCryptoAPI/#concepts-key-storage) IndexedDB for cryptographically secure key management. Common password managers use this method.
+First, cryptography. Take your pick. The [WebAuthn large blob](https://webauthn-large-blob.glitch.me/) and [credential management](https://developer.mozilla.org/en-US/docs/Web/API/Credential_Management_API) APIs use your operation system keychain to store credentials, with some obscure [limitations](https://issues.chromium.org/issues/40283676#comment5). The [browser.secureStorage](https://github.com/w3c/webextensions/issues/154) API might become a reality soon. SubtleCrypto can be [used with](https://www.w3.org/TR/WebCryptoAPI/#concepts-key-storage) IndexedDB for cryptographically secure key management. Common password manager extensions use this method.
 
 Networking is self-explanatory, and is what 99% websites do. Store the secret on the server, rather than risk the user meddling with its value.
 
-So... was this blog basically pointless? Yes. I will openly admit that my requirements for "true" private state seem arbitrary. And I will also accept criticism that my blog deviated from the original intention behind object-oriented programming towards the end. Was this a waste of your time? Maybe. Hopefully you learned something about JavaScript or DevTools debugging or the theory behind object-oriented programming. If you didn't then I don't really care. Until next time!
+So... was this blog pointless? Yes. I will openly admit that my requirements for "true" private state seem arbitrary. And I will also accept criticism that my blog deviated from the original intention behind object-oriented programming towards the end. It's worth pointing out however that this topic is relevant in related fields of cybersecurity, such as in hardware security.
+
+Was this blog a waste of your time? Maybe. Hopefully you learned something about JavaScript or DevTools debugging or the theory behind object-oriented programming. If you didn't then I don't really care. Until next time!
