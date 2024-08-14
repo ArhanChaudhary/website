@@ -91,7 +91,7 @@ Such is the case with C++, C#, Ruby, and so on — there's always a way to alias
 
 I want to make clear that I understand that these escape hatches are the results of intentional and thought-out design efforts. If you discount cryptography and network programming and really think about it, private state in modern object-oriented programming is by obscurity. The general philosophy is to present a massive "Here be dragons" warning when people decide to access the internals of an object anyways, typically through discomfort and community disapproval.
 
-In the Python example, `_Secret__secret` is intimidating enough to discourage its usage, actively making the programmer feel bad. Endowing the programmer with full access to the internals of an object is OK, because it is assumed that they understand the consequences of utilizing internal and volatile class APIs.
+In the Python example, `_Secret__secret` is intimidating enough to discourage its usage, actively making the programmer feel bad. Endowing the programmer with full access to the internals of an object is OK, because it is assumed that they understand the consequences of depending on undocumented and volatile class APIs.
 
 # True private state in JavaScript
 
@@ -119,7 +119,7 @@ Believe it or not, for how historically chaotically-evil JavaScript has proven i
 
 > Private fields provide a strong encapsulation boundary: It's impossible to access the private field from outside of the class, unless there is some explicit code to expose it (for example, providing a getter).
 
-If this is it, what was the deal with the mumbo jumbo at the beginning? Well, you can see from the remaining length of this blog post that there's far more to the story than just private fields. Our treasure lands on another island; I'm going to introduce a seemingly arbitrary liberation to the challenge: Chromium DevTools. What you see when you "inspect element" a web page. As I will soon demonstrate, this environment enables a myriad of backdoors that makes true private state far more interesting.
+If this is it, what was the deal with the mumbo jumbo at the beginning? Well, you can see from the remaining length of this blog post that there's far more to the story than just JavaScript private fields. Our treasure lands on another island; I'm going to introduce a seemingly arbitrary liberation to the challenge: Chromium DevTools. What you see when you "inspect element" a web page. As I will soon demonstrate, this environment enables a myriad of backdoors that make true private state far more interesting.
 
 # True private state in DevTools
 
@@ -198,7 +198,7 @@ console.log(secret.get());
 // Output: AAAAAAAAAA
 ```
 
-To my credit, this was a surprisingly witty solution. It avoided the use of closures and utilized the `Function` constructor to hide the secret. Calling `valueOf` or `toString` on a function normally reveals it source code, however postfixing two `.bind()`s tricks DevTools into revealing `function () { [native code] }` instead.
+To my credit, this was a surprisingly witty solution. It avoided the use of closures and utilized the `Function` constructor to hide the secret. Calling `valueOf` or `toString` on a function normally reveals its source code, however postfixing two `.bind()`s tricks DevTools into revealing `function () { [native code] }` instead.
 
 It's a shame that my friend Adrian debunked my findings two days later.
 
@@ -243,7 +243,7 @@ However, that doesn't mean there isn't more to the story. I was missing the bigg
 
 # True private state in DevTools: the extension way
 
-You could argue I'm pushing the limits of the DevTools environment, but I like to think of this as thinking outside the box. Chrome extensions provide a secure sandboxing environment to uphold their security guarantees. We can utilize this to our advantage.
+You could argue I'm pushing the limits of the DevTools environment, but I like to think of this as thinking outside the box. Chrome extensions provide a secure sandboxing environment to uphold their security guarantees. We can use this to our advantage.
 
 Here is an implementation of private state in JavaScript that satisfies all five of my requirements. It utilizes IndexedDB on a Chrome extension background script to store secret variables in an isolated execution context (the `chrome.storage` API works too).
 
@@ -390,7 +390,7 @@ For no reason at all, following the theme of this blog post, let's make this eve
 
 # Closing thoughts
 
-It's time to address the elephant in the room. The reason why basically this entire blog post isn't even remotely practical is because of cryptography and networking services on the front-end.
+It's time to address the elephant in the room. The reason why this entire blog post isn't even remotely practical is because of cryptography and networking services on the front-end.
 
 First, cryptography. Take your pick. The [WebAuthn large blob](https://webauthn-large-blob.glitch.me/) and [credential management](https://developer.mozilla.org/en-US/docs/Web/API/Credential_Management_API) APIs use your operation system keychain to store credentials, with some obscure [limitations](https://issues.chromium.org/issues/40283676#comment5). The [browser.secureStorage](https://github.com/w3c/webextensions/issues/154) API might become a reality soon. SubtleCrypto can be [used with](https://www.w3.org/TR/WebCryptoAPI/#concepts-key-storage) IndexedDB for cryptographically secure key management. Common password manager extensions use this method.
 
