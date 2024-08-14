@@ -1,0 +1,23 @@
+---
+interface Props {
+  src: string;
+  width?: number | `${number}`;
+  [key: string]: any;
+}
+
+const { src, poster, alt, width, ...attrs } = Astro.props;
+---
+
+<video controls width={width} {...attrs}>
+  <source src={src} type="video/mp4" />
+  Your browser does not support the video tag.
+</video>
+
+<style lang="scss">
+  video {
+    margin: 0 auto;
+    max-width: 100%;
+    height: auto;
+    display: block;
+  }
+</style>
