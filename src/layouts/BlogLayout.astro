@@ -7,7 +7,7 @@ interface Props {
   pubDate?: Date;
 }
 
-const { description, pubDate, title } = Astro.props;
+const { description = "Arhan's Blog", pubDate, title } = Astro.props;
 ---
 
 <Layout {title} description={description} sshUser="blog">
