@@ -7,7 +7,7 @@ export async function getStaticPaths() {
   const allBlogs = await getCollection("blog");
   return allBlogs.map((blog) => ({
     params: {
-      slug: mySlugify(decodeFileName(blog.id)),
+      slug: blog.data.url || mySlugify(decodeFileName(blog.id)),
     },
     props: {
       blog,

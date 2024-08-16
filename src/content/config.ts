@@ -3,6 +3,10 @@ import { z, defineCollection } from "astro:content";
 const blogCollection = defineCollection({
   type: "content",
   schema: z.object({
+    url: z
+      .string()
+      .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/)
+      .optional(),
     pubDate: z.date().optional(),
     description: z.string().optional(),
   }),
@@ -75,7 +79,11 @@ const cubingCompetitionCollection = defineCollection({
     slugOverride: z.string().optional(),
     results: z.array(
       z.object({
-        round: z.union([z.literal("Semi-finals"), z.literal("Finals"), z.number()]),
+        round: z.union([
+          z.literal("Semi-finals"),
+          z.literal("Finals"),
+          z.number(),
+        ]),
         place: z.number().int(),
         times: z.array(z.union([z.literal("DNF"), z.number()])).length(5),
         plusTwos: z.array(z.number().int()).max(5).optional(),

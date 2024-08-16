@@ -11,11 +11,11 @@ export async function GET(context: { site: URL }) {
     title: "Arhan's Blog",
     description: "Arhan's personal website",
     site: context.site,
-    items: publishedBlogs.map((post) => ({
-      title: decodeFileName(post.id),
-      pubDate: post.data.pubDate,
-      description: post.data.description,
-      link: `/blog/${mySlugify(decodeFileName(post.id))}/`,
+    items: publishedBlogs.map((blog) => ({
+      title: decodeFileName(blog.id),
+      pubDate: blog.data.pubDate,
+      description: blog.data.description,
+      link: `/blog/${blog.data.url || mySlugify(decodeFileName(blog.id))}/`,
     })),
   });
 }

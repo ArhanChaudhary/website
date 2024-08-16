@@ -31,7 +31,7 @@ const publishedBlogs = await getCollection(
             }
             title={decodeFileName(blog.id)}
             description={blog.data.description}
-            url={`/blog/${mySlugify(decodeFileName(blog.id))}/`}
+            url={`/blog/${blog.data.url || mySlugify(decodeFileName(blog.id))}/`}
             colorDotRed={(publishedBlogs.length - i) % 2 === 1}
             first={i === 0}
             last={i === publishedBlogs.length - 1}
