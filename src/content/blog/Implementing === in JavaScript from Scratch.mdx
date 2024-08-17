@@ -38,7 +38,7 @@ let obj2 = { foo: 42 };
 ```
 <ContentImage src={heapProfiler} alt="The heap profiler demonstrating that two objects have different memory locations" />
 
-This isn't useful if there isn't a way to access these memory locations programmatically. Fortunately, there exists a standardized JavaScript API that fits my needs named the [Chrome DevTools Protocol](https://chromedevtools.github.io/devtools-protocol), or CDP. It allows for direct inspection into the JavaScript runtime on Blink-based browsers. Sure enough, Chrome DevTools uses this protocol for the heap profiler.
+This isn't useful if there isn't a way to access these memory locations programmatically. Fortunately, there exists the [Chrome DevTools Protocol](https://chromedevtools.github.io/devtools-protocol), or CDP, a standardized JavaScript API that allows for direct inspection into the JavaScript runtime on Blink-based browsers. Sure enough, Chrome DevTools uses this protocol for the heap profiler.
 
 The original question still stands; how does JavaScript access the CDP? The documentation endorses two means of access. First, open [devtools-on-devtools](https://stackoverflow.com/questions/12291138/how-do-you-inspect-the-web-inspector-in-chrome/12291163#12291163) and interface with the CDP like so.
 
@@ -66,15 +66,15 @@ What's going on here? As it turns out, [internal documentation](https://chromium
 
 > However, since the protocol is also exposed to chrome extensions through chrome.debugger API, the backend implements additional access control in some of the methods to prevent extensios form accessing file system or otherwise escaping the sandbox. These restrictions are not extended to other types of clients.
 
-[Here](https://chromium.googlesource.com/v8/v8/+/c42e620355453fc0510b06e089ca7d92598bd54f%5E%21/) is the v8 commit that adds these restrictions, dating back to May 2022 and Chromium version v103. You guessed what's happening next. The solution to our dilemma, of course, is time travel.
+[Here](https://chromium.googlesource.com/v8/v8/+/c42e620355453fc0510b06e089ca7d92598bd54f%5E%21/) is the v8 commit that adds these restrictions, dating back to May 2022 and Chromium version v104. You guessed what's happening next. The solution to our dilemma, of course, is time travel.
 
-Google doesn't distribute legacy versions of Chrome. We'll have to be a bit more hands-on. [Archives](https://www.slimjet.com/chrome/google-chrome-old-version.php) of older versions of Chrome exist online. However, I'm wary of downloading unknown files from the Internet. Instead, I installed an official legacy Chromium build from source following their [guide](https://www.chromium.org/getting-involved/download-chromium/#downloading-old-builds-of-chrome-chromium). Note that you may have to run `/usr/bin/xattr -cr /Applications/Chromium.app` on an M1 Mac to fix broken metadata preventing Chromium from launching.
+Google doesn't distribute legacy versions of Chrome. We'll have to be a bit more hands-on. [Archives](https://www.slimjet.com/chrome/google-chrome-old-version.php) of older versions of Chrome exist online. However, I'm wary of downloading unknown files from the Internet. Instead, I installed the official v103 Chromium build from source following their [guide](https://www.chromium.org/getting-involved/download-chromium/#downloading-old-builds-of-chrome-chromium). You may have to run `/usr/bin/xattr -cr /Applications/Chromium.app` on an M1 Mac to fix broken metadata preventing Chromium from launching.
 
-My extension didn't initially work because global content scripts were only [supported](https://chromium.googlesource.com/chromium/src/+/8f07eaff87947a2e93214de2695de8052119180b) in Chromium v111, so I had to resort to an [older](https://stackoverflow.com/questions/9602022/chrome-extension-retrieving-global-variable-from-webpage/9636008#9636008) content script hack to get it to work.
+My extension didn't initially work because global content scripts were only [supported](https://chromium.googlesource.com/chromium/src/+/8f07eaff87947a2e93214de2695de8052119180b) in Chromium v111 and later, so I had to resort to an [older](https://stackoverflow.com/questions/9602022/chrome-extension-retrieving-global-variable-from-webpage/9636008#9636008) content script hack to get it to work.
 
 That was a lot, let's take a small step back. To reiterate, the goal is to implement a [spec-compliant](https://tc39.es/ecma262/multipage/abstract-operations.html#sec-isstrictlyequal) strict equality operation in JavaScript from scratch.  We've found a version of Chromium that enables programmatic access to the DevTools heap profiler. Let's build the bridge between the CDP and JavaScript object memory addresses.
 
-A good place to start is the [HeapProfiler.takeHeapSnapshot](https://chromedevtools.github.io/devtools-protocol/tot/HeapProfiler/#method-takeHeapSnapshot) method. This will profile the *entire* page, and is obviously cumbersome, but whatever. Next, the [Runtime.evaluate](https://chromedevtools.github.io/devtools-protocol/tot/Runtime/#method-evaluate) method creates a unique object identifier from the evaluation result of a stringified JavaScript expression. The caveat is that this only evaluates the global scope, coercing us into some quite bizarre JavaScript.
+A good place to start is the [HeapProfiler.takeHeapSnapshot](https://chromedevtools.github.io/devtools-protocol/tot/HeapProfiler/#method-takeHeapSnapshot) method. This will profile the *entire* page, and is obviously cumbersome, but whatever. Next, the [Runtime.evaluate](https://chromedevtools.github.io/devtools-protocol/tot/Runtime/#method-evaluate) method creates a unique object identifier from the evaluation result of a stringified JavaScript expression. The caveat is that this only evaluates the global scope, coercing some really bizarre JavaScript.
 
 `strictEquality.js`
 ```js
@@ -97,7 +97,7 @@ async function strictEquality(obj1, obj2) {
 }
 ```
 
-Ugh. It's async not because of I/O, but because of the event loop. It's also non-reentrant, or it must always be `await`ed. These types of unavoidable stateful functions are typically only present within C, not JavaScript!
+Ugh. It's async not because of I/O, but because of the event loop. It's also non-reentrant, in other words it must always be `await`ed. These types of unavoidable stateful functions are typically only present within C, not JavaScript!
 
 Fine. Finally, we can pass that identifier to [HeapProfiler.getHeapObjectId](https://chromedevtools.github.io/devtools-protocol/tot/HeapProfiler/#method-getHeapObjectId) and earn our heap profiler memory address value.
 
@@ -135,11 +135,12 @@ sendResponse(
 ...
 ```
 
-We're almost done! We now just need to handle important edge cases. Because primitive types are easy copy, `Runtime.evaluate` skips to the last step and directly returns their value, probably because they aren't usually stored on the heap and instead on the stack (with the exception of Symbols).
+We're almost done! We now just need to handle important edge cases. Because primitive types aren't usually stored on the heap and instead on the stack (with the exception of Symbols), `Runtime.evaluate` treats them differently. The method skips to the last step and directly returns their `memcpy`-able value.
 
 ```js
 window.__obj1 = { foo: 42 };
 ```
+`Runtime.evaluate` result:
 ```json
 {
   "className": "Object",
@@ -148,9 +149,11 @@ window.__obj1 = { foo: 42 };
   "type": "object"
 }
 ```
+<br />
 ```js
 window.__obj1 = 42;
 ```
+`Runtime.evaluate` result:
 ```json
 {
   "description": "42",
@@ -159,7 +162,7 @@ window.__obj1 = 42;
 }
 ```
 
-While this would be a simple equality operation, I wanted to stay true to my word and avoid its use entirely. Rather, we need to implement the [isStrictlyEqual](https://tc39.es/ecma262/multipage/abstract-operations.html#sec-isstrictlyequal) subroutine at the high level like so.
+While comparing two primitives would be a simple equality operation, I wanted to stay true to my word and avoid its use entirely. Rather, we need to implement the [isStrictlyEqual](https://tc39.es/ecma262/multipage/abstract-operations.html#sec-isstrictlyequal) subroutine at the high level like so.
 
 `background.js`
 ```js
@@ -222,8 +225,17 @@ function stringEquality(str1, str2) {
 }
 ```
 
-And... there we go. The full implementation is provided in a [GitHub repository](https://github.com/ArhanChaudhary/strictequality-js). I'm not sure what you should take out of this blog post. There's no point in trying to sugarcoat it.
+And... there we go. The full implementation is provided in a [GitHub repository](https://github.com/ArhanChaudhary/strictequality-js). Did I forget to mention that it doesn't work on page load because content scripts aren't available globally? You'll have to have fun awaiting the `strictEqualityLoaded` event before usage.
 
-This reimplementation of strict equality in JavaScript is at rock bottom, hanging by a thread. It's async, (really) slow, outdated, and displays the most annoying "This extension is debugging this browser" banner. Did I also mention that because content scripts don't work globally it doesn't work on page load? You'll have to have fun awaiting the `strictEqualityLoaded` event before usage.
+```js
+await new Promise((resolve) => {
+  document.addEventListener("strictEqualityLoaded", resolve);
+});
+let obj = [];
+(await strictEquality(obj, obj)) && console.log("same");
+!(await strictEquality([], [])) && console.log("not same");
+```
 
-Hey, at least it was really cool. Until next time!
+There's no point in trying to sugarcoat it. This reimplementation of strict equality in JavaScript is on its last lifeline. It's async, slow, outdated, awkward, and it displays the most annoying "This extension is debugging this browser" banner on the website. It can't get any worse.
+
+Hey, at least it was really cool. Make of this blog post what you will. Until next time!
