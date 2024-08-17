@@ -1,5 +1,6 @@
 ---
 url: implementing-strict-equality-in-javascript-from-scratch
+pubDate: 2024-08-17T08:00:00
 description: Object reference comparsion on Chromium<104
 ---
 {/* cspell:ignore xattr extensios reimplementation */}
@@ -13,7 +14,7 @@ Yes, I know exactly what you're thinking.
 
 And you're not wrong. For all practical purposes, this blog is pointless. If you were looking for a small code snippet to show off on your quirky little website, I hate to break it to you, but what you're about to read is so obscenely nutty that it only works on a legacy version of Chromium as an extension running millions of times slower.
 
-The strict equality operator in JavaScript (===) compare two values for object equality. As you probably already know, this operator tests reference equality for non-primitive JavaScript values. In effect, because `{ foo: 42 } === { foo: 42 }` is `false`, implementing [spec-compliant](https://tc39.es/ecma262/multipage/abstract-operations.html#sec-isstrictlyequal) functionality becomes much more interesting. I'm not talking about the obvious ways. Various other built-ins make object reference comparison trivial.
+The strict equality operator in JavaScript (===) compares two values for object equality. As you probably already know, this operator tests reference equality for non-primitive JavaScript values. In effect, because `{ foo: 42 } === { foo: 42 }` is `false`, implementing [spec-compliant](https://tc39.es/ecma262/multipage/abstract-operations.html#sec-isstrictlyequal) functionality becomes much more interesting. I'm not talking about the obvious ways. Various other built-ins make object reference comparison trivial.
 
 ```js
 let obj1 = { foo: 42 };
@@ -54,7 +55,7 @@ await Main.MainImpl.sendOverProtocol('Emulation.setDeviceMetricsOverride', {
 const data = await Main.MainImpl.sendOverProtocol("Page.captureScreenshot");
 ```
 
-This requires explicit access to DevTools and some setup, meaning it wouldn't work plainly on a website. The alternative option is the `chrome.debugger` API within a Chrome extension. Although this would be a bit harder to work with, it was actually programmatic and eventually the option I chose.
+This requires explicit access to DevTools and some setup, meaning it wouldn't work plainly on a website. The alternative option is the `chrome.debugger` API within a Chrome extension. Although this would be a bit harder to use, it was actually programmatic and eventually the option I worked with.
 
 I hacked up a Chrome extension but was surprised when my testing errored with the following message.
 
@@ -62,7 +63,7 @@ I hacked up a Chrome extension but was surprised when my testing errored with th
 {"code":-32601,"message":"'HeapProfiler.enable' wasn't found"}
 ```
 
-What's going on here? As it turns out, [internal documentation](https://chromium.googlesource.com/chromium/src/+/master/third_party/blink/public/devtools_protocol/#security-considerations) reveals that specific protocol domains are restricted for security reasons.
+What's going on here? As it turns out, [internal documentation](https://chromium.googlesource.com/chromium/src/+/master/third_party/blink/public/devtools_protocol/#security-considerations) reveals that specific protocol domains including the heap profiler are restricted for security reasons.
 
 > However, since the protocol is also exposed to chrome extensions through chrome.debugger API, the backend implements additional access control in some of the methods to prevent extensios form accessing file system or otherwise escaping the sandbox. These restrictions are not extended to other types of clients.
 
@@ -137,11 +138,8 @@ sendResponse(
 
 We're almost done! We now just need to handle important edge cases. Because primitive types aren't usually stored on the heap and instead on the stack (with the exception of Symbols), `Runtime.evaluate` treats them differently. The method skips to the last step and directly returns their `memcpy`-able value.
 
-```js
-window.__obj1 = { foo: 42 };
-```
-`Runtime.evaluate` result:
 ```json
+// `Runtime.evaluate` on `{ foo: 42 }`
 {
   "className": "Object",
   "description": "Object",
@@ -149,12 +147,8 @@ window.__obj1 = { foo: 42 };
   "type": "object"
 }
 ```
-<br />
-```js
-window.__obj1 = 42;
-```
-`Runtime.evaluate` result:
 ```json
+// `Runtime.evaluate` on `42`
 {
   "description": "42",
   "type": "number",
@@ -162,7 +156,7 @@ window.__obj1 = 42;
 }
 ```
 
-While comparing two primitives would be a simple equality operation, I wanted to stay true to my word and avoid its use entirely. Rather, we need to implement the [isStrictlyEqual](https://tc39.es/ecma262/multipage/abstract-operations.html#sec-isstrictlyequal) subroutine at the high level like so.
+While comparing two primitives would be a simple equality operation, I wanted to stay true to my word and avoid its use entirely. Rather, we need to implement the [isStrictlyEqual](https://tc39.es/ecma262/multipage/abstract-operations.html#sec-isstrictlyequal) ecma262 subroutine at the high level like so.
 
 `background.js`
 ```js
