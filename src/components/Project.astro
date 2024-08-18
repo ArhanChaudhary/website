@@ -1,17 +1,20 @@
 ---
+import type { CollectionEntry } from "astro:content";
+import { decodeFileName } from "../assets/utils";
+
 interface Props {
-  title: string;
-  dateRange: string;
-  link?: string;
+  project: CollectionEntry<"project">;
 }
-const { title, dateRange, link } = Astro.props;
+const { project } = Astro.props;
+const title = decodeFileName(project.id);
+const { Content } = await project.render();
 ---
 
 <div>
   <div class="flex-container input-mono">
     {
-      link ? (
-        <a class="title" href={link} id={title}>
+      project.data.link ? (
+        <a class="title" href={project.data.link} id={title}>
           {title}
         </a>
       ) : (
@@ -20,10 +23,10 @@ const { title, dateRange, link } = Astro.props;
         </span>
       )
     }
-    {dateRange.replace("-", "—")}
+    {project.data.dateRange.replace("-", "—")}
   </div>
   <div class="description offwhite">
-    <slot />
+    <Content />
   </div>
 </div>
 

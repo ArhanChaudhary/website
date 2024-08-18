@@ -1,6 +1,6 @@
 import { z, defineCollection } from "astro:content";
 
-const blogCollection = defineCollection({
+let blogCollection = defineCollection({
   type: "content",
   schema: z.object({
     url: z
@@ -12,6 +12,17 @@ const blogCollection = defineCollection({
   }),
 });
 
+let bookReviewCollection = defineCollection({
+  type: "content",
+  schema: z.object({
+    rating: z.number().gte(1).lte(5).multipleOf(0.5),
+    read: z.date(),
+    genre: z.string(),
+    author: z.string(),
+    url: z.string().url(),
+  }),
+});
+
 export const writeupCategory = [
   "Web Exploitation",
   "Reverse Engineering",
@@ -20,7 +31,7 @@ export const writeupCategory = [
   "Binary Exploitation",
 ] as const;
 
-const ctfWriteupCollection = defineCollection({
+let ctfWriteupCollection = defineCollection({
   type: "content",
   schema: z.object({
     description: z.string(),
@@ -38,7 +49,7 @@ const ctfWriteupCollection = defineCollection({
   }),
 });
 
-const ctfsCollection = defineCollection({
+let ctfsCollection = defineCollection({
   type: "data",
   schema: z.array(
     z.object({
@@ -48,31 +59,7 @@ const ctfsCollection = defineCollection({
   ),
 });
 
-const bookReviewCollection = defineCollection({
-  type: "content",
-  schema: z.object({
-    rating: z.number().gte(1).lte(5).multipleOf(0.5),
-    read: z.date(),
-    genre: z.string(),
-    author: z.string(),
-    url: z.string().url(),
-  }),
-});
-
-const unreadBooksCollection = defineCollection({
-  type: "data",
-  schema: z.array(
-    z.object({
-      title: z.string(),
-      genre: z.string(),
-      author: z.string(),
-      url: z.string().url(),
-      inProgress: z.boolean(),
-    })
-  ),
-});
-
-const cubingCompetitionCollection = defineCollection({
+let cubingCompetitionCollection = defineCollection({
   type: "content",
   schema: z.object({
     date: z.date(),
@@ -92,11 +79,34 @@ const cubingCompetitionCollection = defineCollection({
   }),
 });
 
+let projectCollection = defineCollection({
+  type: "content",
+  schema: z.object({
+    personal: z.boolean(),
+    link: z.string().url().optional(),
+    dateRange: z.string(),
+  }),
+});
+
+let unreadBooksCollection = defineCollection({
+  type: "data",
+  schema: z.array(
+    z.object({
+      title: z.string(),
+      genre: z.string(),
+      author: z.string(),
+      url: z.string().url(),
+      inProgress: z.boolean(),
+    })
+  ),
+});
+
 export const collections = {
   blog: blogCollection,
-  "ctf-write-up": ctfWriteupCollection,
   "book-review": bookReviewCollection,
+  "ctf-write-up": ctfWriteupCollection,
   ctfs: ctfsCollection,
-  "unread-books": unreadBooksCollection,
   "cubing-competition": cubingCompetitionCollection,
+  project: projectCollection,
+  "unread-books": unreadBooksCollection,
 };
