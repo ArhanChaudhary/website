@@ -12,11 +12,13 @@ The challenge bluntly lays out what to do to get the flag. You need to spend 133
 We're presented with a relatively large codebase. For me and my team, the primary difficulty was figuring out which specific part of it was vulnerable. Firstly, we noticed that the challenge was split into two parts: getting enough credits, and becoming VIP.
 
 `washingportal/userview/fixtures/machines.json`
+
 ```json
 { ... "name": "Flag Washing Machine", "flag": "TESTFLAG", "viponly": "True"}
 ```
 
 `washingportal/userview/forms.py`
+
 ```py
 if self.request.user.washer.balance < wmtype.cost:
     msg = "Not enough credits for this machine"
@@ -38,6 +40,7 @@ If we had this signing secret, we could fake transaction requests and easily giv
 Here's the endpoint that actually grants you VIP.
 
 `washingportal/userview/views.py`
+
 ```py
 @login_required
 def addedcredits(request):
@@ -65,6 +68,7 @@ The key observation is the fact that this function offers no form of validation.
 ... And we have another endpoint that does just that!
 
 `washingportal/userview/views.py`
+
 ```py
 @login_required
 def becomevip(request):
@@ -92,6 +96,7 @@ If you navigate to /becomevip, copy the JWT in the query string, and give it to 
 Once again, you need to be especially observant. The attack vector we used leverages a subtle oversight in the following code.
 
 `paymentprocessor/index.js`
+
 ```js
 const alreadyhadfreemoney = new Set([]);
 const alreadyprocessed = new Set([]);
@@ -140,6 +145,7 @@ app.get("/payment", (req, res) => {
 ```
 
 When the user requests a transaction, the transaction backend:
+
 1. Navigates them to /payment
 2. Ensures the user hadn't already redeemed their one-time free credit
 3. Navigates them to /process upon form submit

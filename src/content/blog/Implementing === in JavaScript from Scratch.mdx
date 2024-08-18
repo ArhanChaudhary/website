@@ -37,6 +37,7 @@ A few weeks ago I was looking into the Chromium DevTools heap profiler for a sep
 let obj1 = { foo: 42 };
 let obj2 = { foo: 42 };
 ```
+
 <ContentImage src={heapProfiler} alt="The heap profiler demonstrating that two objects have different memory locations" />
 
 This isn't useful if there isn't a way to access these memory locations programmatically. Fortunately, there exists the [Chrome DevTools Protocol](https://chromedevtools.github.io/devtools-protocol), or CDP, a standardized JavaScript API that allows for direct inspection into the JavaScript runtime on Blink-based browsers. Sure enough, Chrome DevTools uses this protocol for the heap profiler.
@@ -78,6 +79,7 @@ That was a lot, let's take a small step back. To reiterate, the goal is to imple
 A good place to start is the [HeapProfiler.takeHeapSnapshot](https://chromedevtools.github.io/devtools-protocol/tot/HeapProfiler/#method-takeHeapSnapshot) method. This will profile the *entire* page, and is obviously cumbersome, but whatever. Next, the [Runtime.evaluate](https://chromedevtools.github.io/devtools-protocol/tot/Runtime/#method-evaluate) method creates a unique object identifier from the evaluation result of a stringified JavaScript expression. The caveat is that this only evaluates the global scope, coercing some really bizarre JavaScript.
 
 `strictEquality.js`
+
 ```js
 async function strictEquality(obj1, obj2) {
   window.__obj1 = obj1;
@@ -105,6 +107,7 @@ Fine. Finally, we can pass that identifier to [HeapProfiler.getHeapObjectId](htt
 Given the lengths I've taken to get this far, these are all compromises I'm willing to bear with xD. The full pipeline:
 
 `background.js`
+
 ```js
 ...
 await chrome.debugger.attach({ tabId }, "1.3");
@@ -147,6 +150,7 @@ We're almost done! We now just need to handle important edge cases. Because prim
   "type": "object"
 }
 ```
+
 ```json
 // `Runtime.evaluate` on `42`
 {
@@ -159,6 +163,7 @@ We're almost done! We now just need to handle important edge cases. Because prim
 While comparing two primitives would be a simple equality operation, I wanted to stay true to my word and avoid its use entirely. Rather, we need to implement the [isStrictlyEqual](https://tc39.es/ecma262/multipage/abstract-operations.html#sec-isstrictlyequal) ecma262 subroutine at the high level like so.
 
 `background.js`
+
 ```js
 ...
 function primitiveEquality(p1, p2) {

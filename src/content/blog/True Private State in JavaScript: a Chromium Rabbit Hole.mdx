@@ -13,7 +13,6 @@ import heapProfiler from "../../assets/blog/true-private-state-in-javascript-a-c
 import secretDiagram from "../../assets/blog/true-private-state-in-javascript-a-chromium-rabbit-hole/secret-diagram.png";
 import secretContext from "../../assets/blog/true-private-state-in-javascript-a-chromium-rabbit-hole/secret-context.png";
 
-
 ### Table of Contents
 
 # What is "true" private state?
@@ -253,6 +252,7 @@ You've seen enough code blocks so far, so as to not ruin your patience I've take
 <summary>The code</summary>
 
 `manifest.json`
+
 ```json
 {
   "name": "Secret",
@@ -276,7 +276,9 @@ You've seen enough code blocks so far, so as to not ruin your patience I've take
   ]
 }
 ```
+
 `secret.js`
+
 ```js
 class Secret {
   static secretId = 0;
@@ -302,7 +304,9 @@ class Secret {
   }
 }
 ```
+
 `contentScript.js`
+
 ```js
 document.addEventListener("set", function ({ detail: { secret, secretId } }) {
   chrome.runtime.sendMessage({ type: "set", secret, secretId }, () => {
@@ -316,7 +320,9 @@ document.addEventListener("get", function ({ detail: secretId }) {
   });
 });
 ```
+
 `background.js`
+
 ```js
 const DB_NAME = "SecretsDB";
 const DB_VERSION = 1;
@@ -362,9 +368,11 @@ async function openDbStore(mode) {
   return store;
 }
 ```
+
 </details>
 
 Instantiate and retrieve the secret like so.
+
 ```js
 let secret = new Secret(String.fromCharCode(65).repeat(10));
 console.log(await secret.get());

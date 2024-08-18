@@ -5,5 +5,10 @@
       "ignoreRegExpList": ["/```[\\s\\S]*?```|`[\\s\\S]*?`|---[\\s\\S]*?---/gm"]
     }
   ],
-  "cSpell.words": ["astro", "astrojs", "NAND", "Arhan"]
+  "cSpell.words": ["astro", "astrojs", "NAND", "Arhan"],
+  "markdownlint.config": {
+    "MD033": false,
+    "MD037": false,
+    "MD041": false
+  }
 }
