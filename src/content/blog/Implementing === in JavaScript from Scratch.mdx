@@ -223,7 +223,7 @@ And... there we go. The full implementation is provided in a [GitHub repository]
 
 ```js
 await new Promise((resolve) => {
-  document.addEventListener("strictEqualityLoaded", resolve);
+  document.addEventListener("strictEqualityLoaded", resolve, { once: true });
 });
 let obj = [];
 (await strictEquality(obj, obj)) && console.log("same");
