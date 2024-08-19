@@ -82,7 +82,7 @@ let cubingCompetitionCollection = defineCollection({
 let projectCollection = defineCollection({
   type: "content",
   schema: z.object({
-    personal: z.boolean(),
+    sideProject: z.boolean(),
     link: z.string().url().optional(),
     dateRange: z.string(),
   }),
