@@ -14,12 +14,11 @@ const projectsOrder = [
   "Advent of Code 2023",
   "website",
   "arhan.js",
-  "OhloneHacks",
   "strictequality-js",
   "chrome-secret-js",
   "scopeinspect-js",
-  "Flag-Game",
-  "Galactic-Defenderz",
+  "Flag Game",
+  "Galactic Defenderz",
 ];
 
 function safeIndexOf(arr: string[], val: string) {
@@ -47,15 +46,15 @@ projects = projects.sort(
     <br />
     {
       projects
-        .filter(({ data: { sideProject } }) => sideProject)
+        .filter(({ data: { sideProject } }) => !sideProject)
         .map((project) => <Project {project} />)
     }
     <h1>My side projects</h1>
     <hr />
-    <p>These are smaller projects that I've worked on in my spare free time.</p>
+    <p>These are smaller side projects that I've worked on in my spare free time.</p>
     {
       projects
-        .filter(({ data: { sideProject } }) => !sideProject)
+        .filter(({ data: { sideProject } }) => sideProject)
         .map((project) => <Project {project} />)
     }
     <br />
