@@ -1,4 +1,4 @@
-export const defaultImportSpecifier = (name) => ({
+export const defaultImportSpecifier = (name: string) => ({
   type: "ImportDefaultSpecifier",
   start: 197,
   end: 204,
@@ -32,7 +32,7 @@ export const defaultImportSpecifier = (name) => ({
   range: [197, 204],
 });
 
-export const namedImportSpecifier = (name, alias) => ({
+export const namedImportSpecifier = (name: string, alias: string | undefined) => ({
   type: "ImportSpecifier",
   start: 248,
   end: 258,
@@ -83,7 +83,7 @@ export const namedImportSpecifier = (name, alias) => ({
   range: [248, 258],
 });
 
-export const importStatement = (path, specifiers) => ({
+export const importStatement = (path: any, specifiers: any) => ({
   type: "mdxjsEsm",
   position: {
     start: { line: 2, column: 1, offset: 1 },

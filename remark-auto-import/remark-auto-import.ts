@@ -11,7 +11,11 @@ import camelCase from "camelcase";
 
 const baseDirectory = "src/assets";
 const pattern = "*";
-const additionals = [
+const additionals = new Array<{
+  importPath: string;
+  defaultImport?: string;
+  namedImports?: { name: string; alias?: string }[];
+}>(
   {
     importPath: "/src/components/ContentImage.astro",
     defaultImport: "ContentImage",
@@ -19,12 +23,12 @@ const additionals = [
   {
     importPath: "/src/components/ContentVideo.astro",
     defaultImport: "ContentVideo",
-  },
-];
+  }
+);
 const flatCollections = ["cubing-competition", "book-review", "ctf-write-up"];
 
-function autoImport(tree, file) {
-  if (!file.history.find((name) => name.endsWith(".mdx"))) {
+function autoImport(tree: any, file: { history: string[] }) {
+  if (!file.history.find((name: string) => name.endsWith(".mdx"))) {
     return tree;
   }
   let contentIndex = file.history[0].lastIndexOf("/src/") + 1;
@@ -35,13 +39,13 @@ function autoImport(tree, file) {
   let contentDirectory;
   if (flatCollections.includes(contentCollection[0])) {
     contentCollection.pop();
-    contentDirectory = contentCollection.pop();
+    contentDirectory = contentCollection.pop()!;
   } else {
-    contentDirectory = contentCollection.pop().replace(".mdx", "");
+    contentDirectory = contentCollection.pop()!.replace(".mdx", "");
   }
 
-  let seen = {};
-  fg.sync(pattern, {
+  let seen: { [key: string]: string } = {};
+  for (let path of fg.sync(pattern, {
     cwd: join(
       process.cwd(),
       baseDirectory,
@@ -49,14 +53,14 @@ function autoImport(tree, file) {
       contentDirectory
     ),
     absolute: true,
-  }).forEach((path) => {
+  })) {
     let name = camelCase(
-      path.replace(".mdx", "").split("/").at(-1).split(".")[0]
+      path.replace(".mdx", "").split("/").at(-1)!.split(".")[0]
     );
 
     if (!name) {
       console.warn(path + ": Failed to get name, skipping file");
-      return;
+      continue;
     }
 
     if (/^\d/.test(name)) {
@@ -67,7 +71,7 @@ function autoImport(tree, file) {
       console.warn(
         `[remark-auto-import] ${file.history[0]}: Skipping import of ${path}: "${seen[name]}" already imported with name ${name}`
       );
-      return;
+      continue;
     }
 
     seen[name] = path;
@@ -75,28 +79,24 @@ function autoImport(tree, file) {
     tree.children.unshift(
       importStatement(path, [defaultImportSpecifier(name)])
     );
-  });
+  };
 
   additionals?.forEach((additional) => {
-    if (additional.tree) {
-      tree.children.unshift(additional.tree);
-    } else if (additional.importPath) {
-      let specifiers = [];
+    let specifiers = [];
 
-      if (additional.defaultImport) {
-        specifiers.push(defaultImportSpecifier(additional.defaultImport));
-      }
-
-      if (additional.namedImports) {
-        specifiers.push(
-          ...additional.namedImports.map(({ name, alias }) =>
-            namedImportSpecifier(name, alias)
-          )
-        );
-      }
-
-      tree.children.unshift(importStatement(additional.importPath, specifiers));
+    if (additional.defaultImport) {
+      specifiers.push(defaultImportSpecifier(additional.defaultImport));
     }
+
+    if (additional.namedImports) {
+      specifiers.push(
+        ...additional.namedImports.map(({ name, alias }) =>
+          namedImportSpecifier(name, alias)
+        )
+      );
+    }
+
+    tree.children.unshift(importStatement(additional.importPath, specifiers));
   });
 
   return tree;

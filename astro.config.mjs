@@ -2,7 +2,7 @@ import { defineConfig } from "astro/config";
 import remarkToc from "remark-toc";
 import robotsTxt from "astro-robots-txt";
 import sitemap from "@astrojs/sitemap";
-import remarkAutoImport from "./remark-auto-import/remark-auto-import.js";
+import remarkAutoImport from "./remark-auto-import/remark-auto-import.ts";
 import mdx from "@astrojs/mdx";
 
 // https://astro.build/config
