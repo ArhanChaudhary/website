@@ -10,7 +10,6 @@ import {
 import camelCase from "camelcase";
 
 const baseDirectory = "src/assets";
-const nameMatch = /(^|\/)(?<secondLast>[^.\/]+)\/(?<last>[^.\/]+)(\.[^\/]*)?$/;
 const pattern = "*";
 const additionals = [
   {
@@ -20,34 +19,40 @@ const additionals = [
   {
     importPath: "/src/components/ContentVideo.astro",
     defaultImport: "ContentVideo",
-  }
+  },
 ];
-const flatCollections = ["cubing-competition", "book-review"];
+const flatCollections = ["cubing-competition", "book-review", "ctf-write-up"];
 
 function autoImport(tree, file) {
   if (!file.history.find((name) => name.endsWith(".mdx"))) {
     return tree;
   }
-  let filePathMatch = file.history[0].match(nameMatch);
-  let seen = {};
-  let contentCollection = filePathMatch.groups.secondLast;
+  let contentIndex = file.history[0].lastIndexOf("/src/") + 1;
+  contentIndex = file.history[0].indexOf("/", contentIndex) + 1;
+  contentIndex = file.history[0].indexOf("/", contentIndex) + 1;
+
+  let contentCollection = file.history[0].slice(contentIndex).split("/");
   let contentDirectory;
-  if (flatCollections.includes(contentCollection)) {
-    contentDirectory = '';
+  if (flatCollections.includes(contentCollection[0])) {
+    contentCollection.pop();
+    contentDirectory = contentCollection.pop();
   } else {
-    contentDirectory = filePathMatch.groups.last;
+    contentDirectory = contentCollection.pop().replace(".mdx", "");
   }
 
+  let seen = {};
   fg.sync(pattern, {
     cwd: join(
       process.cwd(),
       baseDirectory,
-      contentCollection,
+      ...contentCollection,
       contentDirectory
     ),
     absolute: true,
   }).forEach((path) => {
-    let name = camelCase(path.match(nameMatch).groups.last);
+    let name = camelCase(
+      path.replace(".mdx", "").split("/").at(-1).split(".")[0]
+    );
 
     if (!name) {
       console.warn(path + ": Failed to get name, skipping file");
