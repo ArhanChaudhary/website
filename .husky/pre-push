@@ -1,1 +1,1 @@
-npx astro check
+npx astro build && rm -rf dist
