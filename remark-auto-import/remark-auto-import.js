@@ -7,7 +7,6 @@ import {
   importStatement,
   namedImportSpecifier,
 } from "./tree-helper.js";
-import { mySlugify } from "../src/assets/utils.ts";
 import camelCase from "camelcase";
 
 const baseDirectory = "src/assets";
@@ -36,8 +35,7 @@ function autoImport(tree, file) {
   if (flatCollections.includes(contentCollection)) {
     contentDirectory = '';
   } else {
-    contentDirectory =
-      file.data.astro.frontmatter.url || mySlugify(filePathMatch.groups.last);
+    contentDirectory = filePathMatch.groups.last;
   }
 
   fg.sync(pattern, {
