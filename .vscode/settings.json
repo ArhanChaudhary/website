@@ -2,7 +2,7 @@
   "cSpell.languageSettings": [
     {
       "languageId": "markdown",
-      "ignoreRegExpList": ["^/```[\\s\\S]*?```|`[\\s\\S]*?`|---[\\s\\S]*?---/m"]
+      "ignoreRegExpList": ["/```[\\s\\S]*?```|`[\\s\\S]*?`|---[\\s\\S]*?---/m"]
     }
   ],
   "cSpell.words": ["astro", "astrojs", "NAND", "Arhan"],
