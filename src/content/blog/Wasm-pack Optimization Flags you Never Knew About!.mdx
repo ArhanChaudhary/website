@@ -1,3 +1,170 @@
 ---
 description: "TL;DR: You can forward optimization flags to binaryen"
 ---
+{/* cspell:ignore binaryen rustwasm */}
+
+We've all known and loved Rust's `wasm-pack` for generating WebAssembly packages. Did you know that it provides dozens of obscure optimization flags hiding in plain sight?
+
+Let's first take a look at the available optimization flags from `wasm-pack`'s documentation.
+
+```toml
+[package.metadata.wasm-pack.profile.dev]
+# Should `wasm-opt` be used to further optimize the wasm binary generated after
+# the Rust compiler has finished? Using `wasm-opt` can often further decrease
+# binary size or do clever tricks that haven't made their way into LLVM yet.
+#
+# Configuration is set to `false` by default for the dev profile, but it can
+# be set to an array of strings which are explicit arguments to pass to
+# `wasm-opt`. For example `['-Os']` would optimize for size while `['-O4']`
+# would execute very expensive optimizations passes
+wasm-opt = ['-O']
+```
+
+For most people, `-O4` is enough, case closed, but it is easy to overlook an important detail. `wasm-opt` isn't a tool from Rust, but rather a Rust-facing wrapper around `binaryen`'s `wasm-opt`, the C++ compiler and toolchain infrastructure that actually does the meat of the work. You never could have known this if you were new to rustwasm, as it's omitted from the documentation.
+
+You have to dig through source to find the actual list of `binaryen`'s `wasm-opt` optimization flags. Bizarrely, the only mention of the full list is within the test cases.
+
+`test/lit/help/wasm-opt.test`
+
+```txt
+;; CHECK-NEXT: Optimization options:
+;; CHECK-NEXT: ---------------------
+;; CHECK-NEXT:
+;; CHECK-NEXT:    -O                                           execute default optimization
+;; CHECK-NEXT:                                                 passes (equivalent to -Os)
+;; CHECK-NEXT:
+;; CHECK-NEXT:    -O0                                          execute no optimization passes
+;; CHECK-NEXT:
+;; CHECK-NEXT:    -O1                                          execute -O1 optimization passes
+;; CHECK-NEXT:                                                 (quick&useful opts, useful for
+;; CHECK-NEXT:                                                 iteration builds)
+;; CHECK-NEXT:
+;; CHECK-NEXT:    -O2                                          execute -O2 optimization passes
+;; CHECK-NEXT:                                                 (most opts, generally gets most
+;; CHECK-NEXT:                                                 perf)
+;; CHECK-NEXT:
+;; CHECK-NEXT:    -O3                                          execute -O3 optimization passes
+;; CHECK-NEXT:                                                 (spends potentially a lot of
+;; CHECK-NEXT:                                                 time optimizing)
+;; CHECK-NEXT:
+;; CHECK-NEXT:    -O4                                          execute -O4 optimization passes
+;; CHECK-NEXT:                                                 (also flatten the IR, which can
+;; CHECK-NEXT:                                                 take a lot more time and memory,
+;; CHECK-NEXT:                                                 but is useful on more nested /
+;; CHECK-NEXT:                                                 complex / less-optimized input)
+;; CHECK-NEXT:
+;; CHECK-NEXT:    -Os                                          execute default optimization
+;; CHECK-NEXT:                                                 passes, focusing on code size
+;; CHECK-NEXT:
+;; CHECK-NEXT:    -Oz                                          execute default optimization
+;; CHECK-NEXT:                                                 passes, super-focusing on code
+;; CHECK-NEXT:                                                 size
+;; CHECK-NEXT:
+;; CHECK-NEXT:   --optimize-level,-ol                          How much to focus on optimizing
+;; CHECK-NEXT:                                                 code
+;; CHECK-NEXT:
+;; CHECK-NEXT:   --shrink-level,-s                             How much to focus on shrinking
+;; CHECK-NEXT:                                                 code size
+;; CHECK-NEXT:
+;; CHECK-NEXT:   --debuginfo,-g                                Emit names section in wasm
+;; CHECK-NEXT:                                                 binary (or full debuginfo in
+;; CHECK-NEXT:                                                 wast)
+;; CHECK-NEXT:
+;; CHECK-NEXT:   --always-inline-max-function-size,-aimfs      Max size of functions that are
+;; CHECK-NEXT:                                                 always inlined (default 2, which
+;; CHECK-NEXT:                                                 is safe for use with -Os builds)
+;; CHECK-NEXT:
+;; CHECK-NEXT:   --flexible-inline-max-function-size,-fimfs    Max size of functions that are
+;; CHECK-NEXT:                                                 inlined when lightweight (no
+;; CHECK-NEXT:                                                 loops or function calls) when
+;; CHECK-NEXT:                                                 optimizing aggressively for
+;; CHECK-NEXT:                                                 speed (-O3). Default: 20
+;; CHECK-NEXT:
+;; CHECK-NEXT:   --one-caller-inline-max-function-size,-ocimfs Max size of functions that are
+;; CHECK-NEXT:                                                 inlined when there is only one
+;; CHECK-NEXT:                                                 caller (default -1, which means
+;; CHECK-NEXT:                                                 all such functions are inlined)
+;; CHECK-NEXT:
+;; CHECK-NEXT:   --inline-functions-with-loops,-ifwl           Allow inlining functions with
+;; CHECK-NEXT:                                                 loops
+;; CHECK-NEXT:
+;; CHECK-NEXT:   --partial-inlining-ifs,-pii                   Number of ifs allowed in partial
+;; CHECK-NEXT:                                                 inlining (zero means partial
+;; CHECK-NEXT:                                                 inlining is disabled) (default:
+;; CHECK-NEXT:                                                 0)
+;; CHECK-NEXT:
+;; CHECK-NEXT:   --ignore-implicit-traps,-iit                  Optimize under the helpful
+;; CHECK-NEXT:                                                 assumption that no surprising
+;; CHECK-NEXT:                                                 traps occur (from load, div/mod,
+;; CHECK-NEXT:                                                 etc.)
+;; CHECK-NEXT:
+;; CHECK-NEXT:   --traps-never-happen,-tnh                     Optimize under the helpful
+;; CHECK-NEXT:                                                 assumption that no trap is
+;; CHECK-NEXT:                                                 reached at runtime (from load,
+;; CHECK-NEXT:                                                 div/mod, etc.)
+;; CHECK-NEXT:
+;; CHECK-NEXT:   --low-memory-unused,-lmu                      Optimize under the helpful
+;; CHECK-NEXT:                                                 assumption that the low 1K of
+;; CHECK-NEXT:                                                 memory is not used by the
+;; CHECK-NEXT:                                                 application
+;; CHECK-NEXT:
+;; CHECK-NEXT:   --fast-math,-ffm                              Optimize floats without handling
+;; CHECK-NEXT:                                                 corner cases of NaNs and
+;; CHECK-NEXT:                                                 rounding
+...
+```
+
+We've uncovered a few more flags that are actually useful in extreme optimization cases. Namely, in my case, the flag `--flexible-inline-max-function-size` increased my WebAssembly file size from 67KB to 83KB while boasting a respectful **40%** speed improvement!
+
+```toml
+[package.metadata.wasm-pack.profile.release]
+wasm-opt = [
+    "-O4",
+    "--flexible-inline-max-function-size",
+    "4294967295",
+]
+```
+
+These are just the "Optimization options". There exists an even *larger* list of around 150 "Optimization passes" within the same file. Most of them only have a few words to their description, making them difficult to understand.
+
+```txt
+;; CHECK-NEXT: Optimization passes:
+;; CHECK-NEXT: --------------------
+;; CHECK-NEXT:
+;; CHECK-NEXT:   --abstract-type-refining                      refine and merge abstract
+;; CHECK-NEXT:                                                 (never-created) types
+;; CHECK-NEXT:
+;; CHECK-NEXT:   --alignment-lowering                          lower unaligned loads and stores
+;; CHECK-NEXT:                                                 to smaller aligned ones
+;; CHECK-NEXT:
+;; CHECK-NEXT:   --asyncify                                    async/await style transform,
+;; CHECK-NEXT:                                                 allowing pausing and resuming
+;; CHECK-NEXT:
+;; CHECK-NEXT:   --avoid-reinterprets                          Tries to avoid reinterpret
+;; CHECK-NEXT:                                                 operations via more loads
+;; CHECK-NEXT:
+;; CHECK-NEXT:   --cfp                                         propagate constant struct field
+;; CHECK-NEXT:                                                 values
+;; CHECK-NEXT:
+;; CHECK-NEXT:   --coalesce-locals                             reduce # of locals by coalescing
+;; CHECK-NEXT:
+;; CHECK-NEXT:   --coalesce-locals-learning                    reduce # of locals by coalescing
+;; CHECK-NEXT:                                                 and learning
+;; CHECK-NEXT:
+;; CHECK-NEXT:   --code-folding                                fold code, merging duplicates
+;; CHECK-NEXT:
+;; CHECK-NEXT:   --code-pushing                                push code forward, potentially
+;; CHECK-NEXT:                                                 making it not always execute
+;; CHECK-NEXT:
+;; CHECK-NEXT:   --const-hoisting                              hoist repeated constants to a
+;; CHECK-NEXT:                                                 local
+;; CHECK-NEXT:
+;; CHECK-NEXT:   --dae                                         removes arguments to calls in an
+;; CHECK-NEXT:                                                 lto-like manner
+```
+
+I spent almost an entire day testing out the effectiveness of each flag, to little avail. A lot of these flags weren't even optimizations, and the ones that were were seemingly ineffectual. If you're looking to hyper-optimize your WebAssembly, you're better off sticking to the "Optimization options" flags.
+
+Check out the full list [here](https://github.com/WebAssembly/binaryen/blob/version_117/test/lit/help/wasm-opt.test). At the time of writing, `wasm-pack` is locked to `binaryen` version 117, so this list may soon become outdated. I've also opened a [pull request](https://github.com/rustwasm/wasm-pack/pull/1423) that explicitly references the full list of available `wasm-opt` flags in documentation.
+
+Until next time!
