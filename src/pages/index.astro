@@ -134,8 +134,7 @@ import mail from "../assets/index/mail.png";
 
     #shape-thing-1 {
       margin-bottom: 15px;
-      /* Layout.astro hardcoded to this value */
-      margin-left: -100px;
+      margin-left: calc(var(--main-margin-left) * -1);
       width: 340px;
       position: relative;
       overflow: hidden;

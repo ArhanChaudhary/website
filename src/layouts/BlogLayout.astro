@@ -59,17 +59,32 @@ const { description = "Arhan's Blog", pubDate, title } = Astro.props;
       padding-bottom: 15px;
     }
   }
+</style>
 
-  :global(:is(#nav-hamburger, nav)) {
+<style lang="scss" is:global>
+  @use "../assets/variables";
+
+  #nav-hamburger,
+  nav {
     display: none !important;
   }
 
-  :global(#flex-wrapper) {
+  #flex-wrapper {
     margin-right: initial !important;
     padding-right: initial !important;
   }
 
-  :global(main) {
+  main {
     margin-left: var(--mobile-outer-padding) !important;
+  }
+
+  #troll-flex-wrapper {
+    margin-left: var(--main-margin-left);
+  }
+
+  @media (max-width: variables.$mobile-width) {
+    #troll-flex-wrapper {
+      margin-left: var(--mobile-outer-padding) !important;
+    }
   }
 </style>

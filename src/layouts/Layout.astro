@@ -365,8 +365,7 @@ const highlightIndex = sshUsers.indexOf(sshUser) + 1;
       main {
         flex: 1;
         word-wrap: break-word;
-        /* Layout.astro and index.astro hardcoded to this value */
-        margin-left: 100px;
+        margin-left: var(--main-margin-left);
         margin-right: var(--mobile-outer-padding);
         position: relative;
         color: white;
@@ -547,6 +546,7 @@ const highlightIndex = sshUsers.indexOf(sshUser) + 1;
     --offwhite: hsl(0, 0%, 88%);
     --outer-padding: 50px;
     --mobile-outer-padding: 12px;
+    --main-margin-left: 100px;
   }
 
   a {
