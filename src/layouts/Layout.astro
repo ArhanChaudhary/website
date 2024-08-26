@@ -551,6 +551,10 @@ const highlightIndex = sshUsers.indexOf(sshUser) + 1;
 
   a {
     color: rgb(68, 147, 248);
+
+    & > code:first-child {
+      color: inherit !important;
+    }
   }
 
   p {
