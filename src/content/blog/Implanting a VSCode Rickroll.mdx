@@ -1,0 +1,24 @@
+---
+description: Exploiting a silly oversight in a popular extension
+---
+https://github.com/microsoft/vscode-pull-request-github/pull/3122
+
+`src/issues/userHoverProvider.ts`
+
+```js
+const username = match[1];
+// JS and TS doc checks
+if (((document.languageId === 'javascript') || (document.languageId === 'typescript'))
+    && JSDOC_NON_USERS.indexOf(username) >= 0) {
+  return;
+}
+// PHP doc checks
+if ((document.languageId === 'php') && PHPDOC_NON_USERS.indexOf(username) >= 0) {
+  return;
+}
+const isDoxygenLanguage = document.languageId === 'cpp' || document.languageId === 'c' || document.languageId === 'csharp' || document.languageId === 'java' || document.languageId === 'objective-c' || document.languageId === 'php';
+if (isDoxygenLanguage && DOXYGEN_NON_USERS.indexOf(username) >= 0) {
+  return;
+}
+return this.createHover(document.uri, username, wordPosition);
+```
