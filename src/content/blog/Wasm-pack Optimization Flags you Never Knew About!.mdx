@@ -23,7 +23,7 @@ wasm-opt = ['-O']
 
 For most people, `-O4` is enough, case closed, but it is easy to overlook an important detail. wasm-opt isn't a tool from Rust, but rather a Rust-facing wrapper around [binaryen](https://github.com/WebAssembly/binaryen)'s wasm-opt, the C++ toolchain infrastructure that actually does the meat of the work. You never could have known this if you were new to rustwasm, as it's omitted from the documentation.
 
-You have to dig through source to find the full list of binaryen's wasm-opt optimization flags. Bizarrely, the only mention of the list is within this test file.
+You have to dig through source to find the full list of binaryen's wasm-opt optimization flags. Bizarrely, the only mention of the list in fine print is within this test file.
 
 [`test/lit/help/wasm-opt.test`](https://github.com/WebAssembly/binaryen/blob/version_117/test/lit/help/wasm-opt.test)
 
