@@ -4,9 +4,9 @@ pubDate: 2024-08-25T08:00:00
 ---
 {/* cspell:ignore binaryen rustwasm */}
 
-We've all known and loved Rust's `wasm-pack` for generating WebAssembly packages. Did you know that it provides dozens of obscure optimization flags hiding in plain sight?
+We've all known and loved Rust's wasm-pack for generating WebAssembly packages. Did you know that it provides dozens of obscure optimization flags hiding in plain sight?
 
-Let's first take a look at the available optimization flags from `wasm-pack`'s documentation.
+Let's first take a look at the available optimization flags from wasm-pack's documentation.
 
 ```toml
 [package.metadata.wasm-pack.profile.dev]
@@ -21,11 +21,11 @@ Let's first take a look at the available optimization flags from `wasm-pack`'s d
 wasm-opt = ['-O']
 ```
 
-For most people, `-O4` is enough, case closed, but it is easy to overlook an important detail. `wasm-opt` isn't a tool from Rust, but rather a Rust-facing wrapper around `binaryen`'s `wasm-opt`, the C++ toolchain infrastructure that actually does the meat of the work. You never could have known this if you were new to rustwasm, as it's omitted from the documentation.
+For most people, `-O4` is enough, case closed, but it is easy to overlook an important detail. wasm-opt isn't a tool from Rust, but rather a Rust-facing wrapper around [binaryen](https://github.com/WebAssembly/binaryen)'s wasm-opt, the C++ toolchain infrastructure that actually does the meat of the work. You never could have known this if you were new to rustwasm, as it's omitted from the documentation.
 
-You have to dig through source to find the full list of `binaryen`'s `wasm-opt` optimization flags. Bizarrely, the only mention of the list is within a test file.
+You have to dig through source to find the full list of binaryen's wasm-opt optimization flags. Bizarrely, the only mention of the list is within this test file.
 
-`test/lit/help/wasm-opt.test`
+[`test/lit/help/wasm-opt.test`](https://github.com/WebAssembly/binaryen/blob/version_117/test/lit/help/wasm-opt.test)
 
 ```txt
 ...
@@ -174,8 +174,8 @@ These are just the "Optimization options". There exists an even *larger* list of
 ...
 ```
 
-I spent almost an entire day testing out the effectiveness of each flag, to little avail. A lot of these flags aren't even optimizations, and the ones that are were all seemingly ineffectual. If you're looking to hyper-optimize your WebAssembly, you're better off sticking with the "Optimization options" flags.
+I spent almost an entire day testing out the effectiveness of each flag to little avail. A lot of these flags aren't even optimizations, and the ones that are were all seemingly ineffectual. Still, I opened a [pull request](https://github.com/rustwasm/wasm-pack/pull/1423) that explicitly references the full list of available wasm-opt flags in wasm-pack's documentation to them easier to find.
 
-Check out the full list [here](https://github.com/WebAssembly/binaryen/blob/version_117/test/lit/help/wasm-opt.test). At the time of writing, `wasm-pack` is locked to `binaryen` version 117, so this list may soon become outdated. I've also opened a [pull request](https://github.com/rustwasm/wasm-pack/pull/1423) that explicitly references the full list of available `wasm-opt` flags in documentation.
+If you're looking to hyper-optimize your binaryen WebAssembly, Rust aside, you're better off sticking with the "Optimization options" flags. You may also find useful the [optimizer cookbook](https://github.com/WebAssembly/binaryen/wiki/Optimizer-Cookbook) and the [GC optimization guidebook](https://github.com/WebAssembly/binaryen/wiki/GC-Optimization-Guidebook) from binaryen's wiki.
 
 Until next time!
