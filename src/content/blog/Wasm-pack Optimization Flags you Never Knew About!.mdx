@@ -1,5 +1,6 @@
 ---
 description: "TL;DR: You can forward optimization flags to binaryen"
+pubDate: 2024-08-25T08:00:00
 ---
 {/* cspell:ignore binaryen rustwasm */}
 
@@ -20,13 +21,14 @@ Let's first take a look at the available optimization flags from `wasm-pack`'s d
 wasm-opt = ['-O']
 ```
 
-For most people, `-O4` is enough, case closed, but it is easy to overlook an important detail. `wasm-opt` isn't a tool from Rust, but rather a Rust-facing wrapper around `binaryen`'s `wasm-opt`, the C++ compiler and toolchain infrastructure that actually does the meat of the work. You never could have known this if you were new to rustwasm, as it's omitted from the documentation.
+For most people, `-O4` is enough, case closed, but it is easy to overlook an important detail. `wasm-opt` isn't a tool from Rust, but rather a Rust-facing wrapper around `binaryen`'s `wasm-opt`, the C++ toolchain infrastructure that actually does the meat of the work. You never could have known this if you were new to rustwasm, as it's omitted from the documentation.
 
-You have to dig through source to find the actual list of `binaryen`'s `wasm-opt` optimization flags. Bizarrely, the only mention of the full list is within the test cases.
+You have to dig through source to find the full list of `binaryen`'s `wasm-opt` optimization flags. Bizarrely, the only mention of the list is within a test case file.
 
 `test/lit/help/wasm-opt.test`
 
 ```txt
+...
 ;; CHECK-NEXT: Optimization options:
 ;; CHECK-NEXT: ---------------------
 ;; CHECK-NEXT:
@@ -111,23 +113,31 @@ You have to dig through source to find the actual list of `binaryen`'s `wasm-opt
 ;; CHECK-NEXT:   --fast-math,-ffm                              Optimize floats without handling
 ;; CHECK-NEXT:                                                 corner cases of NaNs and
 ;; CHECK-NEXT:                                                 rounding
+;; CHECK-NEXT:
+;; CHECK-NEXT:   --zero-filled-memory,-uim                     Assume that an imported memory
+;; CHECK-NEXT:                                                 will be zero-initialized
 ...
 ```
 
-We've uncovered a few more flags that are actually useful in extreme optimization cases. Namely, in my case, the flag `--flexible-inline-max-function-size` increased my WebAssembly file size from 67KB to 83KB while boasting a respectful **40%** speed improvement!
+Shrouded within the codebase, these few extra flags are actually useful in extreme optimization cases. Namely, in my case, `--flexible-inline-max-function-size` boasted a respectful **40%** speed improvement while increasing my WebAssembly file size from 67KB to 83KB.
+
+`Cargo.toml`
 
 ```toml
+...
 [package.metadata.wasm-pack.profile.release]
 wasm-opt = [
     "-O4",
     "--flexible-inline-max-function-size",
     "4294967295",
 ]
+...
 ```
 
-These are just the "Optimization options". There exists an even *larger* list of around 150 "Optimization passes" within the same file. Most of them only have a few words to their description, making them difficult to understand.
+These are just the "Optimization options". There exists an even *larger* list of around 150 "Optimization passes" within the same test file.
 
 ```txt
+...
 ;; CHECK-NEXT: Optimization passes:
 ;; CHECK-NEXT: --------------------
 ;; CHECK-NEXT:
@@ -161,9 +171,10 @@ These are just the "Optimization options". There exists an even *larger* list of
 ;; CHECK-NEXT:
 ;; CHECK-NEXT:   --dae                                         removes arguments to calls in an
 ;; CHECK-NEXT:                                                 lto-like manner
+...
 ```
 
-I spent almost an entire day testing out the effectiveness of each flag, to little avail. A lot of these flags weren't even optimizations, and the ones that were were seemingly ineffectual. If you're looking to hyper-optimize your WebAssembly, you're better off sticking to the "Optimization options" flags.
+I spent almost an entire day testing out the effectiveness of each flag, to little avail. A lot of these flags weren't even optimizations, and the ones that were were all seemingly ineffectual. If you're looking to hyper-optimize your WebAssembly, you're better off sticking to the "Optimization options" flags.
 
 Check out the full list [here](https://github.com/WebAssembly/binaryen/blob/version_117/test/lit/help/wasm-opt.test). At the time of writing, `wasm-pack` is locked to `binaryen` version 117, so this list may soon become outdated. I've also opened a [pull request](https://github.com/rustwasm/wasm-pack/pull/1423) that explicitly references the full list of available `wasm-opt` flags in documentation.
 
