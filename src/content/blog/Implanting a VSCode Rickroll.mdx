@@ -22,3 +22,26 @@ if (isDoxygenLanguage && DOXYGEN_NON_USERS.indexOf(username) >= 0) {
 }
 return this.createHover(document.uri, username, wordPosition);
 ```
+
+```js
+for (let name of names) {
+  octokit
+    .request("GET /users/{username}", {
+      username: name,
+    })
+    .catch(() => {
+      console.log(`User ${name} does not exist`);
+    });
+}
+```
+
+@returns - 2.6M
+@property - 360k
+@fileoverview - 309k TRIED
+@memberof - 234k
+
+@summary - 230k TRIED
+@static - 176k
+@classdesc - 65.8k
+@hideconstructor - 8.7k
+@linkplain - 1.6k
