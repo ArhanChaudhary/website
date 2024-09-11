@@ -1,1 +1,1 @@
-npx astro build && rm -rf dist
+npx astro build && rm -rf dist && npx markdownlint-cli2 "**/*.{md, mdx}" "#node_modules" --config config.markdownlint.json
