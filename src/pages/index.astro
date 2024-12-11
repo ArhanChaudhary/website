@@ -1,10 +1,5 @@
 ---
 import Layout from "../layouts/Layout.astro";
-import { Image } from "astro:assets";
-import resume from "../assets/index/resume.png";
-import ghLogo from "../assets/index/gh-logo.png";
-import inLogo from "../assets/index/in-logo.png";
-import mail from "../assets/index/mail.png";
 ---
 
 <Layout title="Arhan's Homepage" sshUser="home">
@@ -54,21 +49,10 @@ import mail from "../assets/index/mail.png";
         <div></div>
         <div></div>
       </div>
-      <div id="socials">
-        <a
-          href="https://drive.google.com/file/d/11bE4iOw3yctlRf1HUjhw83Oq_-9R_ki3/view?usp=sharing"
-        >
-          <Image src={resume} alt="" height="35" />
-        </a>
-        <a href="https://github.com/ArhanChaudhary">
-          <Image src={ghLogo} alt="" height="35" />
-        </a>
-        <a href="https://www.linkedin.com/in/arhan-chaudhary/">
-          <Image src={inLogo} alt="" height="35" />
-        </a>
-        <a href="mailto:arhan.ch@gmail.com">
-          <Image src={mail} alt="" height="35" />
-        </a>
+      <div id="webring">
+        <a href="https://ring.purduehackers.com/previous?host=arhan.sh">←</a><a
+          href="https://ring.purduehackers.com">Purdue Hackers Webring</a
+        ><a href="https://ring.purduehackers.com/next?host=arhan.sh">→</a>
       </div>
     </div>
   </div>
@@ -314,21 +298,24 @@ import mail from "../assets/index/mail.png";
         }
       }
 
-      #socials {
+      #webring {
+        font-size: 16px;
         position: absolute;
-        bottom: -20px;
-        right: 20px;
         display: flex;
-        gap: 40px;
+        gap: 8px;
+        bottom: -24px;
+        right: 20px;
 
-        img {
-          display: block;
+        a {
+          text-decoration: none;
+          // color: hsl(0, 0%, 70%);
+          color: inherit;
         }
       }
     }
   }
 
-  @media (max-width: variables.$mobile-width - 200px) {
+  @media (max-width: variables.$mobile-width - 300px) {
     #shape-things > :not(#shape-thing-3, :last-child) {
       display: none !important;
     }
@@ -346,9 +333,9 @@ import mail from "../assets/index/mail.png";
     }
   }
 
-  @media (min-width: variables.$mobile-width) and (max-width: variables.$mobile-width + 50px) {
-    :global(#copyright) {
-      visibility: hidden;
-    }
-  }
+  // @media (min-width: variables.$mobile-width) and (max-width: variables.$mobile-width + 50px) {
+  //   :global(#copyright) {
+  //     visibility: hidden;
+  //   }
+  // }
 </style>
