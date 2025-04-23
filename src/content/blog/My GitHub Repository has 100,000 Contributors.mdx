@@ -8,7 +8,7 @@ pubDate: 2024-07-01T08:00:00
 
 # What?
 
-Your eyes don’t deceive you. You can check right now: my [GitHub repository](https://github.com/ArhanChaudhary/everyone) has 100,000 contributors.
+Your eyes don’t deceive you. You can check right now: my [GitHub repository](https://github.com/ArhanChaudhary/everyone) has 100,000 contributors. If you are on GitHub mobile, the number may not appear. You have to view this repository through GitHub's web UI.
 
 Before I explain the why and the how, we first need to go back to a few weeks ago. I was routinely moving around some configuration files, and I accidentally swapped my `~/.gitconfig` file with that of my alternate account. When I pushed to one of my repositories, I was surprised to notice that my alt account was added as a contributor! Its rendered profile picture, username, and hyperlink — all neatly displayed under "Contributors".
 
@@ -30,11 +30,11 @@ And so on, with seemingly no co-author limit. Luckily for my case, each one is a
 
 # The plan
 
-Manually adding this many users to a commit message obviously isn’t practical. I needed to write an API scraper, and a quick check of GitHub's [policies](https://bounty.github.com/#legal_safe_harbor) affirms I'm allowed to do this provided that I'm not excessive.
+Manually adding this many users to a commit message obviously isn’t practical. I needed to write an API scraper, and a quick check of GitHub's policies affirms I'm allowed to do this provided that I'm not excessive.
 
 > We do allow the use of automated tools so long as they do not produce excessive amounts of traffic. For example, running one nmap scan against one host is allowed, but sending 65,000 requests in two minutes using Burp Suite Intruder is excessive.
 
-So, I got to brainstorming. The most important conceptual hurdle was figuring out how to get a user's email address, as you can't co-author a user without it. The problem was, even if a user makes their email address address publicly visible on their profile, the GitHub API doesn't reliably expose it [[1](#1)]. Surprisingly, there is a very well-known way to circumvent this and find almost anyone's email address on GitHub.
+So, I got to brainstorming. The most important conceptual hurdle was figuring out how to get a user's email address, as you can't co-author a user without it. The problem was, even if a user makes their email address address publicly visible on their profile, the GitHub API doesn't reliably expose it <sup id="1-back"><a href="#1">1</a></sup>. Surprisingly, there is a very well-known way to circumvent this and find almost anyone's email address on GitHub.
 
 Simply navigate to any commit authored by a user on GitHub and append `.patch` to the commit's url. Et voilà! The second line from the top enclosed within angled brackets lies their email address, in full form and glory. It sounds concerning that this type of information is so easy to access, but if you think about it, emails are made public for a reason. Attribution and contact are pretty important from an open source perspective.
 
@@ -52,8 +52,6 @@ Putting everything together, my API scraper will:
 4. Filter each email address for private email addresses and format the co-author message
 
 Hopefully you can see that, through some intuitional ingenuity, the idea no longer sounds as Herculean a task as it seems.
-
-[<span id="1">1</span>] The situation here is strange. For reasons unknown, the GitHub GraphQL API straight up doesn't expose the majority of users' public emails... UNLESS you use the GitHub REST API; in which case only this method works... UNLESS you use the [GitHub GraphQL explorer](https://docs.github.com/en/graphql/overview/explorer) which seems to work with the same level of accuracy. I know I'm not going crazy. It's really weird.
 
 # The script
 
@@ -211,17 +209,17 @@ everyone % git push
 
 ...
 
+Thirty minutes later, nothing happens.
+
 ...
 
-Thirty minutes later, nothing happens.
+Uh oh.
 
 <ContentImage
   src={commitLoading}
   width="600"
   alt="A screenshot showing GitHub commits unable to load"
 />
-
-Uh oh.
 
 I'm just messing with you, it wasn't that dramatic. After force git-resetting, simply splitting up the co-authors into commits of 5,000 at a time did the trick.
 
@@ -256,6 +254,10 @@ After running the script, around half an hour later:
   alt="A screenshot showing 100,000 contributors"
 />
 
-Booyah! \*drops mic\*
+Booyah! \*drops mic\*.
 
 Not bad for my second blog, don’t you think? Until next time!
+
+<hr />
+
+<sup id="1">1</sup> The situation here is strange. For reasons unknown, the GitHub GraphQL API straight up doesn't expose the majority of users' public emails... UNLESS you use the GitHub REST API; in which case only this method works... UNLESS you use the [GitHub GraphQL explorer](https://docs.github.com/en/graphql/overview/explorer) which seems to work with the same level of accuracy. I know I'm not going crazy. It's really weird. <a href="#1-back" class="back-arrow">↩</a>

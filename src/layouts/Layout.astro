@@ -560,14 +560,12 @@ const highlightIndex = sshUsers.indexOf(sshUser) + 1;
     --main-margin-left: 100px;
   }
 
-  a.blue {
-    color: var(--blue);
+  sup a {
+    color: inherit;
   }
 
   a {
-    --offblue: hsl(214, 84%, 65%);
-    --blue: hsl(214, 93%, 62%);
-    color: var(--offblue);
+    color: hsl(214, 84%, 65%);
 
     & > code:first-child {
       color: var(--offwhite) !important;
@@ -637,6 +635,15 @@ const highlightIndex = sshUsers.indexOf(sshUser) + 1;
   summary {
     cursor: pointer;
     font-weight: bolder;
+  }
+
+  .back-arrow {
+    font-family: monospace;
+    font-size: 2em;
+    line-height: 0;
+    color: inherit;
+    padding-left: 0.5em;
+    padding-right: 0.5em;
   }
 
   .input-mono {

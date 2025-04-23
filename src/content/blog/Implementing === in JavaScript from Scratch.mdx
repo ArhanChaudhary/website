@@ -9,9 +9,9 @@ Yes, I know exactly what you're thinking.
 
 > Reinventing the wheel? That's the most moronic idea I've ever heard since that guy who wanted to invade Russia in the winter.
 
-And you're not wrong. For all practical purposes, this blog is pointless. If you were looking for a small code snippet to show off on your quirky little website, I hate to break it to you, but what you're about to read is so obscenely nutty that it only works on a legacy version of Chromium as an extension running millions of times slower.
+And you're not wrong. For all practical purposes, this blog is pointless. I hate to break it to you, but what you're about to read is so obscenely nutty that it only works on a legacy version of Chromium as an extension running millions of times slower.
 
-The strict equality operator in JavaScript (===) compares two values for object equality. As you probably already know, this operator tests reference equality for non-primitive JavaScript values. In effect, because `{ foo: 42 } === { foo: 42 }` is `false`, implementing [spec-compliant](https://tc39.es/ecma262/multipage/abstract-operations.html#sec-isstrictlyequal) functionality becomes much more interesting. I'm not talking about the obvious ways. Various other built-ins make object reference comparison trivial.
+The strict equality operator in JavaScript (===) compares two values for object equality. As you probably already know, this operator tests reference equality for non-primitive JavaScript values. In effect, because `{ foo: 42 } === { foo: 42 }` is `false`, implementing spec-compliant functionality becomes much more interesting. I'm not talking about the obvious ways. Various other built-ins make object reference comparison trivial.
 
 ```js
 let obj1 = { foo: 42 };
@@ -28,7 +28,7 @@ new Set().add(obj1).has(obj2) && console.log("same");
 
 We will implement this basic operation on a far lower level. But what does that mean, and how else could JavaScript differentiate two objects that hold the same data? [Surface level research](https://stackoverflow.com/questions/1997661/unique-object-identifier-in-javascript) yields nothing, so we're on our own. Let's take a deep dive.
 
-A few weeks ago I was looking into the Chromium DevTools heap profiler for a separate [blog](../true-private-state-in-javascript-a-chromium-rabbit-hole/) post of mine. I keenly noticed that the heap profiler distinguishes JavaScript objects by memory location. I might be able to utilize that to my advantage, thus revealing a glimmer of light at the end of the tunnel.
+A few weeks ago I was looking into the Chromium DevTools heap profiler for a separate [blog](../true-private-state-in-javascript-a-chromium-rabbit-hole/) post of mine. I keenly noticed that the heap profiler distinguishes JavaScript objects by memory location. I might be able to utilize that to my advantage.
 
 ```js
 let obj1 = { foo: 42 };
@@ -37,9 +37,9 @@ let obj2 = { foo: 42 };
 
 <ContentImage src={heapProfiler} alt="The heap profiler demonstrating that two objects have different memory locations" />
 
-This isn't useful if there isn't a way to access these memory locations programmatically. Fortunately, there exists the [Chrome DevTools Protocol](https://chromedevtools.github.io/devtools-protocol), or CDP, a standardized JavaScript API that allows for direct inspection into the JavaScript runtime on Blink-based browsers. Sure enough, Chrome DevTools uses this protocol for the heap profiler.
+This isn't useful if there isn't a way to access these memory locations programmatically. Fortunately, Chrome uses the Chrome DevTools Protocol (CDP), a standardized JavaScript API that allows for direct inspection into the JavaScript runtime on Blink-based browsers.
 
-The original question still stands; how does JavaScript access the CDP? The documentation endorses two means of access. First, open [devtools-on-devtools](https://stackoverflow.com/questions/12291138/how-do-you-inspect-the-web-inspector-in-chrome/12291163#12291163) and interface with the CDP like so.
+The original question still stands; how does JavaScript access the CDP? The documentation endorses two means of access. First, open "[devtools-on-devtools](https://stackoverflow.com/questions/12291138/how-do-you-inspect-the-web-inspector-in-chrome/12291163#12291163)" and interface with the CDP like so.
 
 ```js
 let Main = await import('./devtools-frontend/front_end/entrypoints/main/main.js');
@@ -61,19 +61,19 @@ I hacked up a Chrome extension but was surprised when my testing errored with th
 {"code":-32601,"message":"'HeapProfiler.enable' wasn't found"}
 ```
 
-What's going on here? As it turns out, [internal documentation](https://chromium.googlesource.com/chromium/src/+/master/third_party/blink/public/devtools_protocol/#security-considerations) reveals that specific protocol domains including the heap profiler are restricted for security reasons.
+What's going on here? As it turns out, internal documentation reveals that specific protocol domains including the heap profiler are restricted for security reasons.
 
 > However, since the protocol is also exposed to chrome extensions through chrome.debugger API, the backend implements additional access control in some of the methods to prevent extensios form accessing file system or otherwise escaping the sandbox. These restrictions are not extended to other types of clients.
 
-[Here](https://chromium.googlesource.com/v8/v8/+/c42e620355453fc0510b06e089ca7d92598bd54f%5E%21/) is the v8 commit that adds these restrictions, dating back to May 2022 and Chromium version v104. You guessed what's happening next. The solution to our dilemma, of course, is time travel.
+[Here](https://chromium.googlesource.com/v8/v8/+/c42e620355453fc0510b06e089ca7d92598bd54f%5E%21/) is the v8 commit that adds these restrictions, dating back to May 2022 and Chromium version v104. The solution to our dilemma, you guessed it, is time travel.
 
-Google doesn't distribute legacy versions of Chrome. We'll have to be a bit more hands-on. [Archives](https://www.slimjet.com/chrome/google-chrome-old-version.php) of older versions of Chrome exist online. However, I'm wary of downloading unknown files from the Internet. Instead, I installed the official v103 Chromium build from source following their [guide](https://www.chromium.org/getting-involved/download-chromium/#downloading-old-builds-of-chrome-chromium). You may have to run `/usr/bin/xattr -cr /Applications/Chromium.app` on an M1 Mac to fix broken metadata preventing Chromium from launching.
+Google doesn't distribute legacy versions of Chrome. We'll have to be a bit more hands-on. Archives of older versions of Chrome exist online. However, I'm wary of downloading unknown files from the Internet. Instead, I installed the official v103 Chromium build from source following their [guide](https://www.chromium.org/getting-involved/download-chromium/#downloading-old-builds-of-chrome-chromium). You may have to run `xattr -cr /Applications/Chromium.app` on an ARM-based Macs to fix broken metadata preventing Chromium from launching.
 
-My extension didn't initially work because global content scripts were only [supported](https://chromium.googlesource.com/chromium/src/+/8f07eaff87947a2e93214de2695de8052119180b) in Chromium v111 and later, so I had to resort to an [older](https://stackoverflow.com/questions/9602022/chrome-extension-retrieving-global-variable-from-webpage/9636008#9636008) content script hack to get it to work.
+My extension didn't initially work because global content scripts were only supported in Chromium v111 and later, so I had to resort to an [older](https://stackoverflow.com/questions/9602022/chrome-extension-retrieving-global-variable-from-webpage/9636008#9636008) content script hack to get it to work.
 
-That was a lot, let's take a small step back. To reiterate, the goal is to implement a [spec-compliant](https://tc39.es/ecma262/multipage/abstract-operations.html#sec-isstrictlyequal) strict equality operation in JavaScript from scratch.  We've found a version of Chromium that enables programmatic access to the DevTools heap profiler. Let's build the bridge between the CDP and JavaScript object memory addresses.
+That was a lot, let's take a small step back. To reiterate, the goal is to implement a spec-compliant strict equality operation in JavaScript from scratch. We've found a version of Chromium that enables programmatic access to the DevTools heap profiler. Let's build the bridge between the CDP and JavaScript object memory addresses.
 
-A good place to start is the [HeapProfiler.takeHeapSnapshot](https://chromedevtools.github.io/devtools-protocol/tot/HeapProfiler/#method-takeHeapSnapshot) method. This will profile the *entire* page, and is obviously cumbersome, but whatever. Next, the [Runtime.evaluate](https://chromedevtools.github.io/devtools-protocol/tot/Runtime/#method-evaluate) method creates a unique object identifier from the evaluation result of a stringified JavaScript expression. The caveat is that this only evaluates the global scope, coercing some really bizarre JavaScript.
+A good place to start is the `HeapProfiler.takeHeapSnapshot` method. This will profile the *entire* page, and is obviously cumbersome, but whatever. Next, the `Runtime.evaluate` method creates a unique object identifier from the evaluation result of a stringified JavaScript expression. The caveat is that this only evaluates the global scope, coercing some really bizarre JavaScript.
 
 `strictEquality.js`
 
@@ -97,11 +97,9 @@ async function strictEquality(obj1, obj2) {
 }
 ```
 
-Ugh. It's async not because of I/O, but because of the event loop. It's also non-reentrant, in other words it must always be `await`ed. These types of unavoidable stateful functions are typically only present within C, not JavaScript!
+Ugh. It's async not because of I/O, but because of the event loop. It's also non-reentrant, in other words it must always be `await`-ed. These types of unavoidably stateful functions are typically only present within C, not JavaScript!
 
-Fine. Finally, we can pass that identifier to [HeapProfiler.getHeapObjectId](https://chromedevtools.github.io/devtools-protocol/tot/HeapProfiler/#method-getHeapObjectId) and earn our heap profiler memory address value.
-
-Given the lengths I've taken to get this far, these are all compromises I'm willing to bear with xD. The full pipeline:
+Fine. Finally, we can pass that identifier to `HeapProfiler.getHeapObjectId` and earn our heap profiler memory address value. The full pipeline:
 
 `background.js`
 
@@ -221,7 +219,9 @@ function stringEquality(str1, str2) {
 }
 ```
 
-And... there we go. The full implementation is provided in a [GitHub repository](https://github.com/ArhanChaudhary/strictequality-js). Did I forget to mention that it doesn't work on page load because content scripts aren't available globally? You'll have to have fun awaiting the `strictEqualityLoaded` event before usage.
+And... there we go. The full implementation is provided in a [GitHub repository](https://github.com/ArhanChaudhary/strictequality-js). I coughed together an ugly [test module](https://github.com/ArhanChaudhary/strictequality-js/blob/main/test.html) to verify its correctness.
+
+Did I forget to mention that it doesn't work on page load because content scripts aren't available globally? You'll have to have fun awaiting the `strictEqualityLoaded` event before usage.
 
 ```js
 await new Promise((resolve) => {
@@ -232,6 +232,4 @@ let obj = [];
 !(await strictEquality([], [])) && console.log("not same");
 ```
 
-There's no point in trying to sugarcoat it. This reimplementation of strict equality in JavaScript is on its last lifeline. It's async, slow, outdated, awkward, and it displays the most annoying "This extension is debugging this browser" banner on the website. It can't get any worse.
-
-Hey, at least it was really cool. Make of this blog post what you will. Until next time!
+Until next time!

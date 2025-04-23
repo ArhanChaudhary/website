@@ -22,7 +22,7 @@ What do I think true private state should actually mean? For a class definition 
 
 Direct access refers to code that aliases into a private variable's value, for example by property accessor syntax such as `rectangle.length` or direct memory access. Indirect access refers to code that evaluates to a private variable's value, but doesn't actually alias into it in the same manner. While the expression `rectangle.getLength()` retrieves the private variable's value, the expression alone doesn't alias into it.
 
-My definitions inherently make the meaning of indirect access subjective. After all, these concepts and ideas are based on high-level programming abstractions. The processor sees every operation as just reading and writing to memory, thereby voiding the concept of indirect access at the low level. Hopefully, the following examples and the rest of the blog will help draw the line between what qualifies access as "direct" or "indirect".
+My definitions inherently make the meaning of indirect access subjective. After all, these concepts and ideas are based on high-level programming abstractions. The processor sees every operation as just reading and writing to memory, thereby voiding the concept of indirect access at the low level. Hopefully, the following examples and the rest of the post will help draw the line between what qualifies access as "direct" or "indirect".
 
 These five implementation requirements will be the key criteria in assessing whether or not a class implementation provides true private state. Generalizing them across many popular programming languages unmasks true identity of the term "private variable"... as a shameless misnomer!
 
@@ -57,8 +57,6 @@ public class Main {
   }
 }
 ```
-
-(Note that we will use `Character.toString(65).repeat(10)` throughout the blog as our secret value as to not hardcode it)
 
 You may point out that reflection can be disabled with the `-Djava.security.manager` flag. But because this flag is opt-in, it doesn't matter; recall that there must not exist <u>a</u> way of direct access into a private variable. Even then, you could alternatively use Java's Native Interface API as demonstrated [here](https://gist.github.com/ArhanChaudhary/20200eda359458aa72f748c285c139fd).
 
@@ -123,8 +121,8 @@ Okay, we just need to try a little harder.
 
 ```js
 var Secret = (() => {
-  // The difference between WeakMap and
-  // Map is irrelevant for this blog
+  // The difference between WeakMap
+  // and Map isn't relevant
   let _secrets = new WeakMap();
   return class Secret {
     constructor(secret) {
@@ -171,7 +169,7 @@ Considering that complete static analysis for a program has been proven to be [u
 
 As it turns out, the V8 engine is one step ahead of us. The above code throws a ReferenceError because smarter people than me have already thought of ways to compensate for this issue. `eval` captures local scope only when [directly](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/eval#direct_and_indirect_eval) called and captures global scope otherwise, bringing us back to square one.
 
-At this point during the research phase of this blog, I realized that what I was trying to achieve was going to be much more difficult than expected. A day of tinkering later, I stumbled upon this solution.
+At this point I realized that what I was trying to achieve was going to be much more difficult than expected. A day of tinkering later, I stumbled upon this solution.
 
 ```js
 class Secret {
@@ -223,11 +221,9 @@ secret.updateState(), console.log(await secret.secret);
 
 This is similar to the closure solution except unlike the `eval` solution, we've *actually* tricked DevTools. For brevity I won't show an image, but this time `secret` is hidden from the scope inspector. Binding `this.updateState` directly to `resolve` relinquishes its need to display `secret` because the binding doesn't canonically create a closure. Simply calling the resolver and awaiting the promise gives back the original value!
 
-In a cruel twist of fate, this solution is invalid as well.
+In a cruel twist of fate, this solution happens to be invalid because the DevTools heap profiler.
 
 <ContentImage src={heapProfiler} alt="An image showing off the DevTools heap profiler" desc="The heap profiler exposes variables from web workers and popups as well" />
-
-Enough teasing around. My definition of "true" private state within DevTools is impossible because of the heap profiler.
 
 However, that doesn't mean there isn't more to the story. I was missing the bigger, more abstract picture. JavaScript is inherently a garbage collected language. Logically speaking, it's impossible to remove all references to a secret variable or else it would become garbage collected. I mean, duh, but saying this out loud made me realize I needed to completely reapproach my strategy.
 
@@ -372,7 +368,7 @@ console.log(await secret.get());
 
 We have our answer. There's no way for code on the web page to "directly access" the background script's IndexedDB. The secret can only be retrieved indirectly, through the `get` method.
 
-I could just end the blog here, but there's one thing left to address. It's still *possible* to access the secret within Chrome if you navigate to `chrome://extensions`, open the background script DevTools window, and run this.
+I could just end off over here, but there's one thing left to address. It's still *possible* to access the secret within Chrome if you navigate to `chrome://extensions`, open the background script DevTools window, and run this.
 
 ```js
 await openDbStore("readonly").then(
@@ -383,13 +379,13 @@ await openDbStore("readonly").then(
 );
 ```
 
-For no reason at all, following the theme of this blog post, let's make this even more unnecessarily complicated. Utilizing the native application API, it's possible to store the secret outside of Chrome entirely! I've documented my exact findings in this [GitHub repository](https://github.com/ArhanChaudhary/chrome-secret-js). Instead of providing the code's source like before, I had some free time and thought it would be cool to diagram how it worked. Some eye candy:
+For no reason at all, let's make this even more unnecessarily complicated. Utilizing the native application API, it's possible to store the secret outside of Chrome entirely! I've documented my exact findings in this [GitHub repository](https://github.com/ArhanChaudhary/chrome-secret-js). Instead of providing the code's source like before, I had some free time and thought it would be cool to diagram how it worked. Some eye candy:
 
 <ContentImage src={secretDiagram} alt="An image diagramming the native app secret implementation" quality="max" />
 
 # Closing thoughts
 
-It's time to address the elephant in the room. The reason why this entire blog post isn't even remotely practical is because of cryptography and networking services on the front-end.
+It's time to address the elephant in the room. The correct way to store a secret variable is to use cryptography or networking services.
 
 First, cryptography. Take your pick. The [WebAuthn large blob](https://webauthn-large-blob.glitch.me/) and [credential management](https://developer.mozilla.org/en-US/docs/Web/API/Credential_Management_API) APIs use your operation system keychain to store credentials, with some obscure [limitations](https://issues.chromium.org/issues/40283676#comment5). The [browser.secureStorage](https://github.com/w3c/webextensions/issues/154) API might become a reality soon. SubtleCrypto can be [used with](https://www.w3.org/TR/WebCryptoAPI/#concepts-key-storage) IndexedDB for cryptographically secure key management. Common password manager extensions use this method.
 

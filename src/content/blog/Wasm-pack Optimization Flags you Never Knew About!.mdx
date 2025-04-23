@@ -176,6 +176,8 @@ These are just the "Optimization options". There exists an even *larger* list of
 
 I spent almost an entire day testing out the effectiveness of each flag to little avail. A lot of these flags aren't even optimizations, and the ones that are were all seemingly ineffectual. If you're looking to hyper-optimize your binaryen WebAssembly you're better off sticking with the "Optimization options" flags. You may also find useful the [optimizer cookbook](https://github.com/WebAssembly/binaryen/wiki/Optimizer-Cookbook) and the [GC optimization guidebook](https://github.com/WebAssembly/binaryen/wiki/GC-Optimization-Guidebook) from binaryen's wiki.
 
-Coming to think about it, this blog post doesn't have to be about wasm-pack at all, as the topic more closely concerns binaryen. I thought it was important to frame this post from a Rust point of view because of how surprisingly obscure this information is to wasm-pack users new to the WebAssembly pipeline. I have opened a [pull request](https://github.com/rustwasm/wasm-pack/pull/1423) that explicitly references the full list of available wasm-opt flags in wasm-pack's documentation to make them easier to find.
+Coming to think about it, this post doesn't have to be about wasm-pack at all, as the topic more closely concerns binaryen. I thought it was important to frame this post from a Rust point of view because of how surprisingly obscure this information is to wasm-pack users new to the WebAssembly pipeline. I have opened a [pull request](https://github.com/rustwasm/wasm-pack/pull/1423) that explicitly references the full list of available wasm-opt flags in wasm-pack's documentation to make them easier to find.
+
+UPDATE: My PR was recently merged, how cool is that!
 
 Until next time!
