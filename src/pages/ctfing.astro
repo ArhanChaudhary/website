@@ -1,4 +1,5 @@
 ---
+// cSpell:disable
 import { mySlugify } from "../assets/utils.ts";
 import Layout from "../layouts/Layout.astro";
 import { getCollection, getEntry } from "astro:content";
@@ -7,15 +8,20 @@ const { data: allCtfs } = await getEntry("ctfs", "ctfs");
 const allWriteups = await getCollection("ctf-write-up");
 const ctfWriteupNames = new Set(
   allWriteups.map((writeup) => {
-    const ret = writeup.id.split("/").at(-2)!;
+    const ret = writeup.id.split("/")?.at(-2);
+    if (!ret) {
+      throw new Error("ctf name not found");
+    }
     if (allCtfs.some(({ ctfName }) => ret === ctfName)) {
       return ret;
-    } else {
-      throw new Error("ctf name typo");
     }
+    throw new Error("ctf name typo");
   })
 );
+// cSpell:enable
 ---
+
+<!-- cspell:ignore Ruien asmhole Starphish b01lers Ftime -->
 
 <Layout title="Arhan's CTF Page" sshUser="ctf">
   <div id="max-width-wrapper" class="system-ui offwhite">
@@ -23,7 +29,7 @@ const ctfWriteupNames = new Set(
     <hr />
     <p>
       I sometimes play CTF. CTF competitions involve working together with a
-      team to exploit vulnerablites in programs or computer systems to find a
+      team to exploit vulnerabilities in programs or computer systems to find a
       "flag", a specific text string that serves as the answer to the challenge.
     </p>
     <p>
@@ -54,11 +60,12 @@ const ctfWriteupNames = new Set(
     </ul>
     <p>
       The rest of this page is dedicated towards my CTF competition history and
-      my write-ups. Note that I've ommitted asmhole competitions I minimally
+      my write-ups. Note that I've omitted asmhole competitions I minimally
       participated in.
     </p>
     <ul id="ctf-list">
       {
+        // cSpell:disable
         allCtfs.map(({ ctfName, ctfLink }) => (
           <li>
             <a href={ctfLink}>{ctfName}</a> —
@@ -71,6 +78,7 @@ const ctfWriteupNames = new Set(
             )}
           </li>
         ))
+        // cSpell:enable
       }
     </ul>
   </div>

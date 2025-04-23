@@ -1,2 +1,2 @@
-npx markdownlint-cli2 "**/*.mdx" "#node_modules" --config config.markdownlint.json --fix > /dev/null
+npx markdownlint-cli2 "**/*.mdx" "#node_modules" --config .markdownlint.json --fix > /dev/null
 find . -name '*.mdx' -exec git add {} \+

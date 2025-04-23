@@ -10,7 +10,6 @@ export function mySlugify(str: string) {
 export function decodeFileName(str: string, replaceMDX = true) {
   if (replaceMDX) {
     return decodeURIComponent(str.replace(".mdx", ""));
-  } else {
-    return decodeURIComponent(str);
   }
+  return decodeURIComponent(str);
 }

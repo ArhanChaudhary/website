@@ -11,7 +11,7 @@ const { cubingCompetition } = Astro.props;
 const { Content } = await cubingCompetition.render();
 
 function bestSingle(times: (number | "DNF")[]): string {
-  let ret = times.reduce((best, time) => {
+  const ret = times.reduce((best, time) => {
     if (time === "DNF") {
       return best;
     }
@@ -24,7 +24,7 @@ function bestSingle(times: (number | "DNF")[]): string {
 }
 
 function averageOf5(times: (number | "DNF")[]): string {
-  let sortedTimes = times
+  const sortedTimes = times
     .sort((a, b) => {
       if (a === "DNF") {
         return 1;

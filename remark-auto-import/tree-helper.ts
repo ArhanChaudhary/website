@@ -83,6 +83,7 @@ export const namedImportSpecifier = (name: string, alias: string | undefined) =>
   range: [248, 258],
 });
 
+// biome-ignore lint/suspicious/noExplicitAny: <explanation>
 export const importStatement = (path: any, specifiers: any) => ({
   type: "mdxjsEsm",
   position: {

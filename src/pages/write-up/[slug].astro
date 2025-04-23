@@ -5,14 +5,22 @@ import Writeup from "../../components/Writeup.astro";
 import { getCollection } from "astro:content";
 import { writeupCategory } from "../../content/config";
 
+// cspell:disable
+
 export async function getStaticPaths() {
   const allWriteups = await getCollection("ctf-write-up");
   const ctfWriteupNames = [
-    ...new Set(allWriteups.map((writeup) => writeup.id.split("/").at(-2)!)),
+    ...new Set(
+      allWriteups.map((writeup) => {
+        const ret = writeup.id.split("/")?.at(-2);
+        if (!ret) throw new Error("ctf name not found");
+        return ret;
+      })
+    ),
   ];
   return ctfWriteupNames.map((ctfName) => {
     const iteratorCtfWriteups = allWriteups.filter(
-      (writeup) => writeup.id.split("/").at(-2)! === ctfName
+      (writeup) => writeup.id.split("/")?.at(-2) === ctfName
     );
     return {
       params: {
@@ -32,10 +40,10 @@ writeups.sort((a, b) => {
   const secondIndex = writeupCategory.indexOf(b.data.category);
   if (firstIndex === secondIndex) {
     return b.data.points - a.data.points;
-  } else {
-    return firstIndex - secondIndex;
   }
+  return firstIndex - secondIndex;
 });
+// cspell:enable
 ---
 
 <Layout title={ctfName + " Write-up"} sshUser="ctf">
@@ -43,6 +51,7 @@ writeups.sort((a, b) => {
     <h1>{ctfName}</h1>
     <ul>
       {
+        // cspell:disable
         writeups.map((writeup, i) => (
           <>
             {writeups[i - 1]?.data.category !== writeup.data.category && (
@@ -59,12 +68,15 @@ writeups.sort((a, b) => {
             </li>
           </>
         ))
+        // cspell:enable
       }
     </ul>
     {
+      // cspell:disable
       writeups.map((writeup, i) => (
         <Writeup {writeup} prevCategory={writeups[i - 1]?.data.category} />
       ))
+      // cspell:enable
     }
   </div>
 </Layout>

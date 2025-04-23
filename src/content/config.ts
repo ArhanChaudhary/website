@@ -1,6 +1,6 @@
 import { z, defineCollection } from "astro:content";
 
-let blogCollection = defineCollection({
+const blogCollection = defineCollection({
   type: "content",
   schema: z.object({
     url: z
@@ -12,7 +12,7 @@ let blogCollection = defineCollection({
   }),
 });
 
-let bookReviewCollection = defineCollection({
+const bookReviewCollection = defineCollection({
   type: "content",
   schema: z.object({
     rating: z.number().gte(1).lte(5).multipleOf(0.5),
@@ -31,7 +31,7 @@ export const writeupCategory = [
   "Binary Exploitation",
 ] as const;
 
-let ctfWriteupCollection = defineCollection({
+const ctfWriteupCollection = defineCollection({
   type: "content",
   schema: z.object({
     description: z.string(),
@@ -49,7 +49,7 @@ let ctfWriteupCollection = defineCollection({
   }),
 });
 
-let ctfsCollection = defineCollection({
+const ctfsCollection = defineCollection({
   type: "data",
   schema: z.array(
     z.object({
@@ -59,7 +59,7 @@ let ctfsCollection = defineCollection({
   ),
 });
 
-let cubingCompetitionCollection = defineCollection({
+const cubingCompetitionCollection = defineCollection({
   type: "content",
   schema: z.object({
     date: z.date(),
@@ -79,7 +79,7 @@ let cubingCompetitionCollection = defineCollection({
   }),
 });
 
-let projectCollection = defineCollection({
+const projectCollection = defineCollection({
   type: "content",
   schema: z.object({
     sideProject: z.boolean(),
@@ -88,7 +88,7 @@ let projectCollection = defineCollection({
   }),
 });
 
-let unreadBooksCollection = defineCollection({
+const unreadBooksCollection = defineCollection({
   type: "data",
   schema: z.array(
     z.object({

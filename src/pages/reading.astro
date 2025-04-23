@@ -11,9 +11,9 @@ const yearsToBookReviews = new Array<
   [number, CollectionEntry<"book-review">[]]
 >();
 
-for (let bookReview of allBookReviews) {
-  let year = bookReview.data.read.getFullYear();
-  let yearToBookReviews = yearsToBookReviews.find(([y, _]) => y === year);
+for (const bookReview of allBookReviews) {
+  const year = bookReview.data.read.getFullYear();
+  const yearToBookReviews = yearsToBookReviews.find(([y, _]) => y === year);
   let bookReviews: CollectionEntry<"book-review">[];
   if (yearToBookReviews) {
     bookReviews = yearToBookReviews[1];
