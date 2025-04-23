@@ -1,6 +1,6 @@
 ---
-import type { CollectionEntry } from "astro:content";
-import { decodeFileName } from "../assets/utils";
+import { render, type CollectionEntry } from "astro:content";
+import { decodeFilePath1 } from "../assets/utils";
 
 interface Props {
   section: CollectionEntry<"book-review">;
@@ -8,13 +8,12 @@ interface Props {
 
 const { section } = Astro.props;
 const { url, rating, author, genre } = section.data;
-const { Content } = await section.render();
+const { Content } = await render(section);
 ---
 
 <!-- cspell:ignore hitbox -->
-
 <h2>
-  <a href={url} class="white-link">{decodeFileName(section.id)}</a>
+  <a href={url} class="white-link">{decodeFilePath1(section.filePath)}</a>
 </h2>
 <div class="info">
   Genre: {genre}

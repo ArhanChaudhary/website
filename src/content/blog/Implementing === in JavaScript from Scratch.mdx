@@ -125,7 +125,7 @@ let objHeapDetails = await Promise.all([
     objectId: objDetails[1].result.objectId,
   }),
 ]);
-await chrome.debugger.detach({ tabId: sender.tab.id });
+await chrome.debugger.detach({ tabId: sender.tab.filePath });
 
 sendResponse(
   !(

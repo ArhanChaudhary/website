@@ -1,18 +1,21 @@
 ---
 // cSpell:disable
-import { mySlugify } from "../assets/utils.ts";
+import { decodeFileName, decodeFilePath2, mySlugify } from "../assets/utils.ts";
 import Layout from "../layouts/Layout.astro";
 import { getCollection, getEntry } from "astro:content";
 
-const { data: allCtfs } = await getEntry("ctfs", "ctfs");
+const ctfsEntry = await getEntry("ctfs", "ctfs");
+if (!ctfsEntry) {
+  throw new Error("ctfs entry not found");
+}
 const allWriteups = await getCollection("ctf-write-up");
 const ctfWriteupNames = new Set(
   allWriteups.map((writeup) => {
-    const ret = writeup.id.split("/")?.at(-2);
+    const ret = decodeFilePath2(writeup.filePath);
     if (!ret) {
       throw new Error("ctf name not found");
     }
-    if (allCtfs.some(({ ctfName }) => ret === ctfName)) {
+    if (ctfsEntry.data.some(({ ctfName }) => ret === ctfName)) {
       return ret;
     }
     throw new Error("ctf name typo");
@@ -21,9 +24,8 @@ const ctfWriteupNames = new Set(
 // cSpell:enable
 ---
 
-<!-- cspell:ignore Ruien asmhole Starphish b01lers Ftime -->
-
 <Layout title="Arhan's CTF Page" sshUser="ctf">
+  <!-- cspell:ignore Ruien asmhole Starphish b01lers Ftime ctfs -->
   <div id="max-width-wrapper" class="system-ui offwhite">
     <h1>My CTF page</h1>
     <hr />
@@ -65,12 +67,11 @@ const ctfWriteupNames = new Set(
     </p>
     <ul id="ctf-list">
       {
-        // cSpell:disable
-        allCtfs.map(({ ctfName, ctfLink }) => (
+        ctfsEntry.data.map(({ ctfName, ctfLink }) => (
           <li>
             <a href={ctfLink}>{ctfName}</a> —
             {ctfWriteupNames.has(ctfName) ? (
-              <a href={`/write-up/${mySlugify(decodeURIComponent(ctfName))}/`}>
+              <a href={`/write-up/${mySlugify(decodeFileName(ctfName))}/`}>
                 write-up
               </a>
             ) : (
@@ -78,7 +79,6 @@ const ctfWriteupNames = new Set(
             )}
           </li>
         ))
-        // cSpell:enable
       }
     </ul>
   </div>

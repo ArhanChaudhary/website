@@ -1,9 +1,14 @@
 ---
-import { decodeFileName, mySlugify } from "../../assets/utils.ts";
+import {
+  decodeFileName,
+  decodeFilePath1,
+  decodeFilePath2,
+  mySlugify,
+} from "../../assets/utils.ts";
 import Layout from "../../layouts/Layout.astro";
 import Writeup from "../../components/Writeup.astro";
 import { getCollection } from "astro:content";
-import { writeupCategory } from "../../content/config";
+import { writeupCategory } from "../../content.config.ts";
 
 // cspell:disable
 
@@ -12,7 +17,7 @@ export async function getStaticPaths() {
   const ctfWriteupNames = [
     ...new Set(
       allWriteups.map((writeup) => {
-        const ret = writeup.id.split("/")?.at(-2);
+        const ret = decodeFilePath2(writeup.filePath);
         if (!ret) throw new Error("ctf name not found");
         return ret;
       })
@@ -20,7 +25,7 @@ export async function getStaticPaths() {
   ];
   return ctfWriteupNames.map((ctfName) => {
     const iteratorCtfWriteups = allWriteups.filter(
-      (writeup) => writeup.id.split("/")?.at(-2) === ctfName
+      (writeup) => decodeFilePath2(writeup.filePath) === ctfName
     );
     return {
       params: {
@@ -44,6 +49,7 @@ writeups.sort((a, b) => {
   return firstIndex - secondIndex;
 });
 // cspell:enable
+// cspell:ignore writeups
 ---
 
 <Layout title={ctfName + " Write-up"} sshUser="ctf">
@@ -51,32 +57,24 @@ writeups.sort((a, b) => {
     <h1>{ctfName}</h1>
     <ul>
       {
-        // cspell:disable
         writeups.map((writeup, i) => (
           <>
             {writeups[i - 1]?.data.category !== writeup.data.category && (
               <li class="category-toc">{writeup.data.category}</li>
             )}
             <li class="writeup-toc">
-              <a
-                href={`#${mySlugify(decodeFileName(writeup.id))
-                  .split("/")
-                  .at(-1)!}`}
-              >
-                {decodeFileName(writeup.id).split("/").at(-1)!}
+              <a href={`#${mySlugify(decodeFilePath1(writeup.filePath))}`}>
+                {decodeFilePath1(writeup.filePath)}
               </a>
             </li>
           </>
         ))
-        // cspell:enable
       }
     </ul>
     {
-      // cspell:disable
       writeups.map((writeup, i) => (
         <Writeup {writeup} prevCategory={writeups[i - 1]?.data.category} />
       ))
-      // cspell:enable
     }
   </div>
 </Layout>

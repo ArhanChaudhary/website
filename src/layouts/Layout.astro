@@ -29,9 +29,7 @@ const {
 const highlightIndex = sshUsers.indexOf(sshUser) + 1;
 ---
 
-<!-- cspell:ignore ctfing -->
-
-<!doctype html>
+<!-- cspell:ignore ctfing --><!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -562,11 +560,17 @@ const highlightIndex = sshUsers.indexOf(sshUser) + 1;
     --main-margin-left: 100px;
   }
 
+  a.blue {
+    color: var(--blue);
+  }
+
   a {
-    color: rgb(68, 147, 248);
+    --offblue: hsl(214, 84%, 65%);
+    --blue: hsl(214, 93%, 62%);
+    color: var(--offblue);
 
     & > code:first-child {
-      color: inherit !important;
+      color: var(--offwhite) !important;
     }
   }
 
@@ -644,7 +648,8 @@ const highlightIndex = sshUsers.indexOf(sshUser) + 1;
   }
 
   .system-ui {
-    font-family: system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif,
+    font-family:
+      system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif,
       "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
   }
 

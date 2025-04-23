@@ -1,5 +1,5 @@
 ---
-import { decodeFileName, mySlugify } from "../assets/utils.ts";
+import { decodeFilePath1, mySlugify } from "../assets/utils.ts";
 import Layout from "../layouts/Layout.astro";
 import BlogPreview from "../components/BlogPreview.astro";
 import { getCollection } from "astro:content";
@@ -29,9 +29,9 @@ const publishedBlogs = await getCollection(
                 day: "numeric",
               }) || "PREVIEW"
             }
-            title={decodeFileName(blog.id)}
+            title={decodeFilePath1(blog.filePath)}
             description={blog.data.description}
-            url={`/blog/${blog.data.url || mySlugify(decodeFileName(blog.id))}/`}
+            url={`/blog/${blog.data.url || mySlugify(decodeFilePath1(blog.filePath))}/`}
             colorDotRed={(publishedBlogs.length - i) % 2 === 1}
             first={i === 0}
             last={i === publishedBlogs.length - 1}

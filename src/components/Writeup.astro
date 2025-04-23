@@ -1,6 +1,10 @@
 ---
-import type { CollectionEntry } from "astro:content";
-import { decodeFileName, mySlugify } from "../assets/utils.ts";
+import { render, type CollectionEntry } from "astro:content";
+import {
+  decodeFilePath1,
+  decodeFilePath2,
+  mySlugify,
+} from "../assets/utils.ts";
 
 interface Props {
   writeup: CollectionEntry<"ctf-write-up">;
@@ -8,7 +12,7 @@ interface Props {
 }
 
 const { writeup, prevCategory } = Astro.props;
-const { Content } = await writeup.render();
+const { Content } = await render(writeup);
 ---
 
 {
@@ -20,8 +24,8 @@ const { Content } = await writeup.render();
     </div>
   )
 }
-<h3 id={mySlugify(decodeFileName(writeup.id)).split("/").at(-1)!}>
-  {decodeFileName(writeup.id).split("/").at(-1)!} —
+<h3 id={mySlugify(decodeFilePath1(writeup.filePath))}>
+  {decodeFilePath1(writeup.filePath)} —
   {writeup.data.points} points
 </h3>
 <blockquote>{writeup.data.description}</blockquote>
@@ -52,7 +56,7 @@ const { Content } = await writeup.render();
           <>
             <a
               class="attachment-link"
-              href={`/write-up/${decodeFileName(writeup.id)}/${attachment}`}
+              href={`/write-up/${decodeFilePath2(writeup.filePath)}/${decodeFilePath1(writeup.filePath)}/${attachment}`}
             >
               {attachment}
             </a>

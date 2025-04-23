@@ -1,7 +1,7 @@
 // Adapted from https://www.npmjs.com/package/@cloudcannon/remark-auto-import
 
 import fg from "fast-glob";
-import { join } from "path";
+import { join } from "node:path";
 import {
   defaultImportSpecifier,
   importStatement,
@@ -27,6 +27,7 @@ const additionals = new Array<{
 );
 const flatCollections = ["cubing-competition", "book-review", "ctf-write-up"];
 
+// biome-ignore lint/suspicious/noExplicitAny: <explanation>
 function autoImport(tree: any, file: { history: string[] }) {
   if (!file.history.find((name: string) => name.endsWith(".mdx"))) {
     return tree;
@@ -35,17 +36,20 @@ function autoImport(tree: any, file: { history: string[] }) {
   contentIndex = file.history[0].indexOf("/", contentIndex) + 1;
   contentIndex = file.history[0].indexOf("/", contentIndex) + 1;
 
-  let contentCollection = file.history[0].slice(contentIndex).split("/");
-  let contentDirectory;
+  const contentCollection = file.history[0].slice(contentIndex).split("/");
+  let contentDirectory: string | undefined;
   if (flatCollections.includes(contentCollection[0])) {
     contentCollection.pop();
-    contentDirectory = contentCollection.pop()!;
+    contentDirectory = contentCollection.pop();
   } else {
-    contentDirectory = contentCollection.pop()!.replace(".mdx", "");
+    contentDirectory = contentCollection.pop()?.replace(".mdx", "");
+  }
+  if (!contentDirectory) {
+    throw new Error("Failed to get content directory");
   }
 
-  let seen: { [key: string]: string } = {};
-  for (let path of fg.sync(pattern, {
+  const seen: { [key: string]: string } = {};
+  for (const path of fg.sync(pattern, {
     cwd: join(
       process.cwd(),
       baseDirectory,
@@ -54,17 +58,19 @@ function autoImport(tree: any, file: { history: string[] }) {
     ),
     absolute: true,
   })) {
-    let name = camelCase(
-      path.replace(".mdx", "").split("/").at(-1)!.split(".")[0]
-    );
+    let name = path.replace(".mdx", "").split("/").at(-1)?.split(".")[0];
+    if (!name) {
+      throw new Error("Failed to get name");
+    }
+    name = camelCase(name);
 
     if (!name) {
-      console.warn(path + ": Failed to get name, skipping file");
+      console.warn(`${path}: Failed to get name, skipping file`);
       continue;
     }
 
     if (/^\d/.test(name)) {
-      name = "_" + name;
+      name = `_${name}`;
     }
 
     if (seen[name]) {
@@ -79,11 +85,10 @@ function autoImport(tree: any, file: { history: string[] }) {
     tree.children.unshift(
       importStatement(path, [defaultImportSpecifier(name)])
     );
-  };
+  }
 
-  additionals?.forEach((additional) => {
-    let specifiers = [];
-
+  for (const additional of additionals) {
+    const specifiers = [];
     if (additional.defaultImport) {
       specifiers.push(defaultImportSpecifier(additional.defaultImport));
     }
@@ -97,7 +102,7 @@ function autoImport(tree: any, file: { history: string[] }) {
     }
 
     tree.children.unshift(importStatement(additional.importPath, specifiers));
-  });
+  }
 
   return tree;
 }

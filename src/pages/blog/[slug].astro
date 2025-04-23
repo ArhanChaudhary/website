@@ -1,13 +1,13 @@
 ---
-import { decodeFileName, mySlugify } from "../../assets/utils.ts";
-import { getCollection } from "astro:content";
+import { decodeFilePath1, mySlugify } from "../../assets/utils.ts";
+import { getCollection, render } from "astro:content";
 import BlogLayout from "../../layouts/BlogLayout.astro";
 
 export async function getStaticPaths() {
   const allBlogs = await getCollection("blog");
   return allBlogs.map((blog) => ({
     params: {
-      slug: blog.data.url || mySlugify(decodeFileName(blog.id)),
+      slug: blog.data.url || console.log(mySlugify(decodeFilePath1(blog.filePath))) || mySlugify(decodeFilePath1(blog.filePath)),
     },
     props: {
       blog,
@@ -16,9 +16,9 @@ export async function getStaticPaths() {
 }
 
 const { blog } = Astro.props;
-const { Content } = await blog.render();
+const { Content } = await render(blog);
 ---
 
-<BlogLayout {...blog.data} title={decodeFileName(blog.id)}>
+<BlogLayout {...blog.data} title={decodeFilePath1(blog.filePath)}>
   <Content />
 </BlogLayout>

@@ -1,14 +1,14 @@
 ---
-import type { CollectionEntry } from "astro:content";
+import { render, type CollectionEntry } from "astro:content";
 import slugify from "slugify";
-import { decodeFileName } from "../assets/utils";
+import { decodeFilePath1 } from "../assets/utils";
 
 interface Props {
   cubingCompetition: CollectionEntry<"cubing-competition">;
 }
 
 const { cubingCompetition } = Astro.props;
-const { Content } = await cubingCompetition.render();
+const { Content } = await render(cubingCompetition);
 
 function bestSingle(times: (number | "DNF")[]): string {
   const ret = times.reduce((best, time) => {
@@ -48,10 +48,10 @@ function averageOf5(times: (number | "DNF")[]): string {
   <a
     href={"https://www.worldcubeassociation.org/competitions/" +
       (cubingCompetition.data.slugOverride ||
-        slugify(decodeFileName(cubingCompetition.id), {
+        slugify(decodeFilePath1(cubingCompetition.filePath), {
           replacement: "",
           remove: /[^a-zA-Z\d]/g,
-        }))}>{decodeFileName(cubingCompetition.id)}</a
+        }))}>{decodeFilePath1(cubingCompetition.filePath)}</a
   >
 </h3>
 <p class="competition-date">

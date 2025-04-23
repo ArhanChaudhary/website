@@ -35,7 +35,10 @@ for (const bookReview of allBookReviews) {
   bookReviews.splice(i, 0, bookReview);
 }
 
-const { data: allUnreadBooks } = await getEntry("unread-books", "unread-books");
+const allUnreadBooks = await getEntry("unread-books", "unread-books");
+if (!allUnreadBooks) {
+  throw new Error("Could not find unread books");
+}
 ---
 
 <Layout title="Arhan's Reading Notes" sshUser="reading">
@@ -46,6 +49,7 @@ const { data: allUnreadBooks } = await getEntry("unread-books", "unread-books");
       <summary>Reading List</summary>
       {
         allUnreadBooks
+          .data
           .filter(({ inProgress }) => !inProgress)
           .map((unreadBook) => <UnreadBook {...unreadBook} />)
       }
@@ -54,6 +58,7 @@ const { data: allUnreadBooks } = await getEntry("unread-books", "unread-books");
       <summary>Reading in Progress</summary>
       {
         allUnreadBooks
+          .data
           .filter(({ inProgress }) => inProgress)
           .map((unreadBook) => <UnreadBook {...unreadBook} />)
       }

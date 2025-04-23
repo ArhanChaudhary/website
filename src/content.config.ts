@@ -1,7 +1,11 @@
 import { z, defineCollection } from "astro:content";
+import { glob } from "astro/loaders";
+
+const MDX_PATTERN = "**/*.mdx";
+const JSON_PATTERN = "**/*.json";
 
 const blogCollection = defineCollection({
-  type: "content",
+  loader: glob({ pattern: MDX_PATTERN, base: "./src/content/blog" }),
   schema: z.object({
     url: z
       .string()
@@ -13,7 +17,7 @@ const blogCollection = defineCollection({
 });
 
 const bookReviewCollection = defineCollection({
-  type: "content",
+  loader: glob({ pattern: MDX_PATTERN, base: "./src/content/book-review" }),
   schema: z.object({
     rating: z.number().gte(1).lte(5).multipleOf(0.5),
     read: z.date(),
@@ -32,35 +36,28 @@ export const writeupCategory = [
 ] as const;
 
 const ctfWriteupCollection = defineCollection({
-  type: "content",
+  loader: glob({ pattern: MDX_PATTERN, base: "./src/content/ctf-write-up" }),
   schema: z.object({
     description: z.string(),
     category: z.enum(writeupCategory),
     points: z.number(),
     attachments: z.array(z.string()).optional(),
     links: z
-      .array(
-        z.object({
-          name: z.string(),
-          url: z.string().url(),
-        })
-      )
+      .array(z.object({ name: z.string(), url: z.string().url() }))
       .optional(),
   }),
 });
 
 const ctfsCollection = defineCollection({
-  type: "data",
-  schema: z.array(
-    z.object({
-      ctfName: z.string(),
-      ctfLink: z.string().url(),
-    })
-  ),
+  loader: glob({ pattern: JSON_PATTERN, base: "./src/content/ctfs" }),
+  schema: z.array(z.object({ ctfName: z.string(), ctfLink: z.string().url() })),
 });
 
 const cubingCompetitionCollection = defineCollection({
-  type: "content",
+  loader: glob({
+    pattern: MDX_PATTERN,
+    base: "./src/content/cubing-competition",
+  }),
   schema: z.object({
     date: z.date(),
     slugOverride: z.string().optional(),
@@ -80,7 +77,7 @@ const cubingCompetitionCollection = defineCollection({
 });
 
 const projectCollection = defineCollection({
-  type: "content",
+  loader: glob({ pattern: MDX_PATTERN, base: "./src/content/project" }),
   schema: z.object({
     sideProject: z.boolean(),
     link: z.string().url().optional(),
@@ -89,7 +86,7 @@ const projectCollection = defineCollection({
 });
 
 const unreadBooksCollection = defineCollection({
-  type: "data",
+  loader: glob({ pattern: JSON_PATTERN, base: "./src/content/unread-books" }),
   schema: z.array(
     z.object({
       title: z.string(),

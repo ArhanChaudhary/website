@@ -1,13 +1,13 @@
 ---
-import type { CollectionEntry } from "astro:content";
-import { decodeFileName } from "../assets/utils";
+import { render, type CollectionEntry } from "astro:content";
+import { decodeFilePath1 } from "../assets/utils";
 
 interface Props {
   project: CollectionEntry<"project">;
 }
 const { project } = Astro.props;
-const title = decodeFileName(project.id);
-const { Content } = await project.render();
+const title = decodeFilePath1(project.filePath);
+const { Content } = await render(project);
 ---
 
 <div>
@@ -64,7 +64,8 @@ const { Content } = await project.render();
 
   .description {
     margin: 30px 10px 30px 30px;
-    font-family: system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif,
+    font-family:
+      system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif,
       "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
   }
 
