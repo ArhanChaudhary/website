@@ -67,7 +67,7 @@ What's going on here? As it turns out, internal documentation reveals that speci
 
 [Here](https://chromium.googlesource.com/v8/v8/+/c42e620355453fc0510b06e089ca7d92598bd54f%5E%21/) is the v8 commit that adds these restrictions, dating back to May 2022 and Chromium version v104. The solution to our dilemma, you guessed it, is time travel.
 
-Google doesn't distribute legacy versions of Chrome. We'll have to be a bit more hands-on. Archives of older versions of Chrome exist online. However, I'm wary of downloading unknown files from the Internet. Instead, I installed the official v103 Chromium build from source following their [guide](https://www.chromium.org/getting-involved/download-chromium/#downloading-old-builds-of-chrome-chromium). You may have to run `xattr -cr /Applications/Chromium.app` on an ARM-based Macs to fix broken metadata preventing Chromium from launching.
+Google doesn't distribute legacy versions of Chrome. We'll have to be a bit more hands-on. Archives of older versions of Chrome exist online. However, I'm wary of downloading unknown files from the Internet. Instead, I installed the official v103 Chromium build from source following their [guide](https://www.chromium.org/getting-involved/download-chromium/#downloading-old-builds-of-chrome-chromium). You may have to run `/usr/bin/xattr -cr /Applications/Chromium.app` on an ARM-based Macs to fix broken metadata preventing Chromium from launching.
 
 My extension didn't initially work because global content scripts were only supported in Chromium v111 and later, so I had to resort to an [older](https://stackoverflow.com/questions/9602022/chrome-extension-retrieving-global-variable-from-webpage/9636008#9636008) content script hack to get it to work.
 

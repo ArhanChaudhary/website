@@ -2,7 +2,6 @@ import { z, defineCollection } from "astro:content";
 import { glob } from "astro/loaders";
 
 const MDX_PATTERN = "**/*.mdx";
-const JSON_PATTERN = "**/*.json";
 
 const blogCollection = defineCollection({
   loader: glob({ pattern: MDX_PATTERN, base: "./src/content/blog" }),
@@ -49,7 +48,7 @@ const ctfWriteupCollection = defineCollection({
 });
 
 const ctfsCollection = defineCollection({
-  loader: glob({ pattern: JSON_PATTERN, base: "./src/content/ctfs" }),
+  loader: glob({ pattern: "ctfs.json", base: "./src/content/ctf-write-up" }),
   schema: z.array(z.object({ ctfName: z.string(), ctfLink: z.string().url() })),
 });
 
@@ -86,7 +85,7 @@ const projectCollection = defineCollection({
 });
 
 const unreadBooksCollection = defineCollection({
-  loader: glob({ pattern: JSON_PATTERN, base: "./src/content/unread-books" }),
+  loader: glob({ pattern: "unread-books.json", base: "./src/content/book-review" }),
   schema: z.array(
     z.object({
       title: z.string(),

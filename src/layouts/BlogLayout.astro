@@ -8,6 +8,7 @@ interface Props {
 }
 
 const { description = "Arhan's Blog", pubDate, title } = Astro.props;
+// cspell:ignore dolk
 ---
 
 <Layout {title} description={description} sshUser="blog" includeRss={true}>
@@ -31,14 +32,20 @@ const { description = "Arhan's Blog", pubDate, title } = Astro.props;
     </div>
     {
       pubDate && !import.meta.env.DEV && (
-        // @ts-ignore
         <script
           is:inline
-          src="https://utteranc.es/client.js"
-          repo="ArhanChaudhary/website"
-          issue-term="title"
-          label="blog"
-          theme="github-dark"
+          src="https://giscus.app/client.js"
+          data-repo="ArhanChaudhary/website"
+          data-repo-id="R_kgDOLK1WSg"
+          data-category="Announcements"
+          data-category-id="DIC_kwDOLK1WSs4CpZeI"
+          data-mapping="title"
+          data-strict="0"
+          data-reactions-enabled="1"
+          data-emit-metadata="0"
+          data-input-position="top"
+          data-theme="dark"
+          data-lang="en"
           crossorigin="anonymous"
           async
         />
