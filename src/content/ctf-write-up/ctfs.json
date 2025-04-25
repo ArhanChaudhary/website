@@ -1,34 +1,34 @@
 [
   {
-    "ctfName": "CyberSecurityRumble Quals",
+    "id": "CyberSecurityRumble Quals",
     "ctfLink": "https://ctftime.org/event/2224"
   },
   {
-    "ctfName": "b01lers CTF 2024",
+    "id": "b01lers CTF 2024",
     "ctfLink": "https://ctftime.org/event/2250"
   },
   {
-    "ctfName": "TAMUctf 2024",
+    "id": "TAMUctf 2024",
     "ctfLink": "https://ctftime.org/event/2238"
   },
   {
-    "ctfName": "GlacierCTF 2023",
+    "id": "GlacierCTF 2023",
     "ctfLink": "https://ctftime.org/event/1992"
   },
   {
-    "ctfName": "Square CTF 2023",
+    "id": "Square CTF 2023",
     "ctfLink": "https://ctftime.org/event/2111"
   },
   {
-    "ctfName": "HK Cyber Security New Generation CTF Challenge 2023",
+    "id": "HK Cyber Security New Generation CTF Challenge 2023",
     "ctfLink": "https://ctftime.org/event/2122"
   },
   {
-    "ctfName": "HITCON CTF 2022",
+    "id": "HITCON CTF 2022",
     "ctfLink": "https://ctftime.org/event/1772"
   },
   {
-    "ctfName": "GlacierCTF 2022",
+    "id": "GlacierCTF 2022",
     "ctfLink": "https://ctftime.org/event/1803"
   }
 ]

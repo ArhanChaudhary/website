@@ -1,25 +1,25 @@
 import { z, defineCollection } from "astro:content";
-import { glob } from "astro/loaders";
+import { file, glob } from "astro/loaders";
 
 const MDX_PATTERN = "**/*.mdx";
 
 const blogCollection = defineCollection({
-  loader: glob({ pattern: MDX_PATTERN, base: "./src/content/blog" }),
+  loader: glob({ pattern: MDX_PATTERN, base: "src/content/blog" }),
   schema: z.object({
     url: z
       .string()
       .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/)
       .optional(),
-    pubDate: z.date().optional(),
+    pubDate: z.coerce.date().optional(),
     description: z.string().optional(),
   }),
 });
 
 const bookReviewCollection = defineCollection({
-  loader: glob({ pattern: MDX_PATTERN, base: "./src/content/book-review" }),
+  loader: glob({ pattern: MDX_PATTERN, base: "src/content/book-review" }),
   schema: z.object({
     rating: z.number().gte(1).lte(5).multipleOf(0.5),
-    read: z.date(),
+    read: z.coerce.date(),
     genre: z.string(),
     author: z.string(),
     url: z.string().url(),
@@ -35,7 +35,7 @@ export const writeupCategory = [
 ] as const;
 
 const ctfWriteupCollection = defineCollection({
-  loader: glob({ pattern: MDX_PATTERN, base: "./src/content/ctf-write-up" }),
+  loader: glob({ pattern: MDX_PATTERN, base: "src/content/ctf-write-up" }),
   schema: z.object({
     description: z.string(),
     category: z.enum(writeupCategory),
@@ -48,17 +48,20 @@ const ctfWriteupCollection = defineCollection({
 });
 
 const ctfsCollection = defineCollection({
-  loader: glob({ pattern: "ctfs.json", base: "./src/content/ctf-write-up" }),
-  schema: z.array(z.object({ ctfName: z.string(), ctfLink: z.string().url() })),
+  loader: file("src/content/ctf-write-up/ctfs.json"),
+  schema: z.object({
+    id: z.string(),
+    ctfLink: z.string().url(),
+  }),
 });
 
 const cubingCompetitionCollection = defineCollection({
   loader: glob({
     pattern: MDX_PATTERN,
-    base: "./src/content/cubing-competition",
+    base: "src/content/cubing-competition",
   }),
   schema: z.object({
-    date: z.date(),
+    date: z.coerce.date(),
     slugOverride: z.string().optional(),
     results: z.array(
       z.object({
@@ -76,7 +79,7 @@ const cubingCompetitionCollection = defineCollection({
 });
 
 const projectCollection = defineCollection({
-  loader: glob({ pattern: MDX_PATTERN, base: "./src/content/project" }),
+  loader: glob({ pattern: MDX_PATTERN, base: "src/content/project" }),
   schema: z.object({
     sideProject: z.boolean(),
     link: z.string().url().optional(),
@@ -85,16 +88,14 @@ const projectCollection = defineCollection({
 });
 
 const unreadBooksCollection = defineCollection({
-  loader: glob({ pattern: "unread-books.json", base: "./src/content/book-review" }),
-  schema: z.array(
-    z.object({
-      title: z.string(),
-      genre: z.string(),
-      author: z.string(),
-      url: z.string().url(),
-      inProgress: z.boolean(),
-    })
-  ),
+  loader: file("src/content/book-review/unread-books.json"),
+  schema: z.object({
+    id: z.string(),
+    genre: z.string(),
+    author: z.string(),
+    url: z.string().url(),
+    inProgress: z.boolean(),
+  }),
 });
 
 export const collections = {

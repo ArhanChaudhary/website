@@ -1,16 +1,16 @@
 ---
 interface Props {
-  title: string;
+  id: string;
   author: string;
   url: string;
   genre: string;
 }
 
-const { title, author, url, genre } = Astro.props;
+const { id, author, url, genre } = Astro.props;
 ---
 
 <div class="indent">
-  <a href={url} class="white-link">{title}</a>
+  <a href={url} class="white-link">{id}</a>
   <div class="info">
     Genre: {genre}
     <br />
