@@ -1,7 +1,7 @@
 ---
 interface Props {
   src: string;
-  width?: number | `${number}`;
+  width?: number;
   // biome-ignore lint/suspicious/noExplicitAny: <explanation>
   [key: string]: any;
 }
@@ -9,8 +9,8 @@ interface Props {
 const { src, poster, alt, width, ...attrs } = Astro.props;
 ---
 
-<video controls width={width} {...attrs}>
-  <source src={src} type="video/mp4" />
+<video controls {width} {...attrs}>
+  <source {src} type="video/mp4" />
   Your browser does not support the video tag.
 </video>
 

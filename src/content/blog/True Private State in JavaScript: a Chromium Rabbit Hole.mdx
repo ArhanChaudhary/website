@@ -221,7 +221,7 @@ secret.updateState(), console.log(await secret.secret);
 
 This is similar to the closure solution except unlike the `eval` solution, we've *actually* tricked DevTools. For brevity I won't show an image, but this time `secret` is hidden from the scope inspector. Binding `this.updateState` directly to `resolve` relinquishes its need to display `secret` because the binding doesn't canonically create a closure. Simply calling the resolver and awaiting the promise gives back the original value!
 
-In a cruel twist of fate, this solution happens to be invalid because the DevTools heap profiler.
+In a cruel twist of fate, this solution happens to be invalid because of the DevTools heap profiler.
 
 <ContentImage src={heapProfiler} alt="An image showing off the DevTools heap profiler" desc="The heap profiler exposes variables from web workers and popups as well" />
 

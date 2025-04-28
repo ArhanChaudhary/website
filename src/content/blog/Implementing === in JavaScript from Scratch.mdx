@@ -11,7 +11,7 @@ Yes, I know exactly what you're thinking.
 
 And you're not wrong. For all practical purposes, this blog is pointless. I hate to break it to you, but what you're about to read is so obscenely nutty that it only works on a legacy version of Chromium as an extension running millions of times slower.
 
-The strict equality operator in JavaScript (===) compares two values for object equality. As you probably already know, this operator tests reference equality for non-primitive JavaScript values. In effect, because `{ foo: 42 } === { foo: 42 }` is `false`, implementing spec-compliant functionality becomes much more interesting. I'm not talking about the obvious ways. Various other built-ins make object reference comparison trivial.
+The strict equality operator in JavaScript (===) compares two values for object equality. As you probably already know, this operator tests reference equality for non-primitive JavaScript values. In effect, because `{ foo: 42 } === { foo: 42 }` is `false`, reimplementing spec-compliant functionality becomes much more interesting. I'm not talking about the obvious ways. Various other built-ins make object reference comparison trivial.
 
 ```js
 let obj1 = { foo: 42 };
@@ -219,17 +219,52 @@ function stringEquality(str1, str2) {
 }
 ```
 
-And... there we go. The full implementation is provided in a [GitHub repository](https://github.com/ArhanChaudhary/strictequality-js). I coughed together an ugly [test module](https://github.com/ArhanChaudhary/strictequality-js/blob/main/test.html) to verify its correctness.
+And... there we go. The full implementation is provided in a [GitHub repository](https://github.com/ArhanChaudhary/strictequality-js). I coughed together an ugly test module to verify its correctness.
 
 Did I forget to mention that it doesn't work on page load because content scripts aren't available globally? You'll have to have fun awaiting the `strictEqualityLoaded` event before usage.
 
+`test.html`
+
 ```js
-await new Promise((resolve) => {
-  document.addEventListener("strictEqualityLoaded", resolve, { once: true });
-});
-let obj = [];
-(await strictEquality(obj, obj)) && console.log("same");
-!(await strictEquality([], [])) && console.log("not same");
+(async () => {
+  await new Promise((resolve) => {
+    document.addEventListener("strictEqualityLoaded", resolve, { once: true });
+  });
+  let significantValues = [
+    0,
+    -0,
+    1,
+    0n,
+    Symbol(),
+    Math.PI,
+    Number.MAX_SAFE_INTEGER,
+    Number.MIN_SAFE_INTEGER,
+    Number.MAX_SAFE_INTEGER + 1,
+    Number.MIN_SAFE_INTEGER - 1,
+    Infinity,
+    -Infinity,
+    NaN,
+    null,
+    undefined,
+    true,
+    false,
+    "",
+    {},
+    [],
+    new Date(),
+  ];
+
+  for (let obj1 of significantValues) {
+    for (let obj2 of significantValues) {
+      let expected = obj1 === obj2;
+      let actual = await strictEquality(obj1, obj2);
+      if (actual !== expected) {
+        throw new Error(`Failed for ${obj1} and ${obj2}`);
+      }
+    }
+  }
+  console.log("Passed!");
+})();
 ```
 
 Until next time!

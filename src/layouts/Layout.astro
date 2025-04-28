@@ -275,12 +275,6 @@ const highlightIndex = sshUsers.indexOf(sshUser) + 1;
         document.querySelector(
           `nav a:nth-of-type(${highlightIndex})`
         ).style.color = "white";
-        for (let el of document.getElementsByClassName(
-          "content-image-alt-text"
-        )) {
-          el.style.maxWidth =
-            el.previousElementSibling.getAttribute("width") + "px";
-        }
       </script>
     </nav>
   </body>
@@ -404,6 +398,7 @@ const highlightIndex = sshUsers.indexOf(sshUser) + 1;
         color: hsl(0, 0%, 70%);
         margin-left: var(--outer-padding);
         margin-bottom: 11px;
+        margin-right: 50px;
       }
     }
 
@@ -665,24 +660,6 @@ const highlightIndex = sshUsers.indexOf(sshUser) + 1;
 
   .white {
     color: white !important;
-  }
-
-  .content-image-positioner {
-    .content-image-wrapper {
-      img {
-        cursor: zoom-in;
-        margin: 0 auto;
-        max-width: 100%;
-        height: auto;
-        display: block;
-      }
-
-      .content-image-alt-text {
-        margin: 3px auto 1em auto;
-        font-style: italic;
-        color: hsl(0deg 0% 70%);
-      }
-    }
   }
 
   #table-of-contents + ul {
