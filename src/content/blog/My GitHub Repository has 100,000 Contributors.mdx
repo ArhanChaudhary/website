@@ -42,7 +42,7 @@ With these types of technical projects that work with big data, social conduct s
 
 Admittedly, a small amount of real email addresses were committed at the beginning, but only for testing purposes. I believe that this amount is small enough to be insignificant and inconsequential.
 
-How would I find 100,000 users? GitHub provides a Search API for querying for users, but this was problematic because it had a rate limit of... wait for it... 30 requests per hour. Ba dum, tss! Instead, I opted to use the API endpoint for followers to feed my scraper its users, which had a marginally higher rate limit I could work with.
+How would I find 100,000 users? GitHub provides a Search API for querying for users, but this was problematic because it had a rate limit of... wait for it... 30 requests per hour. Ba dum, tss! Instead, I opted to use the API endpoint for followers to feed my scraper its users, which had a more reasonable rate limit I could work with.
 
 Putting everything together, my API scraper will:
 
@@ -133,7 +133,8 @@ Have you ever seen a corrupted repository?
   src={corruptedRepository}
   desc="I won't be revealing the author nor the link to respect their privacy"
   alt="A repository that is corrupted"
-  width="700"
+  width="1000"
+  visualWidth="700"
 />
 
 Well, it ended up crashing my script half way through. Having to re-run it was more annoying than it should have been.
@@ -216,7 +217,8 @@ Uh oh.
 
 <ContentImage
   src={commitLoading}
-  width="600"
+  width="1000"
+  visualWidth="600"
   alt="A screenshot showing GitHub commits unable to load"
 />
 
@@ -249,11 +251,12 @@ After running the script, around half an hour later:
 <ContentImage
   src={_100000Contributors}
   desc="The last 14 contributors are on the icons up top"
-  width="500"
+  visualWidth="500"
+  width="750"
   alt="A screenshot showing 100,000 contributors"
 />
 
-Booyah! \*drops mic\*.
+Tada! \*drops mic\*
 
 Not bad for my second blog, don’t you think? Until next time!
 

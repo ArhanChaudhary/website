@@ -16,14 +16,12 @@ interface Props {
   title: string;
   sshUser: (typeof sshUsers)[number];
   description?: string;
-  includeRss?: boolean;
 }
 
 const {
   title,
   sshUser,
   description = "Arhan's personal website",
-  includeRss = false,
 } = Astro.props;
 
 const highlightIndex = sshUsers.indexOf(sshUser) + 1;
@@ -212,6 +210,7 @@ const highlightIndex = sshUsers.indexOf(sshUser) + 1;
           img.addEventListener("click", () => {
             overlay.style.display = "flex";
             overlayImg.setAttribute("src", img.src);
+            overlayImg.setAttribute("alt", img.alt);
           });
         }
         // cspell:enable
@@ -235,13 +234,7 @@ const highlightIndex = sshUsers.indexOf(sshUser) + 1;
       <div id="copyright" class="input-mono">
         &copy; 2024 Arhan Chaudhary &#x2022; <a
           href="https://github.com/ArhanChaudhary/website">source</a
-        >{
-          includeRss && (
-            <>
-              &#x2022; <a href="/rss.xml">rss</a>
-            </>
-          )
-        }
+        > &#x2022; <a href="/rss.xml">rss</a>
       </div>
     </div>
     <input type="checkbox" id="nav-toggle" />

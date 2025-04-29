@@ -111,7 +111,7 @@ If this is it, what was the deal with the mumbo jumbo at the beginning? Well, yo
 
 # True private state in DevTools
 
-<ContentImage src={privateAccessor} alt="An image demonstrating that you can directly access private variables in DevTools" width="600" />
+<ContentImage src={privateAccessor} alt="An image demonstrating that you can directly access private variables in DevTools" width="800" visualWidth="600" />
 
 Something is already wrong right off the bat. Some research unveils [this documentation](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes/Private_properties#sect1).
 
@@ -162,7 +162,7 @@ class Secret {
 
 let secret = new Secret(String.fromCharCode(65).repeat(10));
 console.log(secret.get());
-// Output: AAAAAAAAAA
+// Output: AAAAAAAAAA (?)
 ```
 
 Considering that complete static analysis for a program has been proven to be [undecidable](https://en.wikipedia.org/wiki/Rice%27s_theorem), `window["ev" + "al"]` can only be evaluated at runtime. In theory, the scope inspector wouldn't know to capture closure variables until the `eval` in the getter function is called.
@@ -194,7 +194,7 @@ It's a shame that my friend Adrian debunked my findings two days later.
 
 Pivoting once again, does DevTools reveal WebAssembly memory? If not, we could interface with it to our advantage.
 
-<ContentImage src={wasmMemory} alt="An image demonstrating that DevTools reveals WebAssembly memory" height="500" />
+<ContentImage src={wasmMemory} alt="An image demonstrating that DevTools reveals WebAssembly memory" width="700" visualWidth="500" />
 
 Yes, it does as a form of direct memory access.
 
@@ -391,6 +391,6 @@ First, cryptography. Take your pick. The [WebAuthn large blob](https://webauthn-
 
 Networking is self-explanatory, and is what 99% websites do. Store the secret on the server, rather than risk the user meddling with its value.
 
-So... was this blog pointless? Yes. I will openly admit that my requirements for "true" private state seem arbitrary. And I will also accept criticism that my blog deviated from the original intention behind object-oriented programming towards the end. It's worth pointing out however that this topic is relevant in related fields of cybersecurity, such as in hardware security.
+So... was this blog basically pointless? Yes. I will accept criticism that my requirements for "true" private state are arbitrary. It's worth pointing out however that these topics are relevant in related fields of cybersecurity, such as in hardware security.
 
 Was this blog a waste of your time? Maybe. Hopefully you learned something about JavaScript or DevTools debugging or the theory behind object-oriented programming. If you didn't then I don't really care. Until next time!

@@ -11,7 +11,7 @@ const { description = "Arhan's Blog", pubDate, title } = Astro.props;
 // cspell:ignore dolk
 ---
 
-<Layout {title} description={description} sshUser="blog" includeRss={true}>
+<Layout {title} description={description} sshUser="blog">
   <div class="system-ui" id="max-width-wrapper">
     <h1>{title}</h1>
     <p>

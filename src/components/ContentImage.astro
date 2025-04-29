@@ -6,24 +6,19 @@ interface Props {
   alt: string;
   desc?: string;
   width?: number;
-  height?: number;
   visualWidth?: number;
   // biome-ignore lint/suspicious/noExplicitAny: <explanation>
   [key: string]: any;
 }
 
-const { src, alt, desc, visualWidth, height, ...attrs } = Astro.props;
+const { src, alt, desc, visualWidth, ...attrs } = Astro.props;
 if ("style" in attrs) {
   throw new Error("style is not allowed in ContentImage");
 }
 let { width } = Astro.props;
 
 if (width === undefined) {
-  if (height === undefined) {
-    width = src.width;
-  } else {
-    width = (src.width / src.height) * height;
-  }
+  width = src.width;
 }
 ---
 
@@ -43,7 +38,7 @@ if (width === undefined) {
         <div
           class="content-image-alt-text"
           set:html={desc}
-          style={`max-width: ${visualWidth === undefined ? width : visualWidth}px`}
+          style={`max-width: ${visualWidth === undefined ? width : visualWidth}px;`}
         />
       )
     }

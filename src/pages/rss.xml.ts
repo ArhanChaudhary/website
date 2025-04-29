@@ -12,7 +12,7 @@ export async function GET(context: { site: URL }) {
   );
   return rss({
     title: "Arhan's Blog",
-    description: "Arhan's personal website",
+    description: "A loose collection of technology and random thoughts",
     site: context.site,
     items: publishedBlogs.map((blog) => ({
       title: decodeFilePath1(blog.filePath),
