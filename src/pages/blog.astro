@@ -22,13 +22,7 @@ const publishedBlogs = await getCollection(
         })
         .map((blog, i) => (
           <BlogPreview
-            pubDate={
-              blog.data.pubDate?.toLocaleDateString("en-US", {
-                year: "2-digit",
-                month: "numeric",
-                day: "numeric",
-              }) || "PREVIEW"
-            }
+            pubDate={blog.data.pubDate}
             title={decodeFilePath1(blog.filePath)}
             description={blog.data.description}
             url={`/blog/${blog.data.url || mySlugify(decodeFilePath1(blog.filePath))}/`}
@@ -38,6 +32,18 @@ const publishedBlogs = await getCollection(
           />
         ))
     }
+    <script>
+      const parents = document.querySelectorAll("[data-date]")!;
+      for (let parent of parents) {
+        parent.textContent = new Date(
+          +parent.getAttribute("data-date")!
+        ).toLocaleDateString("en-US", {
+          year: "2-digit",
+          month: "numeric",
+          day: "numeric",
+        });
+      }
+    </script>
   </div>
 </Layout>
 

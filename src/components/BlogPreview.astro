@@ -1,6 +1,7 @@
 ---
+
 interface Props {
-  pubDate: string;
+  pubDate?: Date;
   title: string;
   description: string | undefined;
   url: string | undefined;
@@ -13,7 +14,7 @@ const { pubDate, title, description, url, colorDotRed, first, last } =
 ---
 
 <div class="grid-wrapper">
-  <span class="pub-date">{pubDate}</span>
+  <span class="pub-date" data-date={pubDate?.valueOf() || undefined}>{pubDate === undefined && "PREVIEW"}</span>
   <span class:list={["boop", { lb: !colorDotRed, lr: colorDotRed }]}></span>
   <a href={url} class="white-link">{title}</a>
   <div class="description">{description}</div>

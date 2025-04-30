@@ -16,13 +16,22 @@ const { description = "Arhan's Blog", pubDate, title } = Astro.props;
     <h1>{title}</h1>
     <p>
       {
-        pubDate
-          ? `Published ${pubDate.toLocaleDateString("en-US", {
-              year: "numeric",
-              month: "long",
-              day: "numeric",
-            })}`
-          : "!! UNPUBLISHED !!"
+        pubDate ?
+        (
+          <>
+            Published
+            <span data-date={pubDate?.valueOf()}>
+              <script>
+                const parent = document.querySelector("[data-date]")!;
+                parent.textContent = new Date(+parent.getAttribute("data-date")!).toLocaleDateString("en-US", {
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                });
+              </script>
+            </span>
+          </>
+        ) : "!! UNPUBLISHED !!"
       }
       &#x2022; <a href="/blog/">more posts</a>
     </p>
