@@ -11,7 +11,7 @@ const { src, width, desc, ...attrs } = Astro.props;
 ---
 
 <div class="content-video-positioner">
-  <video controls {width} {...attrs}>
+  <video controls {width} {...attrs} preload="metadata">
     <source {src} type="video/mp4" />
     Your browser does not support the video tag.
   </video>
