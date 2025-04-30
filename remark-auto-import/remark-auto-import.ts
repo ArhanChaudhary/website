@@ -58,7 +58,6 @@ function autoImport(tree: any, file: { history: string[] }) {
     ),
     absolute: true,
   })) {
-    console.log(path);
     let name = path.replace(".mdx", "").split("/").at(-1)?.split(".")[0];
     if (!name) {
       throw new Error("Failed to get name");

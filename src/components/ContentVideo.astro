@@ -2,23 +2,43 @@
 interface Props {
   src: string;
   width?: number;
+  desc?: string;
   // biome-ignore lint/suspicious/noExplicitAny: <explanation>
   [key: string]: any;
 }
 
-const { src, poster, alt, width, ...attrs } = Astro.props;
+const { src, width, desc, ...attrs } = Astro.props;
 ---
 
-<video controls {width} {...attrs}>
-  <source {src} type="video/mp4" />
-  Your browser does not support the video tag.
-</video>
+<div class="content-video-positioner">
+  <video controls {width} {...attrs}>
+    <source {src} type="video/mp4" />
+    Your browser does not support the video tag.
+  </video>
+  {
+    desc && (
+      <div
+        class="content-video-alt-text"
+        set:html={desc}
+        style={`max-width: ${width}px;`}
+      />
+    )
+  }
+</div>
 
 <style lang="scss">
-  video {
-    margin: 0 auto;
-    max-width: 100%;
-    height: auto;
-    display: block;
+  .content-video-positioner {
+    video {
+      margin: 0 auto;
+      max-width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .content-video-alt-text {
+      margin: 3px auto 1em auto;
+      font-style: italic;
+      color: hsl(0deg 0% 70%);
+    }
   }
 </style>
