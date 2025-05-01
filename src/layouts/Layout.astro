@@ -1,5 +1,6 @@
 ---
 import "normalize.css";
+import { mySlugify } from "../assets/utils";
 
 const sshUsers = [
   "home",
@@ -24,7 +25,7 @@ const {
   description = "Arhan's personal website",
 } = Astro.props;
 
-const highlightIndex = sshUsers.indexOf(sshUser) + 1;
+const highlightIndex = sshUsers.indexOf(sshUser);
 ---
 
 <!-- cspell:ignore ctfing --><!doctype html>
@@ -244,15 +245,33 @@ const highlightIndex = sshUsers.indexOf(sshUser) + 1;
         <div class="x-rectangle second"></div>
       </label>
       <div id="nav-grid">
-        <a href="/">Home</a>
+        <!-- <a href="/">Home</a>
         <a href="/blog/">Blog</a>
         <a href="/projects/">Projects</a>
         <a href="/ctfing/">CTFing</a>
         <a href="/reading/">Reading</a>
         <a href="/cubing/">Cubing</a>
-        <a href="/media/">Media</a>
-        {sshUser === "nuclear-bomb" && <a href="/404">Not Found</a>}
-        <div id="nav-arrow" style={`--highlightIndex: ${highlightIndex}`}>
+        <a href="/media/">Media</a> -->
+        {
+          [
+            "Home",
+            "Blog",
+            "Projects",
+            "CTFing",
+            "Reading",
+            "Cubing",
+            "Media",
+          ].map((name, i) => (
+            <a
+              href={i === 0 ? "/" : `/${mySlugify(name)}/`}
+              class={highlightIndex === i ? "white" : ""}
+            >
+              {name}
+            </a>
+          ))
+        }
+        {sshUser === "nuclear-bomb" && <a href="/404" class="white">Not Found</a>}
+        <div id="nav-arrow" style={`--highlightIndex: ${highlightIndex + 1}`}>
           <svg
             xmlns="http://www.w3.org/2000/svg"
             viewBox="-41 0 41 34"
@@ -264,11 +283,6 @@ const highlightIndex = sshUsers.indexOf(sshUser) + 1;
           </svg>
         </div>
       </div>
-      <script is:inline define:vars={{ highlightIndex }}>
-        document.querySelector(
-          `nav a:nth-of-type(${highlightIndex})`
-        ).style.color = "white";
-      </script>
     </nav>
   </body>
 </html>
@@ -445,6 +459,10 @@ const highlightIndex = sshUsers.indexOf(sshUser) + 1;
           text-align: right;
           text-decoration-thickness: 1px;
           grid-column-start: 1;
+
+          &.white {
+            color: white;
+          }
         }
 
         #nav-arrow {
