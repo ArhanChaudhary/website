@@ -245,13 +245,6 @@ const highlightIndex = sshUsers.indexOf(sshUser);
         <div class="x-rectangle second"></div>
       </label>
       <div id="nav-grid">
-        <!-- <a href="/">Home</a>
-        <a href="/blog/">Blog</a>
-        <a href="/projects/">Projects</a>
-        <a href="/ctfing/">CTFing</a>
-        <a href="/reading/">Reading</a>
-        <a href="/cubing/">Cubing</a>
-        <a href="/media/">Media</a> -->
         {
           [
             "Home",
@@ -264,13 +257,19 @@ const highlightIndex = sshUsers.indexOf(sshUser);
           ].map((name, i) => (
             <a
               href={i === 0 ? "/" : `/${mySlugify(name)}/`}
-              class={highlightIndex === i ? "white" : ""}
+              class={highlightIndex === i ? "white" : undefined}
             >
               {name}
             </a>
           ))
         }
-        {sshUser === "nuclear-bomb" && <a href="/404" class="white">Not Found</a>}
+        {
+          sshUser === "nuclear-bomb" && (
+            <a href="/404" class="white">
+              Not Found
+            </a>
+          )
+        }
         <div id="nav-arrow" style={`--highlightIndex: ${highlightIndex + 1}`}>
           <svg
             xmlns="http://www.w3.org/2000/svg"
