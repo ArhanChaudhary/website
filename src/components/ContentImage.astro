@@ -5,19 +5,41 @@ interface Props {
   src: ImageMetadata;
   alt: string;
   desc?: string;
-  width?: number;
-  visualWidth?: number;
+  width?: number | string;
+  visualWidth?: number | string;
   // biome-ignore lint/suspicious/noExplicitAny: <explanation>
   [key: string]: any;
 }
 
-const { src, alt, desc, visualWidth, ...attrs } = Astro.props;
+const { src, alt, desc, ...attrs } = Astro.props;
 if ("style" in attrs) {
   throw new Error("style is not allowed in ContentImage");
 }
-let { width } = Astro.props;
-
+if ("height" in attrs) {
+  throw new Error("height is not allowed in ContentImage");
+}
+let { width, visualWidth } = Astro.props;
 if (width === undefined) {
+  throw new Error("width is required in ContentImage");
+}
+// if width is a string, convert it to a number
+if (typeof width === "string") {
+  width = parseInt(width, 10);
+  if (isNaN(width)) {
+    throw new Error("width must be a number in ContentImage");
+  }
+}
+if (typeof visualWidth === "string") {
+  visualWidth = parseInt(visualWidth, 10);
+  if (isNaN(visualWidth)) {
+    throw new Error("visualWidth must be a number in ContentImage");
+  }
+}
+if (visualWidth && visualWidth > width) {
+  throw new Error("visualWidth cannot be greater than width in ContentImage");
+}
+
+if (width === null) {
   width = src.width;
 }
 ---
@@ -25,7 +47,7 @@ if (width === undefined) {
 <div class="content-image-positioner">
   <span class="content-image-wrapper">
     <Picture
-      formats={["avif", "webp", "jpeg"]}
+      formats={["avif", "webp"]}
       {src}
       {alt}
       {...attrs}

@@ -35,7 +35,7 @@ let obj1 = { foo: 42 };
 let obj2 = { foo: 42 };
 ```
 
-<ContentImage src={heapProfiler} alt="The heap profiler demonstrating that two objects have different memory locations" />
+<ContentImage src={heapProfiler} alt="The heap profiler demonstrating that two objects have different memory locations" width="1000" />
 
 This isn't useful if there isn't a way to access these memory locations programmatically. Fortunately, Chrome uses the Chrome DevTools Protocol (CDP), a standardized JavaScript API that allows for direct inspection into the JavaScript runtime on Blink-based browsers.
 

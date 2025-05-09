@@ -141,7 +141,7 @@ console.log(secret.get());
 
 This approach is widely used as a polyfill for private JavaScript class fields, by [Babel](https://babeljs.io/repl#?browsers=&build=&builtIns=false&corejs=3.21&spec=false&loose=false&code_lz=KYDwDg9gTgLgBAYwDYEMDOa4GVgKseAbwCg44BiNXfGAbmNMQgDs0YoBXBGaACirwEAlHBJkyMABYBLNADpK1AnAC8cATXpkAvgzIBzArxFjxNDlGZwpshRoJa4u7UA&debug=false&forceAllTransforms=false&modules=false&shippedProposals=false&evaluate=false&fileSize=false&timeTravel=false&sourceType=module&lineWrap=true&presets=stage-3&prettier=false&targets=&version=7.25.3&externalPlugins=babel-plugin-iife-wrap%401.1.0&assumptions=%7B%7D) for instance. There's seemingly no way for external code to access the closure variable `_secrets`, is this true private state? Unfortunately, no. DevTools reveals the first trick of many up its sleeve.
 
-<ContentImage src={weakmapDevtools} alt="An image demonstrating that you can directly access scope information in DevTools" height="600" />
+<ContentImage src={weakmapDevtools} alt="An image demonstrating that you can directly access scope information in DevTools" width="600" />
 
 Recall my definition of direct access as "aliasing into a private variable's value". This is evidently what's happening, thus discrediting closure variables as a solution, perhaps our biggest weapon so far. The DevTools scope inspector gives you access to practically *every* internal variable within a class. To put the nail in the coffin, I developed a way to programmatically access closure variables within DevTools, and exactly how is a story for another blog.
 
@@ -190,7 +190,7 @@ To my credit, this was a surprisingly witty solution. It avoided the use of clos
 
 It's a shame that my friend Adrian debunked my findings two days later.
 
-<ContentImage src={bindDebunked} alt="An image demonstrating that my solution was invalid" height="800" quality="max" />
+<ContentImage src={bindDebunked} alt="An image demonstrating that my solution was invalid" width="600" visualWidth="400" />
 
 Pivoting once again, does DevTools reveal WebAssembly memory? If not, we could interface with it to our advantage.
 
@@ -223,7 +223,7 @@ This is similar to the closure solution except unlike the `eval` solution, we've
 
 In a cruel twist of fate, this solution happens to be invalid because of the DevTools heap profiler.
 
-<ContentImage src={heapProfiler} alt="An image showing off the DevTools heap profiler" desc="The heap profiler exposes variables from web workers and popups as well" />
+<ContentImage src={heapProfiler} alt="An image showing off the DevTools heap profiler" desc="The heap profiler exposes variables from web workers and popups as well" width="1000" />
 
 However, that doesn't mean there isn't more to the story. I was missing the bigger, more abstract picture. JavaScript is inherently a garbage collected language. Logically speaking, it's impossible to remove all references to a secret variable or else it would become garbage collected. I mean, duh, but saying this out loud made me realize I needed to completely reapproach my strategy.
 
@@ -381,7 +381,7 @@ await openDbStore("readonly").then(
 
 For no reason at all, let's make this even more unnecessarily complicated. Utilizing the native application API, it's possible to store the secret outside of Chrome entirely! I've documented my exact findings in this [GitHub repository](https://github.com/ArhanChaudhary/chrome-secret-js). Instead of providing the code's source like before, I had some free time and thought it would be cool to diagram how it worked. Some eye candy:
 
-<ContentImage src={secretDiagram} alt="An image diagramming the native app secret implementation" quality="max" />
+<ContentImage src={secretDiagram} alt="An image diagramming the native app secret implementation" quality="high" width="1000" />
 
 # Closing thoughts
 
