@@ -1,5 +1,6 @@
 ---
 import { decodeFilePath1, mySlugify } from "../assets/utils.ts";
+import fs from "node:fs";
 import Layout from "../layouts/Layout.astro";
 import BlogPreview from "../components/BlogPreview.astro";
 import { getCollection } from "astro:content";
@@ -16,9 +17,15 @@ const publishedBlogs = await getCollection(
     {
       publishedBlogs
         .sort((a, b) => {
-          if (!a.data.pubDate) return -1;
-          if (!b.data.pubDate) return 1;
-          return b.data.pubDate.getTime() - a.data.pubDate.getTime();
+          if (a.data.pubDate && b.data.pubDate)
+            return b.data.pubDate.getTime() - a.data.pubDate.getTime();
+          else if (a.data.pubDate) return 1;
+          else if (b.data.pubDate) return -1;
+          if (!a.filePath || !b.filePath)
+            throw new Error("blog file paths somehow not found");
+          return (
+            fs.statSync(b.filePath).mtimeMs - fs.statSync(a.filePath).mtimeMs
+          );
         })
         .map((blog, i) => (
           <BlogPreview
