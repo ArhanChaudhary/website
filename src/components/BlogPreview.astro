@@ -1,5 +1,4 @@
 ---
-
 interface Props {
   pubDate?: Date;
   title: string;
@@ -14,7 +13,9 @@ const { pubDate, title, description, url, colorDotRed, first, last } =
 ---
 
 <div class="grid-wrapper">
-  <span class="pub-date" data-date={pubDate?.valueOf() || undefined}>{pubDate === undefined && "PREVIEW"}</span>
+  <span class="pub-date" data-date={pubDate?.valueOf() || undefined}
+    >{pubDate === undefined && "PREVIEW"}</span
+  >
   <span class:list={["boop", { lb: !colorDotRed, lr: colorDotRed }]}></span>
   <a href={url} class="white-link">{title}</a>
   <div class="description">{description}</div>
@@ -91,7 +92,8 @@ const { pubDate, title, description, url, colorDotRed, first, last } =
       grid-row-end: 1;
 
       &.first {
-        top: 50%;
+        transform: scaleY(0.5);
+        transform-origin: bottom;
 
         &.last {
           display: none;
@@ -99,7 +101,8 @@ const { pubDate, title, description, url, colorDotRed, first, last } =
       }
 
       &.last {
-        bottom: 50%;
+        transform: scaleY(0.5);
+        transform-origin: top;
       }
     }
 
