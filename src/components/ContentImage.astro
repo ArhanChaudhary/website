@@ -35,12 +35,12 @@ if (typeof visualWidth === "string") {
     throw new Error("visualWidth must be a number in ContentImage");
   }
 }
-if (visualWidth && visualWidth > width) {
-  throw new Error("visualWidth cannot be greater than width in ContentImage");
-}
-
 if (width === null) {
   width = src.width;
+}
+
+if (visualWidth && visualWidth > width) {
+  throw new Error("visualWidth cannot be greater than width in ContentImage");
 }
 ---
 
