@@ -18,6 +18,6 @@ Better, you can create a light component wrapper around this technique called `<
 
 The [`<Picture>`](https://docs.astro.build/en/guides/images/#create-responsive-images-with-the-picture--component) component instructs the browser to use the modern AVIF format for efficient image compression. If your browser doesn't support AVIF (which is [unlikely](https://caniuse.com/?search=avif)), it falls back to the WEBP format, what `<Image>` already compiles to. However, this of course means Astro generates two versions of every image, so keep that in mind if you have many images on your site.
 
-A side note, AVIF is amazing! Someone managed to compress [the entirety of Shrek](https://www.reddit.com/r/AV1/comments/msb74a/shrek_but_its_8mb_again/) in 8MB. How it works is borderline magic, and its future looks bright. Once it becomes a little more mature in the web ecosystem, I have no doubt `<Image>` will eventually compile to AVIF and automate this technique.
+A side note, AVIF is amazing! Someone managed to compress [the entirety of Shrek](https://www.reddit.com/r/AV1/comments/msb74a/shrek_but_its_8mb_again/) in 8MB. How it works is borderline magic, and its future looks bright. Once it becomes a little more mature in the web ecosystem, I have no doubt `<Image>` will eventually compile to AVIF and automate this process.
 
 Until next time!
