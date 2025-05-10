@@ -1,3 +1,22 @@
 ---
 description: PLACEHOLDER
 ---
+
+Thanks to my friend [Eric](https://ericswpark.com/) for telling me about this! If you use [Astro](https://astro.build/), the web framework this site is built on, there is a sweet drop-in replacement for the `<Image>` component that offers better compression:
+
+```diff
+-<Image
++<Picture
++    formats={["avif", "webp"]}
+     src={penguinSrc}
+     alt="A very cool penguin!"
+ />
+```
+
+Better, you can create a light component wrapper around this technique called `<ContentImage>` to encapsulate the `formats` parameter.
+
+The [`<Picture>`](https://docs.astro.build/en/guides/images/#create-responsive-images-with-the-picture--component) component instructs the browser to use the modern AVIF format for efficient image compression. If your browser doesn't support AVIF (which is [unlikely](https://caniuse.com/?search=avif)), it falls back to the WEBP format, what `<Image>` already compiles to. However, this of course means that two versions of every image need to be generated, so keep that in mind if you have many images on your site.
+
+A side note, AVIF is amazing! Someone managed to compress [the entirety of Shrek](https://www.reddit.com/r/AV1/comments/msb74a/shrek_but_its_8mb_again/) in 8MB. How it works is borderline magic, and its future looks bright.
+
+Until next time!
