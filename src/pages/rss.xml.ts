@@ -1,4 +1,4 @@
-import { decodeFilePath1, mySlugify } from "../assets/utils.ts";
+import { decodeFilePath1, mySlugify } from "../lib/utils";
 import rss from "@astrojs/rss";
 import { getCollection } from "astro:content";
 

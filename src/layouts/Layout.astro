@@ -1,6 +1,6 @@
 ---
 import "normalize.css";
-import { mySlugify } from "../assets/utils";
+import { mySlugify } from "../lib/utils";
 
 const sshUsers = [
   "home",
@@ -287,7 +287,7 @@ const highlightIndex = sshUsers.indexOf(sshUser);
 </html>
 
 <style lang="scss">
-  @use "../assets/variables";
+  @use "../lib/variables";
 
   @keyframes opacity {
     from {
@@ -552,7 +552,7 @@ const highlightIndex = sshUsers.indexOf(sshUser);
 
 <style is:global lang="scss">
   // cspell:disable
-  @use "../assets/variables";
+  @use "../lib/variables";
 
   * {
     box-sizing: border-box;

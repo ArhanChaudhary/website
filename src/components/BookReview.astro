@@ -1,6 +1,6 @@
 ---
 import { render, type CollectionEntry } from "astro:content";
-import { decodeFilePath1 } from "../assets/utils";
+import { decodeFilePath1 } from "../lib/utils";
 
 interface Props {
   section: CollectionEntry<"book-review">;
@@ -38,7 +38,7 @@ const { Content } = await render(section);
 </div>
 
 <style lang="scss">
-  @use "../assets/variables";
+  @use "../lib/variables";
 
   .half-indent {
     margin-left: 30px;

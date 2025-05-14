@@ -1,6 +1,6 @@
 ---
 import { render, type CollectionEntry } from "astro:content";
-import { decodeFilePath1 } from "../assets/utils";
+import { decodeFilePath1 } from "../lib/utils";
 
 interface Props {
   project: CollectionEntry<"project">;
@@ -32,7 +32,7 @@ const { Content } = await render(project);
 
 <style lang="scss">
   // cspell:disable
-  @use "../assets/variables";
+  @use "../lib/variables";
 
   .flex-container {
     display: flex;

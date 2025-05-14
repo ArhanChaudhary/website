@@ -1,10 +1,6 @@
 ---
 import { render, type CollectionEntry } from "astro:content";
-import {
-  decodeFilePath1,
-  decodeFilePath2,
-  mySlugify,
-} from "../assets/utils.ts";
+import { decodeFilePath1, decodeFilePath2, mySlugify } from "../lib/utils";
 
 interface Props {
   writeup: CollectionEntry<"ctf-write-up">;
