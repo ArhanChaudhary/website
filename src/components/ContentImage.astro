@@ -11,14 +11,13 @@ interface Props {
   [key: string]: any;
 }
 
-const { src, alt, desc, ...attrs } = Astro.props;
+let { src, alt, desc, width, visualWidth, ...attrs } = Astro.props;
 if ("style" in attrs) {
   throw new Error("style is not allowed in ContentImage");
 }
 if ("height" in attrs) {
   throw new Error("height is not allowed in ContentImage");
 }
-let { width, visualWidth } = Astro.props;
 if (width === undefined) {
   throw new Error("width is required in ContentImage");
 }
