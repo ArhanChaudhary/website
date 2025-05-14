@@ -125,7 +125,7 @@ However, most of my experimentation with this approach was uninteresting. ffmpeg
     desc="ffmpeg's entire 30 second video is a green screen with occasional flickering"
 />
 
-Alternatively, you could first use ImageMagick to convert the images to a GIF and then use ffmpeg to convert that GIF to a video. Yes, this was literally the only intermediary step I could get working. The plan isn't entirely foolproof. Despite the error checking, some of the generated images were still invalid. I figured out that feeding each image one-by-one into ffmpeg repaired them enough to shut up ImageMagick's complaints without compromising the image data. [Thanks](https://stackoverflow.com/a/23309346) [kind](https://stackoverflow.com/a/50554953) [strangers](https://superuser.com/a/1261681), I love the Internet!
+Alternatively, you could first use ImageMagick to convert the images to a GIF and then use ffmpeg to convert that GIF to a video. Yes, this was literally the only intermediary step I could get working. The plan isn't entirely foolproof. Despite the error checking, some of the generated images were still invalid. I figured out that feeding each image one-by-one into ffmpeg repaired them enough to shut up ImageMagick's complaints without compromising the image data. [Thanks](https://stackoverflow.com/a/23309346) [kind](https://stackoverflow.com/a/50554953) [strangers](https://superuser.com/a/1261681). I love the Internet!
 
 `image_corrupt.sh`
 
@@ -184,7 +184,7 @@ Next up, JPEG.
     src={jpgs}
 />
 
-I was really excited to be able to make out [block splitting](https://en.wikipedia.org/wiki/JPEG#Block_slitting) and the [discrete cosine transform](https://en.wikipedia.org/wiki/JPEG#Discrete_cosine_transform). This is the stuff I live for! Unlike every other format, I was only able to make this interesting by skipping the repair phase with ffmpeg and directly feeding each image to ImageMagick. Even though ImageMagick was operating on raw, corrupted JPEGs, it was still able to recognize three-fourths of the generated images before crashing. A quick look at JPEG's [syntax and structure](https://en.wikipedia.org/wiki/JPEG#Syntax_and_structure) corroborates that its only form of data integrity is sparse "restart markers" that don't seem to have much effect. Honestly, JPEG data corruption is itself a whole other topic worth investigating, see the JPEG editor on [this excellent blog](https://parametric.press/issue-01/unraveling-the-jpeg/).
+I was really excited to be able to make out [block splitting](https://en.wikipedia.org/wiki/JPEG#Block_slitting) and the [discrete cosine transform](https://en.wikipedia.org/wiki/JPEG#Discrete_cosine_transform). This is the stuff I live for! Unlike every other format, I was only able to make this interesting by skipping the repair phase with ffmpeg and directly feeding each image to ImageMagick. Even though ImageMagick was operating on raw, corrupted JPEGs, it was still able to recognize three-fourths of the generated images before crashing. A quick look at JPEG's [syntax and structure](https://en.wikipedia.org/wiki/JPEG#Syntax_and_structure) corroborates that its only form of data integrity is sparse "restart markers" that don't seem to have much effect. Honestly, JPEG data corruption is itself a whole other topic worth investigating. See the JPEG editor on [this excellent blog](https://parametric.press/issue-01/unraveling-the-jpeg/).
 
 Up again, WEBP.
 
@@ -192,13 +192,13 @@ Up again, WEBP.
     src={webps}
 />
 
-It's not quite static noise, and it's not quite order either. It's like you're trying to remember something, but you can only see a blurry mess of pixels. On the technical side, WEBP worked without issue and was well-behaved. I don't have much else to say, so let's finally move on to AVIF.
+It's not quite static noise, and it's not quite order either. It's like you're trying to remember something, but you can only see a blurry mess of pixels. There is more detail than meets the eye; you could pause at any timestamp and land on a novel expression of color. On the technical side, WEBP worked without issue and was well-behaved. I don't have much else to say, so let's finally move on to AVIF.
 
 <ContentVideo
     src={avifs}
 />
 
-This took me many tries to get right. It's my favorite one! There is more detail than meets the eye; you could pause at any timestamp and land on a novel expression of color. It's incredibly mesmerizing,
+This took me many tries to get right. It's my favorite one, and it's incredibly mesmerizing!
 
 I asked my friend [Matthew](https://www.matthewstanciu.com/) to give me another image to corrupt with the AVIF format. This was the highest quality video I could produce before ImageMagick ran out of memory. The result also ended up being awesome!
 
@@ -207,4 +207,4 @@ I asked my friend [Matthew](https://www.matthewstanciu.com/) to give me another 
     src={cards}
 />
 
-I've written some goofy blog posts before, but this one takes the cake for how much fun I working on it. I have made the source code [public](https://github.com/ArhanChaudhary/image-corrupt) so you can try corrupting your own images, do let me know how it goes. Until next time!
+I've written some goofy blog posts before, but this one takes the cake for how much fun I working on it. I have made the source code [public](https://github.com/ArhanChaudhary/image-corrupt) so you can try corrupting your own images. Do let me know how it goes. Until next time!
