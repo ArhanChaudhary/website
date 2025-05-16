@@ -4,13 +4,13 @@ import Layout from "../layouts/Layout.astro";
 
 <!-- cspell:ignore webring -->
 <Layout title="Arhan's Homepage" sshUser="home">
-  <div id="outer-flex-wrapper" class="input-mono">
+  <div id="outer-flex-wrapper">
     <div id="shape-thing-1">
       <div class="first"></div>
       <div class="second"></div>
     </div>
     <div id="max-width-wrapper">
-      <div id="hi">
+      <div id="hi" class="input-mono">
         <span>H</span><span>i</span><span class="ignored">&nbsp;</span><span
           >t</span
         ><span>h</span><span>e</span><span>r</span><span>e</span><span>,</span
@@ -20,16 +20,16 @@ import Layout from "../layouts/Layout.astro";
           >h</span
         ><span>a</span><span>n</span>
       </div>
-      <div id="about">
+      <div id="about" class="input-mono">
         <p>
-          By <span class="cb">day</span>, I am a sophomore at Purdue University
-          pursuing a computer science major and an electrical computer
-          engineering minor.
+          By <span class="cb c-shadow">day</span>, I am a sophomore at Purdue
+          University pursuing a computer science major and an electrical
+          computer engineering minor.
         </p>
         <p>
-          By <span class="cr">night</span>, you’ll catch me competing in CTFs,
-          blogging about programming, obsessing over books, solving Rubik’s
-          cubes, and riding my skateboard.
+          By <span class="cr c-shadow">night</span>, you’ll catch me competing
+          in CTFs, blogging about programming, obsessing over books, solving
+          Rubik’s cubes, and riding my skateboard.
         </p>
       </div>
       <div id="shape-things">
@@ -50,7 +50,7 @@ import Layout from "../layouts/Layout.astro";
         <div></div>
         <div></div>
       </div>
-      <div id="webring">
+      <div id="webring" class="input-mono">
         <a href="https://ring.purduehackers.com/previous?host=arhan.sh">←</a><a
           href="https://ring.purduehackers.com">Purdue Hackers Webring</a
         ><a href="https://ring.purduehackers.com/next?host=arhan.sh">→</a>
@@ -179,8 +179,8 @@ import Layout from "../layouts/Layout.astro";
         font-weight: 200;
         padding-right: 20px;
 
-        span {
-          font-weight: normal;
+        .c-shadow {
+          text-shadow: 0 0 2px var(--c);
         }
       }
 

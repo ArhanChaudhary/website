@@ -1,6 +1,7 @@
 ---
 import "normalize.css";
 import { mySlugify } from "../lib/utils";
+import { Font } from "astro:assets";
 
 const sshUsers = [
   "home",
@@ -28,7 +29,7 @@ const {
 const highlightIndex = sshUsers.indexOf(sshUser);
 ---
 
-<!-- cspell:ignore ctfing --><!doctype html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -43,39 +44,12 @@ const highlightIndex = sshUsers.indexOf(sshUser);
     <meta name="generator" content={Astro.generator} />
     <meta name="author" content="Arhan Chaudhary" />
     <link
-      rel="preload"
-      href="/fonts/InputMono/InputMono-Bold.woff2"
-      as="font"
-      type="font/woff2"
-      crossorigin
-    />
-    <link
-      rel="preload"
-      href="/fonts/InputMono/InputMono-Medium.woff2"
-      as="font"
-      type="font/woff2"
-      crossorigin
-    />
-    <link
-      rel="preload"
-      href="/fonts/InputMono/InputMono-Regular.woff2"
-      as="font"
-      type="font/woff2"
-      crossorigin
-    />
-    <link
-      rel="preload"
-      href="/fonts/InputMono/InputMono-ExtraLight.woff2"
-      as="font"
-      type="font/woff2"
-      crossorigin
-    />
-    <link
       rel="alternate"
       type="application/rss+xml"
       title={title}
       href={`${Astro.site}rss.xml`}
     />
+    <Font cssVariable="--font-input-mono" preload />
     <title>{title}</title>
   </head>
   <body>
@@ -587,11 +561,16 @@ const highlightIndex = sshUsers.indexOf(sshUser);
   }
 
   .cr {
-    color: var(--lr) !important;
+    --c: var(--lr);
   }
 
   .cb {
-    color: var(--lb) !important;
+    --c: var(--lb);
+  }
+
+  .cr,
+  .cb {
+    color: var(--c) !important;
   }
 
   hr {
@@ -655,7 +634,7 @@ const highlightIndex = sshUsers.indexOf(sshUser);
   }
 
   .input-mono {
-    font-family: "Input Mono", Helvetica;
+    font-family: var(--font-input-mono), Helvetica;
   }
 
   h1.input-mono {
@@ -709,36 +688,5 @@ const highlightIndex = sshUsers.indexOf(sshUser);
     }
   }
 
-  @font-face {
-    font-family: "Input Mono";
-    src: url("/fonts/InputMono/InputMono-Bold.woff2") format("woff2");
-    font-weight: bold;
-    font-style: normal;
-    font-display: swap;
-  }
-
-  @font-face {
-    font-family: "Input Mono";
-    src: url("/fonts/InputMono/InputMono-Medium.woff2") format("woff2");
-    font-weight: 500;
-    font-style: normal;
-    font-display: swap;
-  }
-
-  @font-face {
-    font-family: "Input Mono";
-    src: url("/fonts/InputMono/InputMono-Regular.woff2") format("woff2");
-    font-weight: normal;
-    font-style: normal;
-    font-display: swap;
-  }
-
-  @font-face {
-    font-family: "Input Mono";
-    src: url("/fonts/InputMono/InputMono-ExtraLight.woff2") format("woff2");
-    font-weight: 200;
-    font-style: normal;
-    font-display: swap;
-  }
   // cspell:enable
 </style>

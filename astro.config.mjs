@@ -15,4 +15,36 @@ export default defineConfig({
       theme: "one-dark-pro",
     },
   },
+  experimental: {
+    fonts: [
+      {
+        provider: "local",
+        name: "Input Mono",
+        cssVariable: "--font-input-mono",
+        fallbacks: ["Helvetica"],
+        variants: [
+          {
+            weight: 200,
+            style: "normal",
+            src: ["./src/assets/fonts/InputMono/InputMono-ExtraLight.woff2"],
+          },
+          {
+            weight: "normal",
+            style: "normal",
+            src: ["./src/assets/fonts/InputMono/InputMono-Regular.woff2"],
+          },
+          {
+            weight: 500,
+            style: "normal",
+            src: ["./src/assets/fonts/InputMono/InputMono-Medium.woff2"],
+          },
+          {
+            weight: "bold",
+            style: "normal",
+            src: ["./src/assets/fonts/InputMono/InputMono-Bold.woff2"],
+          },
+        ],
+      },
+    ],
+  },
 });
