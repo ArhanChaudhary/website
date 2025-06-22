@@ -12,6 +12,25 @@ const { description = "Arhan's Blog", pubDate, title } = Astro.props;
 ---
 
 <Layout {title} description={description} sshUser="blog">
+  <script is:inline>
+    let flexWrapper;
+    document.addEventListener("DOMContentLoaded", () => {
+      flexWrapper = document.querySelector("#flex-wrapper");
+      if (!flexWrapper) {
+        return;
+      }
+      const previousScrollPosition = sessionStorage.getItem("blog-scroll-position");
+      if (!previousScrollPosition) {
+        return;
+      }
+      flexWrapper.scrollTo(0, parseInt(previousScrollPosition, 10));
+    });
+    window.addEventListener("beforeunload", () => {
+      if (flexWrapper) {
+        sessionStorage.setItem("blog-scroll-position", flexWrapper.scrollTop.toString());
+      }
+    });
+  </script>
   <div class="system-ui" id="max-width-wrapper">
     <h1>{title}</h1>
     <p>
