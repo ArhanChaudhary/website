@@ -4,11 +4,26 @@ import robotsTxt from "astro-robots-txt";
 import sitemap from "@astrojs/sitemap";
 import remarkAutoImport from "./remark-auto-import/remark-auto-import.ts";
 import mdx from "@astrojs/mdx";
+import { typst } from "astro-typst";
 
 // https://astro.build/config
 export default defineConfig({
   site: "https://arhan.sh",
-  integrations: [robotsTxt(), sitemap(), mdx()],
+  integrations: [
+    robotsTxt(),
+    sitemap(),
+    mdx(),
+    typst({
+      options: {
+        remPx: 14,
+      },
+      target: (id) => {
+        console.debug(`Detecting ${id}`);
+        if (id.endsWith(".html.typ") || id.includes("/html/")) return "html";
+        return "svg";
+      },
+    }),
+  ],
   markdown: {
     remarkPlugins: [remarkToc, remarkAutoImport],
     shikiConfig: {

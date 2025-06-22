@@ -1,0 +1,151 @@
+---
+description: You will probably never need to use it
+---
+import Paper from "../../assets/blog/The Generativity Pattern in Rust/test.typ";
+
+{/* cspell:ignore typestate generativity */}
+
+<Paper />
+
+The *generativity pattern* in Rust is a combination of [typestate](https://cliffle.com/blog/rust-typestate/) and [GhostCell](https://plv.mpi-sws.org/rustbelt/ghostcell/) — techniques that eliminate runtime overhead through compile-time safety guarantees. This pattern is not commonplace; its usage warrants a specific set of circumstances in an already niche situation. Aside from thinly spread literature, I haven't a found a detailed synopsis of this online. So, I want to take the opportunity to introduce the concept of generative lifetime branding through a realistic example.
+
+We are going to gradually build up a full picture of the "what" and the "why." Let's say we are authoring a crate about permutations. We want to investigate the *composition* of permutations.
+
+<ContentImage src={vertexAdditionExample} width={800} alt="An example of the vertex addition of red and blue triangles" />
+
+In the correct order, each vertex from the blue and red triangles is added together to create the green triangle. Pretty simple. A less simple fact: vertex-wise addition *preserves* direct similarity. Notice how the resulting green triangle is just a rotated and scaled version of the red or blue triangle. Take this at face value; the proof isn't relevant to this post.
+
+Now we want users to be able to specify a set of directly similar shapes as input. Once it is validated that all of their shapes are directly similar, we will allow them to perform this operation on any two shapes from their input. Here is one way to represent everything.
+
+```rust
+pub trait MyShape: Clone {
+    /// We populate a mutable reference to avoid
+    /// burdening the caller with a memory allocation
+    fn add_verticies_into(&self, other: &Self, into: &mut Self);
+
+    /// Add verticies together, allocating memory
+    fn add_verticies(&self, other: &Self) -> Self {
+        let mut result = self.clone();
+        self.add_verticies_into(other, &mut result);
+        result
+    }
+
+    /// Create a new Self from verticies
+    fn from_verticies(verticies: Vec<(f64, f64)>) -> Self;
+}
+
+#[derive(Debug, Clone)]
+pub struct Shape {
+    verticies: Box<[(f64, f64)]>,
+}
+
+pub struct DirectlySimilarShapes<S: MyShape> {
+    shape_name: String,
+    verticies_count: usize,
+    shapes: Vec<S>,
+}
+
+impl DirectlySimilarShapes {
+    pub fn shapes(&self) -> &[Shape] {
+        &self.shapes
+    }
+
+    pub fn new(
+        shape_name: String,
+        verticies_count: usize,
+        shapes: Vec<Vec<(f64, f64)>>,
+    ) -> Result<Self, /* error type */> {
+        // ... validate that each shape is directly similar
+        // ... convert each Vec<(f64, f64)> to
+        Ok(Self {
+            shape_name,
+            verticies_count,
+            shapes,
+        })
+    }
+
+    pub fn analyze(&self) ->
+    // ...
+}
+```
+
+But now we need to be careful. Can you think about the problem with this code? (Hint: it's not related to syntax or logic)
+
+```rust
+impl MyShape for Shape {
+    fn add_verticies_into(&self, other: &Shape, into: &mut Shape) {
+        for ((into_verticies, self_verticies), other_verticies) in
+            into.verticies.iter_mut().zip(&self.verticies).zip(&other.verticies)
+        {
+            *into_verticies = (
+                self_verticies.0 + other_verticies.0,
+                self_verticies.1 + other_verticies.1,
+            );
+        }
+    }
+}
+```
+
+We need to make
+
+- unique IDs
+- unsafe
+
+```rust
+use generativity::{Guard, Id};
+
+pub trait MyShape<'id> {
+    fn add_verticies_into(&self, other: &Self, into: &mut Self);
+}
+
+pub struct Shape<'id> {
+    verticies: Box<[(f64, f64)]>,
+    _id: Id<'id>,
+}
+
+pub struct DirectlySimilarShapes<'id> {
+    shape_name: String,
+    verticies_count: usize,
+    shapes: Vec<Shape<'id>>,
+    _id: Id<'id>,
+}
+
+impl<'id> MyShape<'id> for Shape<'id> {
+    // To avoid burdening callers with memory allocations, we populate a mutable reference.
+    fn add_verticies_into(&self, other: &Shape<'id>, into: &mut Shape<'id>) {
+        unsafe {
+            std::hint::assert_unchecked(
+                self.verticies.len() == other.verticies.len() && other.verticies.len() == into.verticies.len(),
+            );
+        }
+        for ((into_verticies, self_verticies), other_verticies) in
+            into.verticies.iter_mut().zip(&self.verticies).zip(&other.verticies)
+        {
+            *into_verticies = (
+                self_verticies.0 + other_verticies.0,
+                self_verticies.1 + other_verticies.1
+            );
+        }
+    }
+}
+
+impl<'id> DirectlySimilarShapes<'id> {
+    pub fn new(
+        shape_name: String,
+        verticies_count: usize,
+        shapes: Vec<Shape<'id>>,
+        guard: Guard<'id>,
+    ) -> Result<Self, /* error type */> {
+        // ... validate that each shape has `verticies_count` verticies
+        Ok(Self {
+            shape_name,
+            verticies_count,
+            shapes,
+            _id: guard.into(),
+        })
+    }
+    // ...
+}
+```
+
+It's not very practical
