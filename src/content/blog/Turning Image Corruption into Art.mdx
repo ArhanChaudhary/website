@@ -171,7 +171,7 @@ With everything in hand, off to the races! First up, PNG.
     src={pngs}
 />
 
-PNGs were the hardest to corrupt. Each image iteration took a few dozen attempts before finding a byte that could be changed while still passing the error checking mechanism. Intuitively, this makes sense. PNG is a lossless format developed in 1995, when data corruption was endemic and most small companies had their connectivity through flaky phone lines. So, the PNG designers put a strong emphasis on data integrity, making every image chunk include a [cycle redundancy check](https://en.wikipedia.org/wiki/Cyclic_redundancy_check) (CRC), and adding even more checks for more important image chunks. What you're seeing is probably just ffmpeg trying its best to recover from malformed CRCs.
+PNGs were the hardest to corrupt. Each image iteration took a few dozen attempts before finding a byte that could be changed while still passing the error checking mechanism. Intuitively, this makes sense. PNG is a lossless format from 1995, when data corruption was endemic and most small companies had their connectivity through flaky phone lines. So, the PNG designers put a strong emphasis on data integrity, making every image chunk include a [cycle redundancy check](https://en.wikipedia.org/wiki/Cyclic_redundancy_check) (CRC), and adding even more checks for more important image chunks. What you're seeing is probably just ffmpeg trying its best to recover from malformed CRCs.
 
 Additionally, I got this one work. Some more techno spaghettio.
 

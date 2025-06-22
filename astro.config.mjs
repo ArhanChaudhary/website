@@ -12,7 +12,7 @@ export default defineConfig({
   markdown: {
     remarkPlugins: [remarkToc, remarkAutoImport],
     shikiConfig: {
-      theme: "one-dark-pro",
+      theme: "catppuccin-macchiato",
     },
   },
   experimental: {

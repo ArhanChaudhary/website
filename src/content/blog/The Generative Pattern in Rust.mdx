@@ -1,0 +1,116 @@
+{/* cspell:ignore typestate */}
+
+The *generative pattern* in Rust is a combination of [typestate](https://cliffle.com/blog/rust-typestate/) and [GhostCell](https://plv.mpi-sws.org/rustbelt/ghostcell/) — techniques that eliminate runtime overhead through compile-time safety guarantees. This pattern is not commonplace; its usage warrants a specific set of circumstances in an already niche situation. Aside from thinly spread literature, I haven't a found a detailed synopsis of this online. So, I want to take the opportunity to introduce the concept of generative lifetime branding through a practical example.
+
+We are going to gradually build up a full picture of the "what" and the "why." Let's say we are authoring a crate about 2D shapes. We want to investigate the vertex-wise addition of directly similar shapes, or shapes that are similar by scaling, rotating, and translating only. This can be expressed nicely visually.
+
+<ContentImage src={vertexAdditionExample} width={800} alt="" />
+
+In the correct order, each point from the blue and red triangles is added together to create the green triangle. Pretty simple.
+
+- unique IDs
+- unsafe
+
+```rust
+pub struct Shape {
+    points: Box<[(f64, f64)]>,
+}
+
+pub struct DirectlySimilarShapes {
+    shape_name: String,
+    points_count: usize,
+    shapes: Vec<Shape>,
+}
+
+impl DirectlySimilarShapes {
+    pub fn new(
+        shape_name: String,
+        points_count: usize,
+        shapes: Vec<Shape>,
+    ) -> Result<Self, /* error type */> {
+        // ... validate that each shape has `points_count` points
+        Ok(Self {
+            shape_name,
+            points_count,
+            shapes,
+        })
+    }
+    // ...
+}
+```
+
+```rust
+pub trait MyShape {
+    fn add_points_into(&self, other: &Shape, into: &mut Shape);
+}
+
+impl MyShape for Shape {
+    pub fn add_points_into(&self, other: &Shape, into: &mut Shape) {
+        for ((into_points, self_points), other_points) in
+            into.points.iter_mut().zip(&self.points).zip(&other.points)
+        {
+            *into_points = (
+                other_points.0 + self_points.0,
+                other_points.1 + self_points.1,
+            );
+        }
+    }
+}
+```
+
+```rust
+use generativity::{Guard, Id};
+
+pub trait MyShape<'id> {
+    fn add_points_into(&self, other: &Shape<'id>, into: &mut Shape<'id>);
+}
+
+pub struct Shape<'id> {
+    points: Box<[(f64, f64)]>,
+    _id: Id<'id>,
+}
+
+pub struct DirectlySimilarShapes<'id> {
+    shape_name: String,
+    points_count: usize,
+    shapes: Vec<Shape<'id>>,
+    _id: Id<'id>,
+}
+
+impl<'id> MyShape<'id> for Shape<'id> {
+    // To avoid burdening callers with memory allocations, we populate a mutable reference.
+    fn add_points_into(&self, other: &Shape<'id>, into: &mut Shape<'id>) {
+        unsafe {
+            std::hint::assert_unchecked(
+                self.points.len() == other.points.len() && other.points.len() == into.points.len(),
+            );
+        }
+        for ((into_points, self_points), other_points) in
+            into.points.iter_mut().zip(&self.points).zip(&other.points)
+        {
+            *into_points = (
+                self_points.0 + other_points.0,
+                self_points.1 + other_points.1
+            );
+        }
+    }
+}
+
+impl<'id> DirectlySimilarShapes<'id> {
+    pub fn new(
+        shape_name: String,
+        points_count: usize,
+        shapes: Vec<Shape<'id>>,
+        guard: Guard<'id>,
+    ) -> Result<Self, /* error type */> {
+        // ... validate that each shape has `points_count` points
+        Ok(Self {
+            shape_name,
+            points_count,
+            shapes,
+            _id: guard.into(),
+        })
+    }
+    // ...
+}
+```
