@@ -23,6 +23,10 @@ const additionals = new Array<{
   {
     importPath: "/src/components/ContentVideo.astro",
     defaultImport: "ContentVideo",
+  },
+  {
+    importPath: "/src/components/Aside.astro",
+    defaultImport: "Aside",
   }
 );
 const flatCollections = ["cubing-competition", "book-review", "ctf-write-up"];

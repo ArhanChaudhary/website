@@ -1,0 +1,30 @@
+<aside>
+  <slot />
+</aside>
+
+<style lang="scss">
+  aside {
+    border-radius: 5px;
+    border: 1px solid hsl(217, 90%, 61%);
+    background-color: hsla(217, 90%, 61%, 0.15);
+    padding: 0 1em;
+    margin: 0.5em 0;
+  }
+</style>
+
+<style is:global lang="scss">
+  aside {
+    :not(p):first-child {
+      margin-top: 1.5em;
+    }
+
+    :not(p):last-child {
+      margin-bottom: 1.5em;
+    }
+
+    pre {
+      border: 1px solid hsl(217, 39%, 32%);
+      box-shadow: 0 0 8px -1px hsl(217, 39%, 14%);
+    }
+  }
+</style>
