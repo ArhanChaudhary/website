@@ -1,151 +1,186 @@
 ---
 description: You will probably never need to use it
 ---
-import Paper from "../../assets/blog/The Generativity Pattern in Rust/test.typ";
+import Example from "../../assets/blog/The Generativity Pattern in Rust/permutation example.typ";
 
-{/* cspell:ignore typestate generativity */}
+{/* cspell:ignore typestate generativity newtype Rustaceans */}
 
-<Paper />
+The *generativity pattern* in Rust is a combination of [typestate](https://cliffle.com/blog/rust-typestate/) and [GhostCell](https://plv.mpi-sws.org/rustbelt/ghostcell/) — techniques that eliminate runtime overhead through compile-time safety guarantees. This pattern is not commonplace; its usage warrants a specific set of circumstances in an already niche situation. Aside from thinly spread literature, I haven't a found a detailed analysis of this pattern online. So, I want to take the opportunity to introduce the concept of generative lifetime branding through a realistic example.
 
-The *generativity pattern* in Rust is a combination of [typestate](https://cliffle.com/blog/rust-typestate/) and [GhostCell](https://plv.mpi-sws.org/rustbelt/ghostcell/) — techniques that eliminate runtime overhead through compile-time safety guarantees. This pattern is not commonplace; its usage warrants a specific set of circumstances in an already niche situation. Aside from thinly spread literature, I haven't a found a detailed synopsis of this online. So, I want to take the opportunity to introduce the concept of generative lifetime branding through a realistic example.
+We are going to gradually build up a full picture of the "what" and the "why." Let's take the role of a crate author about permutations. We want to investigate the [composition](https://en.wikipedia.org/wiki/Permutation_group#Composition_of_permutations–the_group_product) of permutations. This can be expressed nicely visually.
 
-We are going to gradually build up a full picture of the "what" and the "why." Let's say we are authoring a crate about permutations. We want to investigate the *composition* of permutations.
+<Example />
 
-<ContentImage src={vertexAdditionExample} width={800} alt="An example of the vertex addition of red and blue triangles" />
+The permutation `a` defines the remapping of the elements from permutation `b`. Pretty simple. Notice that permutation composition is only possible under the two following conditions:
 
-In the correct order, each vertex from the blue and red triangles is added together to create the green triangle. Pretty simple. A less simple fact: vertex-wise addition *preserves* direct similarity. Notice how the resulting green triangle is just a rotated and scaled version of the red or blue triangle. Take this at face value; the proof isn't relevant to this post.
+1. `a` and `b` have the same length.
+1. Each element from `b` must be less than or equal to the length.
+1. Each element from `b` is unique.
 
-Now we want users to be able to specify a set of directly similar shapes as input. Once it is validated that all of their shapes are directly similar, we will allow them to perform this operation on any two shapes from their input. Here is one way to represent everything.
+Our library is general-purpose, so it is important to handle this error case. Here is the simplest way to do that.
 
 ```rust
-pub trait MyShape: Clone {
-    /// We populate a mutable reference to avoid
-    /// burdening the caller with a memory allocation
-    fn add_verticies_into(&self, other: &Self, into: &mut Self);
-
-    /// Add verticies together, allocating memory
-    fn add_verticies(&self, other: &Self) -> Self {
-        let mut result = self.clone();
-        self.add_verticies_into(other, &mut result);
-        result
+// We provide a `compose_into` function in case the caller already has
+// a permutation preallocated. (This is good practice IMO).
+pub fn compose_into(a: &[usize], b: &[usize], into: &mut [usize]) -> Result<(), String> {
+    if a.len() != into.len() || b.len() != into.len() {
+        return Err("Permutations must have the same length".to_string());
     }
 
-    /// Create a new Self from verticies
-    fn from_verticies(verticies: Vec<(f64, f64)>) -> Self;
-}
-
-#[derive(Debug, Clone)]
-pub struct Shape {
-    verticies: Box<[(f64, f64)]>,
-}
-
-pub struct DirectlySimilarShapes<S: MyShape> {
-    shape_name: String,
-    verticies_count: usize,
-    shapes: Vec<S>,
-}
-
-impl DirectlySimilarShapes {
-    pub fn shapes(&self) -> &[Shape] {
-        &self.shapes
+    let mut seen = vec![false; a.len()];
+    for (result_mapping, &b_value) in into.iter_mut().zip(b) {
+        if *seen.get(b_value).ok_or("Permutation is invalid")? {
+            return Err("Permutation contains repeated elements".to_string());
+        }
+        seen[b_value] = true;
+        *result_mapping = a[b_value];
     }
 
+    if seen.iter().any(|&s| !s) {
+        return Err("Permutation is invalid".to_string());
+    }
+    Ok(())
+}
+
+pub fn compose(a: &[usize], b: &[usize]) -> Result<Vec<usize>, String> {
+    if a.len() != b.len() {
+        return Err("Permutations must have the same length".to_string());
+    }
+    let mut result = vec![0; a.len()];
+    compose_into(a, b, &mut result)?;
+    Ok(result)
+}
+```
+
+Good on you if this made you uneasy. Rust allows us to guarantee at the type level that `a` and `b` are valid permutations, using the [newtype](https://rust-unofficial.github.io/patterns/patterns/behavioural/newtype.html) design pattern.
+
+```rust
+pub struct Permutation(Box<[usize]>);
+
+impl Permutation {
+    pub fn from_mapping(mapping: Vec<usize>) -> Result<Self, String> {
+        // ... validate that `mapping` is a valid permutation
+        Ok(Permutation(mapping.into_boxed_slice()))
+    }
+
+    pub fn compose_into(&self, b: &Permutation, into: &mut Permutation) -> Result<(), String> {
+        if self.0.len() != into.0.len() || b.0.len() != into.0.len() {
+            return Err("Permutations must have the same length".to_string());
+        }
+        for (result_mapping, &b_value) in into.0.iter_mut().zip(&b.0) {
+            // SAFETY: `b` is guaranteed to be a valid permutation
+            // whose elements can index `self`
+            *result_mapping = unsafe { *self.0.get_unchecked(b_value) };
+        }
+        Ok(())
+    }
+
+    pub fn compose(&self, b: &Permutation) -> Result<Permutation, String> {
+        if self.0.len() != b.0.len() {
+            return Err("Permutations must have the same length".to_string());
+        }
+        let mut result = Permutation(vec![0; self.0.len()].into_boxed_slice());
+        self.compose_into(b, &mut result)?;
+        Ok(result)
+    }
+}
+```
+
+The newtype pattern is more useful than just getting around the orphan rule. We restrict construction of `Permutation` to the `from_mapping` method, which errors if `mapping` is not a valid permutation. So, if we have an instance of `Permutation`, we don't have to worry about its mapping being potentially invalid before using it. Rustaceans describe this type-level guarantee by saying an *invariant* of `Permutation` is that it represents a valid permutation. Remember this concept.
+
+Nothing is inherently wrong with this code. It is simple, easy to use, and it provides a reasonable error. However, a closer examination reveals some problems:
+
+- Every call to our composition function spends time performing a length check. Our example is simplistic, and so it happens to be cheap, but this type of check may require more expensive logic in a practical scenario.
+- Returning a `Result` forces the caller to be prepared to handle the error case.
+
+Yes, these aren't *important* problems per se, but they are still inconveniences you should be aware of.
+
+We now want to extend our library to model a [permutation group](https://en.wikipedia.org/wiki/Permutation_group). Disregard the meaning of "group"; permutation groups can be represented with a set of permutations that can only be composed with either one another or an already existing composition <sup id="1-back"><a href="#1">1</a></sup>. A reasonable data structure for permutation groups looks like this.
+
+```rust
+pub struct Permutation(Box<[usize]>);
+
+pub struct PermGroup {
+    permutation_size: usize,
+    permutations: Vec<Permutation>,
+}
+
+impl PermGroup {
     pub fn new(
-        shape_name: String,
-        verticies_count: usize,
-        shapes: Vec<Vec<(f64, f64)>>,
-    ) -> Result<Self, /* error type */> {
-        // ... validate that each shape is directly similar
-        // ... convert each Vec<(f64, f64)> to
+        permutation_size: usize,
+        permutation_mappings: Vec<Vec<usize>>,
+    ) -> Result<Self, String> {
+        // ... validate that each mapping is a
+        // valid permutation of the given size
         Ok(Self {
-            shape_name,
-            verticies_count,
-            shapes,
+            permutation_size,
+            permutations: permutation_mappings
+                .into_iter()
+                .map(Permutation::from_mapping)
+                .collect::<Result<_, _>>()?,
         })
     }
 
-    pub fn analyze(&self) ->
-    // ...
-}
-```
-
-But now we need to be careful. Can you think about the problem with this code? (Hint: it's not related to syntax or logic)
-
-```rust
-impl MyShape for Shape {
-    fn add_verticies_into(&self, other: &Shape, into: &mut Shape) {
-        for ((into_verticies, self_verticies), other_verticies) in
-            into.verticies.iter_mut().zip(&self.verticies).zip(&other.verticies)
-        {
-            *into_verticies = (
-                self_verticies.0 + other_verticies.0,
-                self_verticies.1 + other_verticies.1,
-            );
-        }
+    pub fn permutations(&self) -> &[Permutation] {
+        &self.permutations
     }
 }
 ```
+
+Your *inner Ferris* awakens. With the annoyances of our last iteration freshly in memory, you ask yourself: can we perform the length check just once during the creation of the permutation group, and avoid it entirely in our permutation composition function?
+
+```rust
+impl Permutation {
+    fn from_mapping(mapping: Vec<usize>) -> Result<Self, String> {
+        // ... validate that `mapping` is a valid permutation
+        Ok(Permutation(mapping.into_boxed_slice()))
+    }
+
+    fn compose_into(&self, other: &Permutation, into: &mut Permutation) {
+        for i in 0..into.0.len() {
+            unsafe {
+                *into.0.get_unchecked_mut(i) = *self.0.get_unchecked(*b.0.get_unchecked(i));
+            }
+        }
+    }
+
+    fn compose(&self, other: &Permutation) -> Permutation {
+        let mut result = Permutation(vec![0; self.0.len()].into_boxed_slice());
+        self.compose_into(other, &mut result);
+        result
+    }
+}
+```
+
+SCRATCH NOTES:
+
+But now we need to be careful with how we implement . Can you think about the problem with this code? (Hint: it's not related to syntax or logic)
+
+You can make this function *safe*, by using iter_mut zip. In this situation I argue it is better to be wrong *early* than compromise the invariant of `Permutation`
+
+What would really be nice is an *infallible* composition operation; one that we can guarantee is correct at the type level.
+It's useful anytime you want to guarantee that two values come from or refer to the same source
+
+We validate *upfront* that a set of permutations
+
+Now we want users to be able to specify a set of permutations as input. Once it is validated that all of their shapes are directly similar, we will allow them to perform this operation on any two shapes from their input. Here is one way to represent everything.
+
+For the sake of demonstration, we will assume yes
+
+Does not use a closure
 
 We need to make
 
 - unique IDs
 - unsafe
 
-```rust
-use generativity::{Guard, Id};
-
-pub trait MyShape<'id> {
-    fn add_verticies_into(&self, other: &Self, into: &mut Self);
-}
-
-pub struct Shape<'id> {
-    verticies: Box<[(f64, f64)]>,
-    _id: Id<'id>,
-}
-
-pub struct DirectlySimilarShapes<'id> {
-    shape_name: String,
-    verticies_count: usize,
-    shapes: Vec<Shape<'id>>,
-    _id: Id<'id>,
-}
-
-impl<'id> MyShape<'id> for Shape<'id> {
-    // To avoid burdening callers with memory allocations, we populate a mutable reference.
-    fn add_verticies_into(&self, other: &Shape<'id>, into: &mut Shape<'id>) {
-        unsafe {
-            std::hint::assert_unchecked(
-                self.verticies.len() == other.verticies.len() && other.verticies.len() == into.verticies.len(),
-            );
-        }
-        for ((into_verticies, self_verticies), other_verticies) in
-            into.verticies.iter_mut().zip(&self.verticies).zip(&other.verticies)
-        {
-            *into_verticies = (
-                self_verticies.0 + other_verticies.0,
-                self_verticies.1 + other_verticies.1
-            );
-        }
-    }
-}
-
-impl<'id> DirectlySimilarShapes<'id> {
-    pub fn new(
-        shape_name: String,
-        verticies_count: usize,
-        shapes: Vec<Shape<'id>>,
-        guard: Guard<'id>,
-    ) -> Result<Self, /* error type */> {
-        // ... validate that each shape has `verticies_count` verticies
-        Ok(Self {
-            shape_name,
-            verticies_count,
-            shapes,
-            _id: guard.into(),
-        })
-    }
-    // ...
-}
-```
-
 It's not very practical
+
+Generativity in the wild:
+https://docs.rs/async-local/6.0.2/src/async_local/lib.rs.html#1-354
+
+what if we wnated to make it a trait
+
+<hr />
+
+<sup id="1">1</sup> This is called the [generating set](https://en.wikipedia.org/wiki/Generating_set_of_a_group) of a permutation group. <a href="#1-back" class="back-arrow">↩</a>

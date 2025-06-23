@@ -18,7 +18,6 @@ export default defineConfig({
         remPx: 14,
       },
       target: (id) => {
-        console.debug(`Detecting ${id}`);
         if (id.endsWith(".html.typ") || id.includes("/html/")) return "html";
         return "svg";
       },
