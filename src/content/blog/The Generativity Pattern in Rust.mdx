@@ -178,7 +178,7 @@ impl Permutation {
 }
 ```
 
-If you don't care about unsafe—and there are valid reasons not to—then this might be what you want. That said, it's not always going to be this simple. Due to popular demand, you introduce the `ComposablePermutation` trait and implement it for `Permutation`. Your library users also want to implement permutation composition so they can take advantage of `PSHUFB`, a special hardware instruction which efficiently computes permutation composition, and use different permutation representations for their own data structures.
+If you don't care about unsafe—and there are valid reasons not to—then this might be what you want. That said, it's not always going to be this simple. What if you introduce a new trait, `ComposablePermutation`, that generalizes over different permutation representations? For example, the `PSHUFB` instruction can compute permutation composition in a single clock cycle for permutations with less than sixteen elements.
 
 ```rust
 pub trait ComposablePermutation: Clone {
@@ -200,7 +200,7 @@ pub trait ComposablePermutation: Clone {
 }
 ```
 
-The consequences of using unsafe begin to show. Because our provided `Permutation` implements `ComposablePermutation`, and we have proved permutation composition from different permutation groups is unsound, `compose_into` must be made unsafe at the trait level. Rust doesn't allow us to only make `Permutation`'s implementation unsafe; either all implementors must be made unsafe, or none at all. For a library *about* permutation composition, we have now forced library users into unsafe for one of its most essential operations. Not just with `Permutation::compose_into`, but with all of their own implementations of `ComposablePermutation`.
+The consequences of using unsafe begin to show. Because our provided `Permutation` implements `ComposablePermutation`, and we have proved permutation composition from different permutation groups is unsound, `compose_into` must be made unsafe at the trait level. Rust doesn't allow us to only make `Permutation`'s implementation unsafe; either all implementors must be made unsafe, or none at all. In a library *about* permutation composition, we have now forced users to wrangle with unsafe for one of its most essential operations. Not just with `Permutation::compose_into`, but with all of their own implementations of `ComposablePermutation`.
 
 *"That's completely unfair!"* You might say. *"This is a small and outrageously contagious edge condition that I don't care about. I'm going to mark this trait method safe anyways."* Well, the Rust community generally has a zero-tolerance stance on undefined behavior; the last time someone wanted to mark an unsound method safe, [it didn't end very well](https://github.com/ogxd/gxhash/issues/82#issuecomment-2257578785).
 
@@ -436,7 +436,6 @@ Does not use a closure
 
 Generativity in the wild:
 https://docs.rs/async-local/6.0.2/src/async_local/lib.rs.html#1-354
-
 
 [Aria Desires's Master's thesis](https://raw.githubusercontent.com/Gankro/thesis/master/thesis.pdf)
 "Hacking Generativity into Rust", right before she says "we really don’t recommend doing this".
