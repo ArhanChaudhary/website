@@ -7,24 +7,19 @@
     border-radius: 5px;
     border: 1px solid hsl(217, 90%, 61%);
     background-color: hsla(217, 90%, 61%, 0.15);
-    padding: 0 1em;
+    padding: 1.5em 1em;
     margin: 0.5em 0;
   }
 </style>
 
 <style is:global lang="scss">
   aside {
-    :not(p):first-child {
-      margin-top: 1.5em;
+    :first-child {
+      margin-top: 0;
     }
 
-    :not(p):last-child {
-      margin-bottom: 1.5em;
-    }
-
-    pre {
-      border: 1px solid hsl(217, 39%, 32%);
-      box-shadow: 0 0 8px -1px hsl(217, 39%, 14%);
+    :last-child {
+      margin-bottom: 0;
     }
   }
 </style>

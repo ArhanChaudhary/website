@@ -26,7 +26,12 @@ export default defineConfig({
   markdown: {
     remarkPlugins: [remarkToc, remarkAutoImport],
     shikiConfig: {
-      theme: "catppuccin-macchiato",
+      theme: "catppuccin-mocha",
+      // theme: "tokyo-night",
+      // theme: "material-theme-ocean",
+      // theme: "kanagawa-wave",
+      // theme: "plastic",
+      // theme: "one-dark-pro",
     },
   },
   experimental: {
