@@ -93,9 +93,9 @@ Yes, these aren't *important* problems per se, but they are still inconveniences
 
 We now want to extend our library to model a [permutation group](https://en.wikipedia.org/wiki/Permutation_group), or just a representation of a bunch of permutations. In a permutation group, every permutation can be written as a sequence of compositions of base permutations. For example, the manipulations of the Rubik's Cube form a permutation group. Its base permutations are the six face rotations. Therefore, every possible state on the Rubik's cube can be reached from a combination of those face rotations.
 
-<ContentImage src={rubiksCube} width="350" alt="The solved Rubik's cube" />
+<ContentImage src={rubiksCube} width="300" alt="The solved Rubik's cube" />
 
-It follows that if you compose two elements in a permutation group, the resulting permutation will also be an element of that group.
+It follows that if you compose two permutations in a permutation group, the resulting permutation will also be a permutation in that group.
 
 A reasonable data structure for permutation groups looks like this.
 
@@ -154,9 +154,11 @@ impl Permutation {
 }
 ```
 
-All of a sudden, we've opened up an unsafety hole! We implicitly assumed that the permutations to compose were from the same permutation group. This is not necessarily true—what if a library user composes two base permutations from different permutation groups? If the permutation lengths don't match, then `get_unchecked` will exhibit undefined behavior; this is clearly a problem! This operation is obviously nonsensical, but it does not change the fact that it is still *our* responsibility, as the crate author, that the safe functions we provide can never exhibit undefined behavior. There is a more fundamental reason to care about this: even if the lengths *did* match, composing the permutations could result in a permutation outside of either permutation group, which is a logic error. If we wanted to validate our assumption, checking that a permutation is a member of a permutation group now becomes a very expensive operation; this is the "practical scenario" I mentioned beforehand.
+All of a sudden, we've opened up an unsafety hole! We implicitly assumed that the permutations to compose were from the same permutation group. This is not necessarily true—what if a library user composes two base permutations from different permutation groups? If the permutation lengths *don't* match, then `get_unchecked` will exhibit undefined behavior; this is clearly a problem! The intent of this operation is obviously nonsensical, but it does not change the fact that it is still our responsibility, as the crate author, that the safe functions we provide can never exhibit undefined behavior.
 
-We will analyze different approaches that ensure our library only permits permutations composition from the same permutation group. Each has their own trade-offs, but are all right answers for their own dedicated situations.
+There is a more fundamental reason to care. If the permutations to compose are in the same permutation group, the resulting permutation is also in that group. Even if the lengths of permutations from two different groups *did* match, composing them could produce a permutation outside of either permutation group, which is a logic error. Checking if a permutation is a member of a permutation group is a very expensive operation; this is the "practical scenario" I mentioned beforehand.
+
+We will analyze different approaches that ensure our library only permits permutation composition from the same permutation group. Each has their own trade-offs, but are all right answers for their own dedicated situations.
 
 The simplest solution is to mark `compose_into` unsafe.
 
@@ -198,13 +200,17 @@ pub trait ComposablePermutation: Clone {
         result
     }
 }
+
+impl ComposablePermutation for Permutation {
+    // ...
+}
 ```
 
-The consequences of using unsafe begin to show. Because our generic `Permutation` implements `ComposablePermutation`, and we have proved permutation composition from different permutation groups is unsound, `compose_into` must be made unsafe at the trait level. Rust doesn't allow us to only make `Permutation`'s implementation unsafe; either all implementors must be made unsafe, or none at all. In a library *about* permutation composition, we have now forced our users to wrangle with unsafe for one of its most essential operations. Not just with `Permutation::compose_into`, but with all of their own implementations of `ComposablePermutation`.
+The consequences of using unsafe begin to show. Because our generic `Permutation` implements `ComposablePermutation`, and we have proved permutation composition from different permutation groups is unsound, `compose_into` must be made unsafe at the trait level. Rust doesn't allow us to only make `Permutation`'s implementation unsafe; either all implementors must be made unsafe, or none at all. In a library *about* permutation composition, we have now forced our users to wrangle with unsafe for its most essential operation. Not just with `Permutation::compose_into`, but with all of their own implementations of `ComposablePermutation`.
 
-*"That's completely unfair!"* You might say. *"This is a small and outrageously contagious edge condition that I don't care about. I'm going to mark this trait method safe anyways."* Well, the Rust community generally has a zero-tolerance stance on undefined behavior; the last time someone wanted to mark an unsound method safe, [it didn't end very well](https://github.com/ogxd/gxhash/issues/82#issuecomment-2257578785).
+*"That's completely unfair!"* You might say. *"This is a small and outrageously contagious edge condition I don't care about. I'm going to mark this trait method safe anyways."* Well, the Rust community generally has a zero-tolerance stance on undefined behavior; the last time someone wanted to mark an unsound method safe, [it didn't end very well](https://github.com/ogxd/gxhash/issues/82#issuecomment-2257578785).
 
-TODO: bridge into atomic ID
+The second approach is to use a private integer identifier to avoid the TODO
 
 ```rust
 use std::sync::atomic::{AtomicU64, Ordering::Relaxed};
@@ -280,87 +286,6 @@ impl Permutation {
 }
 ```
 
-Use https://stackoverflow.com/questions/76847647/compile-time-tracking-of-value-owner-with-lifetimes
-
-```rust
-use std::marker::PhantomData;
-
-pub struct PermGroup<Tok> {
-    base_permutation_length: usize,
-    base_permutations: Vec<Permutation<Tok>>,
-}
-
-impl<Tok> PermGroup<Tok> {
-    pub fn new(
-        base_permutation_length: usize,
-        base_permutation_mappings: Vec<Vec<usize>>,
-    ) -> Result<Self, &'static str> {
-        // ... validate that each mapping is a valid
-        // permutation of the given length
-        // (remember that permutations can only be
-        // composed if they have the same length)
-        Ok(Self {
-            base_permutation_length,
-            base_permutations: base_permutation_mappings
-                .into_iter()
-                .map(Permutation::from_mapping)
-                .collect::<Result<_, _>>()?,
-        })
-    }
-
-    pub fn base_permutations(&self) -> &[Permutation<Tok>] {
-        &self.base_permutations
-    }
-}
-
-pub struct Permutation<Tok>(Box<[usize]>, PhantomData<Tok>);
-
-impl<Tok> Permutation<Tok> {
-    fn from_mapping(mapping: Vec<usize>) -> Result<Self, &'static str> {
-        // ... validate that `mapping` is a valid permutation
-        Ok(Permutation(mapping.into_boxed_slice(), PhantomData))
-    }
-
-    pub fn compose_into(&self, b: &Permutation<Tok>, into: &mut Permutation<Tok>) {
-        for i in 0..into.0.len() {
-            unsafe {
-                *into.0.get_unchecked_mut(i) = *self.0.get_unchecked(*b.0.get_unchecked(i));
-            }
-        }
-    }
-
-    pub fn compose(&self, b: &Permutation<Tok>) -> Permutation<Tok> {
-        let mut result = Permutation(vec![0; self.0.len()].into_boxed_slice(), PhantomData);
-        self.compose_into(b, &mut result);
-        result
-    }
-}
-
-macro_rules! make_perm_group {
-    ($($arg:expr),+ $(,)?) => {{
-        struct InvariantToken;
-        PermGroup::<InvariantToken>::new($($arg),+)
-    }}
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_permutation() {
-        // let p1 = make_perm_group!(3, vec![vec![2, 0, 1]]).unwrap();
-        // let p2 = make_perm_group!(4, vec![vec![1, 2, 0, 3]]).unwrap();
-        // p1.base_permutations()[0].compose(&p2.base_permutations()[0]);
-        let mut a = vec![];
-        for args in [(3, vec![vec![2, 0, 1]]), (4, vec![vec![1, 2, 0, 3]])] {
-            a.push(make_perm_group!(args.0, args.1).unwrap());
-        }
-        a[1].base_permutations()[0].compose(&a[0].base_permutations()[0]);
-    }
-}
-```
-
 generativity
 
 ```rust
@@ -369,6 +294,7 @@ use generativity::{Guard, Id};
 pub struct PermGroup<'id> {
     base_permutation_length: usize,
     base_permutations: Vec<Permutation<'id>>,
+    id: Id<'id>,
 }
 
 impl<'id> PermGroup<'id> {
@@ -386,10 +312,19 @@ impl<'id> PermGroup<'id> {
             base_permutation_length,
             base_permutations: base_permutation_mappings
                 .into_iter()
-                // .map(Permutation::from_mapping)
                 .map(|mapping| Permutation::from_mapping(mapping, id))
                 .collect::<Result<_, _>>()?,
+            id,
         })
+    }
+
+    pub fn permutation_from_mapping(
+        &self,
+        mapping: Vec<usize>,
+    ) -> Result<Permutation<'id>, &'static str> {
+        let permutation = Permutation::from_mapping(mapping, self.id)?;
+        // ... validate that `permutation` is a member of this group
+        Ok(permutation)
     }
 
     pub fn base_permutations(&self) -> &[Permutation<'id>] {
@@ -419,7 +354,38 @@ impl<'id> Permutation<'id> {
         result
     }
 }
+
 ```
+
+<Aside>
+
+As this StackOverflow user [points out](https://stackoverflow.com/questions/76847647/compile-time-tracking-of-value-owner-with-lifetimes), you can achieve something similar using anonymous "invariant token" unit structs.
+
+```rust
+pub struct Permutation<Tok>(Box<[usize]>, PhantomData<Tok>);
+// ...
+macro_rules! make_perm_group {
+    ($($args:tt)*) => {{
+        struct InvariantToken;
+        PermGroup::<InvariantToken>::new($($args)*)
+    }}
+}
+```
+
+This is unsound with question. No point endorsing this approach.
+
+```rust
+// let p1 = make_perm_group!(3, vec![vec![2, 0, 1]]).unwrap();
+// let p2 = make_perm_group!(4, vec![vec![1, 2, 0, 3]]).unwrap();
+// p1.base_permutations()[0].compose(&p2.base_permutations()[0]);
+let mut a = vec![];
+for args in [(3, vec![vec![2, 0, 1]]), (4, vec![vec![1, 2, 0, 3]])] {
+    a.push(make_perm_group!(args.0, args.1).unwrap());
+}
+a[1].base_permutations()[0].compose(&a[0].base_permutations()[0]);
+```
+
+</Aside>
 
 SCRATCH NOTES:
 
@@ -436,6 +402,8 @@ BrandedVec
 
 Does not use a closure
 
+number the rubiks cube stickers
+
 Generativity in the wild:
 https://docs.rs/async-local/6.0.2/src/async_local/lib.rs.html#1-354
 
@@ -443,3 +411,7 @@ https://docs.rs/async-local/6.0.2/src/async_local/lib.rs.html#1-354
 "Hacking Generativity into Rust", right before she says "we really don’t recommend doing this".
 
 Generativity is a limited system that can solve some of the problems usually re-served for dependent typing. Rust was not designed to support this
+
+explain why it is a logic error better
+
+https://stackoverflow.com/a/75233099/12230735
