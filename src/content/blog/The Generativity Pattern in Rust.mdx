@@ -1,14 +1,14 @@
 import PermutationExample from "../../assets/blog/The Generativity Pattern in Rust/permutation example.typ";
 
-{/* cspell:ignore typestate generativity newtype Rustaceans Rovynak rubiks */}
+{/* cspell:ignore typestate generativity newtype Rustaceans Rovynak rubiks stickered */}
+
+*This article was written in conjunction with [Henry Rovynak](https://hrovnyak.gitlab.io/). I thank Henry for his invaluable feedback and peer-review.*
 
 ## Table of Contents
 
 # Background
 
-*This article was written in conjunction with [Henry Rovynak](https://hrovnyak.gitlab.io/). I thank Henry for his invaluable feedback and peer-review.*
-
-The *generativity pattern* in Rust is a combination of [typestate](https://cliffle.com/blog/rust-typestate/) and [GhostCell](https://plv.mpi-sws.org/rustbelt/ghostcell/), techniques that eliminate runtime overhead through compile-time safety guarantees. This pattern is not commonplace; its usage warrants a specific set of circumstances. Aside from (admittedly well-written) academic literature, I haven't a found an accessible analysis of this pattern online. Contrary to its name, this post won't be about the generativity pattern until the end. In order to build up a full picture of the "what," and more importantly the "why," we will comprehensively walk through a realistic example and gradually build an intuition of the type of problems generativity can solve.
+The *generativity pattern* in Rust is a combination of [typestate](https://cliffle.com/blog/rust-typestate/) and [GhostCell](https://plv.mpi-sws.org/rustbelt/ghostcell/), techniques that eliminate runtime overhead through compile-time safety guarantees. This pattern is not commonplace; its usage warrants a specific set of circumstances. Aside from thinly spread (but admittedly well-written) academic literature, I haven't a found an accessible analysis of this pattern online. Contrary to its name, this post won't be about the generativity pattern until the end. In order to build up a full picture of the "what," and more importantly the "why," we will walk through a realistic example to gradually build an intuition of the type of problem generativity can solve.
 
 Let's take the role of a crate author about permutations. We want to investigate the [composition](https://en.wikipedia.org/wiki/Permutation_group#Composition_of_permutations–the_group_product) of permutations. This can be expressed nicely visually.
 
@@ -66,7 +66,7 @@ impl Permutation {
         Ok(Permutation(mapping.into_boxed_slice()))
     }
 
-    pub fn compose_into(&self, b: &Permutation, into: &mut Permutation) -> Result<(), &'static str> {
+    pub fn compose_into(&self, b: &Self, into: &mut Self) -> Result<(), &'static str> {
         if self.0.len() != into.0.len() || b.0.len() != into.0.len() {
             return Err("Permutations must have the same length");
         }
@@ -78,15 +78,15 @@ impl Permutation {
         Ok(())
     }
 
-    pub fn compose(&self, b: &Permutation) -> Result<Permutation, &'static str> {
-        let mut result = Permutation(vec![0; self.0.len()].into_boxed_slice());
+    pub fn compose(&self, b: &Self) -> Result<Self, &'static str> {
+        let mut result = Self(vec![0; self.0.len()].into_boxed_slice());
         self.compose_into(b, &mut result)?;
         Ok(result)
     }
 }
 ```
 
-The newtype pattern is more useful than just for getting around the orphan rule. We restrict construction of `Permutation` to the `from_mapping` method, which returns an error if the input is not a valid permutation. That means if we have an instance of `Permutation`, we don't have to worry about its mapping being potentially invalid before using it. Rustaceans describe type-level guarantees like this by saying a *validity invariant* of `Permutation` is that it represents a valid permutation. Composing two permutations upholds this invariant, so we expose `compose` to create a new `Permutation` from existing ones.
+The newtype pattern is more useful than just for getting around the orphan rule. We restrict construction of `Permutation` to the `from_mapping` method, which returns an error if the input is not a valid permutation. That means if we have an instance of `Permutation`, we don't have to worry about its mapping being potentially invalid before using it. Rustaceans describe type-level guarantees like this by saying an *invariant* of `Permutation` is that it represents a valid permutation. Composing two permutations upholds this invariant, so we expose `compose` to create a new `Permutation` from existing ones.
 
 This code is a major improvement! It is simple, easy to use, and it provides reasonable errors. However, a closer examination reveals some problems:
 
@@ -95,11 +95,11 @@ This code is a major improvement! It is simple, easy to use, and it provides rea
 
 Yes, these aren't *important* problems per se, but they are still inconveniences to be aware of.
 
-We now want to extend our library to model a [permutation group](https://en.wikipedia.org/wiki/Permutation_group), or just a representation of a bunch of permutations. In a permutation group, every permutation can be written as a sequence of compositions of base permutations. For example, the manipulations of the Rubik's Cube form a permutation group. Its base permutations are the six face rotations. Therefore, every possible state on the Rubik's cube can be reached from a combination of those face rotations.
+We now want to extend our library to model a [permutation group](https://en.wikipedia.org/wiki/Permutation_group), or just a representation of a bunch of permutations. In a permutation group, every permutation can be written as a sequence of compositions of base permutations. For example, the manipulations of the Rubik's Cube form a permutation group. Its base permutations are the six face rotations. Therefore, every possible state on the Rubik's cube can be reached from a combination of those face rotations. The illustrated turn is a permutation fifty-four elements long, because there are fifty-four stickers on a Rubik's cube.
 
-<ContentImage src={rubiksCube} width="300" alt="The solved Rubik's cube" />
+<ContentImage src={stickeredCube} width="300" alt="The solved Rubik's cube" />
 
-It follows that if you compose two permutations in a permutation group, the resulting permutation will also be a permutation in that group.
+It follows that if you compose two permutations in a permutation group, the resulting permutation will also be a permutation in that group. The reasoning is not so relevant; take this at face value.
 
 A reasonable data structure for permutation groups looks like this.
 
@@ -133,7 +133,7 @@ impl PermGroup {
 }
 ```
 
-Your *inner Ferris* awakens. With the annoyances of our last iteration freshly in memory, you ask yourself: can we perform the length check once during the creation of the permutation group, and avoid it entirely in our permutation composition function? Can we tweak our composition function to only operate on permutations from the same permutation group?
+Your *inner Ferris* awakens. With the annoyances of our last iteration freshly in memory, you ask yourself: can we perform the length check once during the creation of the permutation group, and avoid it entirely in our permutation composition function? Then, can we tweak our composition function to only operate on permutations from the same permutation group?
 
 ```rust
 impl Permutation {
@@ -160,9 +160,11 @@ impl Permutation {
 
 All of a sudden, we've opened up an unsafety hole! We implicitly assumed that the permutations to compose were from the same permutation group. This is not necessarily true—what if a library user composes two base permutations from different permutation groups? If the permutation lengths *don't* match, then `get_unchecked` will exhibit undefined behavior; this is clearly a problem! The intent of this operation is obviously nonsensical, but it does not change the fact that it is still our responsibility, as the crate author, that the safe functions we provide can never exhibit undefined behavior.
 
-There is a more fundamental reason to care. If the permutations to compose are in the same permutation group, the resulting permutation is also in that group. Even if the lengths of permutations from two different groups *did* match, composing them could produce a permutation outside of either permutation group, which is a logic error. Checking if a permutation is a member of a permutation group is a very expensive operation; this is the "practical scenario" I mentioned beforehand.
+There is a more fundamental reason to care. An invariant of permutation composition within the same permutation group is membership; if the permutations to compose are in the same permutation group, the resulting permutation is also in that group. Even if the lengths of permutations from two different permutation groups *did* match, composing them could produce a permutation outside of either permutation group, which is a logic error. Mitigating this by checking permutation group membership every function call is a very expensive operation. This is an example of the "practical scenario" I mentioned beforehand.
 
-We will analyze different approaches that ensure our library only permits permutation composition from the same permutation group. Each has their own trade-offs, but are all right answers for their own dedicated situations.
+We will analyze different approaches that ensure our library only permits permutation composition from the same permutation group. Each has their own trade-offs, but are all right answers for their own dedicated situations. They will also lay the groundwork to justify using the generativity pattern. All the code segments provided in this article can be found [here](https://github.com/ArhanChaudhary/generativity-pattern-rs).
+
+# The unsafe approach
 
 The simplest solution is to mark `compose_into` unsafe.
 
@@ -184,7 +186,11 @@ impl Permutation {
 }
 ```
 
-If you don't care about unsafe—and there are valid reasons not to—then this might be what you want. That said, it's not always going to be this simple. What if you introduce a new trait, `ComposablePermutation`, that generalizes over different permutation representations? For example, the `PSHUFB` instruction can compose two permutations in a single clock cycle if they have less than sixteen elements.
+Although the extent of the undefined behavior with permutation composition is just the bounds checking, the goal of this approach is to enforce permutation group membership. Thus, the safety contract is made more restrictive to reflect this idea. This usage of unsafe is nebulous. For permutations of the same length that violate the safety contract, composition is a logic error, but not technically unsafe. Sure, you might panic later on or get some other issue, but this alone will never violate the memory rules.
+
+To play devil's advocate, one may consider producing an invalid value from this type of composition undefined behavior, since we only care about composition within the same permutation group. With the safety contract's additional restriction, all calling code no longer has to handle this logic error while gaining the benefit of this assumption. It is [generally agreed upon](https://users.rust-lang.org/t/should-i-use-unsafe-merely-to-encourage-users-to-maintain-invariants/27856) that unsafe should not be used for the sole purpose of maintaining validity invariants. Personally, I believe this use of unsafe is warranted. I encourage you to have your own opinion.
+
+If you don't care about using unsafe—and there are valid reasons not to—then this might be what you want. That said, it's not always going to be this simple. What if you introduce a new trait, `ComposablePermutation`, that generalizes over different permutation representations? For example, the `PSHUFB` instruction can compose two permutations in a single clock cycle if they have less than sixteen elements.
 
 ```rust
 pub trait ComposablePermutation: Clone {
@@ -194,7 +200,6 @@ pub trait ComposablePermutation: Clone {
     ///
     /// `self`, `b`, and `into` must all be from the same permutation group.
     unsafe fn compose_into(&self, b: &Self, into: &mut Self);
-
     /// # Safety
     ///
     /// `self` and `b` must both be from the same permutation group.
@@ -210,11 +215,13 @@ impl ComposablePermutation for Permutation {
 }
 ```
 
-The consequences of using unsafe begin to show. Because our generic `Permutation` implements `ComposablePermutation`, and we have proved permutation composition from different permutation groups is unsound, `compose_into` must be made unsafe at the trait level. Rust doesn't allow us to only make `Permutation`'s implementation unsafe; either all implementors must be made unsafe, or none at all. In a library *about* permutation composition, we have now forced our users to wrangle with unsafe for its most essential operation. Not just with `Permutation::compose_into`, but with all of their own implementations of `ComposablePermutation`.
+The consequences of using unsafe begin to show. Because our generic `Permutation` implements `ComposablePermutation`, and we have shown that permutation composition from different permutation groups is unsound, `compose_into` must be made unsafe at the trait level. Rust doesn't allow us to only make `Permutation`'s implementation unsafe; either all implementors must be made unsafe, or none at all. In a library *about* permutation composition, we have now forced our users to wrangle with unsafe for its most essential operation. Not just with `Permutation::compose_into`, but with all of their own implementations of `ComposablePermutation`.
 
 *"That is completely unfair!"* You might say. *"This is a small edge condition I don't care about. I'm going to mark this trait method safe anyways."* Well, the Rust community generally has a zero-tolerance stance on undefined behavior; the last time someone wanted to mark an unsound method safe, [it didn't end very well](https://github.com/ogxd/gxhash/issues/82#issuecomment-2257578785).
 
-The second approach is to use a private integer identifier and validate *upfront* that a set of permutations to avoid the TODO avoid unsafe, If you've read this far and are still interested, I encourage you to internalize
+# The atomic ID approach
+
+The second approach is to validate input permutations *upfront* and use a private integer to uniquely associate them to a permutation group. This simplifies the test for permutation group membership to a cheap integer comparison. Code often speaks louder than words, so I have provided the full implementation of this approach which will be followed by an analysis on its significance. I really encourage you to internalize how this works and think about why this sound.
 
 ```rust
 use std::sync::atomic::{AtomicU64, Ordering::Relaxed};
@@ -262,19 +269,15 @@ impl PermGroup {
 pub struct Permutation(Box<[usize]>, u64);
 
 impl Permutation {
-    pub(crate) fn from_mapping(mapping: Vec<usize>, id: u64) -> Result<Permutation, &'static str> {
+    pub(crate) fn from_mapping(mapping: Vec<usize>, id: u64) -> Result<Self, &'static str> {
         // ... validate that `mapping` is a valid permutation
         // that is a member of this group
         Ok(Permutation(mapping.into_boxed_slice(), id))
     }
 
-    pub fn compose_into(
-        &self,
-        b: &Permutation,
-        into: &mut Permutation,
-    ) -> Result<(), &'static str> {
+    pub fn compose_into(&self, b: &Self, into: &mut Self) -> Result<(), &'static str> {
         if self.1 != b.1 || self.1 != into.1 {
-            return Err("Permutations must come from the same group");
+            return Err("Permutations must come from the same permutation group");
         }
         for i in 0..into.0.len() {
             unsafe {
@@ -284,7 +287,7 @@ impl Permutation {
         Ok(())
     }
 
-    pub fn compose(&self, b: &Permutation) -> Result<Permutation, &'static str> {
+    pub fn compose(&self, b: &Self) -> Result<Self, &'static str> {
         let mut result = Permutation(vec![0; self.0.len()].into_boxed_slice(), self.1);
         self.compose_into(b, &mut result)?;
         Ok(result)
@@ -292,7 +295,19 @@ impl Permutation {
 }
 ```
 
-generativity
+(WIP from here on)
+
+Permutation takes Id instead of PermGroup
+
+No longer as contentious, the Rust standard library seems to [agree](https://doc.rust-lang.org/std/string/struct.String.html#method.from_utf8_unchecked).
+
+# The generativity approach
+
+The fundamental problem is that the validity invariant of `Permutation` guarantees it is a valid permutation, but not that it is associated with a specific `PermGroup`.
+
+'id is contagious
+
+What would really be nice is an *infallible* composition operation; one that we can guarantee is correct at the type level.
 
 ```rust
 use generativity::{Guard, Id};
@@ -329,8 +344,7 @@ impl<'id> PermGroup<'id> {
         mapping: Vec<usize>,
     ) -> Result<Permutation<'id>, &'static str> {
         let permutation = Permutation::from_mapping(mapping, self.id)?;
-        // ... validate that `permutation` is a member of
-        // this group
+        // ... validate that `permutation` is a member of this group
         Ok(permutation)
     }
 
@@ -344,10 +358,10 @@ pub struct Permutation<'id>(Box<[usize]>, Id<'id>);
 impl<'id> Permutation<'id> {
     pub(crate) fn from_mapping(mapping: Vec<usize>, id: Id<'id>) -> Result<Self, &'static str> {
         // ... validate that `mapping` is a valid permutation
-        Ok(Permutation(mapping.into_boxed_slice(), id))
+        Ok(Self(mapping.into_boxed_slice(), id))
     }
 
-    pub fn compose_into(&self, b: &Permutation<'id>, into: &mut Permutation<'id>) {
+    pub fn compose_into(&self, b: &Self, into: &mut Self) {
         for i in 0..into.0.len() {
             unsafe {
                 *into.0.get_unchecked_mut(i) = *self.0.get_unchecked(*b.0.get_unchecked(i));
@@ -355,83 +369,99 @@ impl<'id> Permutation<'id> {
         }
     }
 
-    pub fn compose(&self, b: &Permutation<'id>) -> Permutation<'id> {
+    pub fn compose(&self, b: &Self) -> Self {
         let mut result = Permutation(vec![0; self.0.len()].into_boxed_slice(), self.1);
         self.compose_into(b, &mut result);
         result
     }
 }
-
 ```
+
+It's useful anytime you want to guarantee that two values come from or refer to the same source. Then give a list of bullet points that all need to be true to use generativity
+
+Lifetimes in Rust are usually used to track the scopes during which mutable and
+shared references are valid, but in the case of GhostCell and GhostToken, the brand lifetime 'id
+is not actually used as a lifetime rather, it merely serves as a static representative of the collection
+to which all the nodes of type `GhostCell<'id, _>` belong.
+
+This may be old news to some, `BrandedVec` & GhostCell
+
+"This implies that we, as the developer of the library, have
+the obligation to prove that such accesses are actually safe under all possible interactions with well-typed clients."
+
+Does not use a closure
+
+[Aria Desires' Master's thesis](https://raw.githubusercontent.com/Gankro/thesis/master/thesis.pdf)
+"Hacking Generativity into Rust", right before she says "we really don’t recommend doing this".
 
 <Aside>
 
-As this StackOverflow user [points out](https://stackoverflow.com/questions/76847647/compile-time-tracking-of-value-owner-with-lifetimes), you can achieve something similar using anonymous "invariant token" unit structs.
+As this StackOverflow user [points out](https://stackoverflow.com/a/76876800), you can achieve something similar using an anonymous "invariant token" unit struct and a macro to create the permutation group. Successive calls to this macro will create permutation groups with a unique brand.
 
 ```rust
 #[macro_export]
 macro_rules! new_perm_group {
-    ($($args:tt)*) => {
+    ($len:expr, $mappings:expr) => {{
+        let len = $len;
+        let mappings = $mappings;
+        struct InvariantToken;
+        // SAFETY: private API, only used in this macro
         unsafe {
-            struct InvariantToken;
-            $crate::PermGroup::<InvariantToken>::new($($args)*)
+            $crate::PermGroup::<InvariantToken>::new(len, mappings)
         }
-    }
+    }};
 }
 ```
-
-This is unsound with question. No point endorsing this approach.
 
 ```rust
-// let p1 = new_perm_group!(3, vec![vec![2, 0, 1]]).unwrap();
-// let p2 = new_perm_group!(4, vec![vec![1, 2, 0, 3]]).unwrap();
-// p1.base_permutations()[0].compose(&p2.base_permutations()[0]);
-let mut a = vec![];
-for args in [(3, vec![vec![2, 0, 1]]), (4, vec![vec![1, 2, 0, 3]])] {
-    a.push(new_perm_group!(args.0, args.1).unwrap());
-}
-a[1].base_permutations()[0].compose(&a[0].base_permutations()[0]);
+let first_perm_group = new_perm_group!(4, vec![vec![1, 2, 0, 3]]).unwrap();
+let second_perm_group = new_perm_group!(3, vec![vec![2, 0, 1]]).unwrap();
+let first_perm = &first_perm_group.base_permutations()[0];
+let second_perm = &second_perm_group.base_permutations()[0];
+
+first_perm.compose(second_perm); // Compile error!
 ```
+
+The flaw is quite subtle. This [implementation](https://github.com/ArhanChaudhary/generativity-pattern-rs/blob/main/src/6-unsound-token.rs) creates a token per-*call* instead of per-*owner*. If you can create multiple owners in the same macro call, it will give each the same brand.
+
+```rust
+let first = (4, vec![vec![1, 2, 0, 3]]);
+let second = (3, vec![vec![2, 0, 1]]);
+
+let perm_groups = [first, second]
+    .into_iter()
+    .map(|(len, mappings)| new_perm_group!(len, mappings).unwrap())
+    .collect::<Vec<_>>();
+let first_perm = &perm_groups[0].base_permutations()[0];
+let second_perm = &perm_groups[1].base_permutations()[0];
+
+first_perm.compose(second_perm); // No compile error, UB!
+```
+
+We have just invoked undefined behavior from safe user-facing code. This is unsound with question, and there is no point endorsing this approach. This offers another perspective as to why `generativity`'s lifetimes are so restrictive;
 
 </Aside>
 
+# Benchmarks
+
+No comparison would be complete without a benchmark. Yes, the point of the generativity pattern is more fundamental than just speed, but I know what people want. I statically generated two random length-fifteen permutations and wrote a Criterion benchmark for all five approaches to permutation composition.
+
 | Benchmark Name | Time (ns)
 | - | -
-| 1-slice | 46.907
-| 2-newtype | 4.246
-| 4-atomic-id | 4.060
-| 5-generativity | 3.546
-| 3-unsafe-trait | 3.534
+| 1-slice | 14.805
+| 2-newtype | 4.257
+| 4-atomic-id | 3.940
+| 5-generativity | 3.604
+| 3-unsafe-trait | 3.602
+
+Empirically, this validates all of my observations. The naive `1-slice` is the slowest because it checks every permutation for complete validity. `2-newtype` removes most of the validation overhead. Admittedly this is good enough; you would only care about the other solutions if you could prove that permutation composition was the bottleneck. `4-atomic-id` replaces the validation with a simple integer comparison, making it marginally faster. Finally, `5-generativity` and `3-unsafe-trait` emerge the fastest because they avoid validation entirely. The important difference: `3-unsafe-trait` marks permutation composition unsafe while `5-generativity` does not.
 
 # How does generativity work?
 
-SCRATCH NOTES:
+Generativity is a limited system that can solve some of the problems usually re-served for dependent typing.
 
-It is [generally agreed upon](https://users.rust-lang.org/t/should-i-use-unsafe-merely-to-encourage-users-to-maintain-invariants/27856) that unsafe should not be used for the sole purpose of maintaining validity invariants.
+# Closing thoughts
 
-sticker the cube facelets
+Do not feel let down—there is a good chance you learned something new from our comprehensive survey of design patterns.
 
-underscore that unsafe is to find the location of the error
-
-Permutation takes Id instead of PermGroup
-
-The fundamental problem is that the validity invariant of `Permutation` guarantees it is a valid permutation, but not that it is associated with a specific `PermGroup`.
-
-What would really be nice is an *infallible* composition operation; one that we can guarantee is correct at the type level.
-It's useful anytime you want to guarantee that two values come from or refer to the same source. Then give a list of bullet points that all need to be true to use generativity
-
-BrandedVec "This implies that we, as the developer of the library, have
-the obligation to prove that such accesses are actually safe under all possible interactions with
-well-typed clients." This is not so simple
-
-Does not use a closure
-
-Generativity in the wild:
-https://docs.rs/async-local/6.0.2/src/async_local/lib.rs.html#1-354
-
-[Aria Desires's Master's thesis](https://raw.githubusercontent.com/Gankro/thesis/master/thesis.pdf)
-"Hacking Generativity into Rust", right before she says "we really don’t recommend doing this".
-
-Generativity is a limited system that can solve some of the problems usually re-served for dependent typing. Rust was not designed to support this
-
-https://stackoverflow.com/a/75233099/12230735
+This concludes my first technical write-up on my blog. I am myself relatively new to Rust, so please let me know your thoughts! Until next time!
