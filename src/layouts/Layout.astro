@@ -7,10 +7,9 @@ const sshUsers = [
   "home",
   "blog",
   "projects",
+  "cubing",
   "ctf",
   "reading",
-  "cubing",
-  "media",
   "nuclear-bomb",
 ] as const;
 
@@ -224,10 +223,9 @@ const highlightIndex = sshUsers.indexOf(sshUser);
             "Home",
             "Blog",
             "Projects",
+            "Cubing",
             "CTFing",
             "Reading",
-            "Cubing",
-            "Media",
           ].map((name, i) => (
             <a
               href={i === 0 ? "/" : `/${mySlugify(name)}/`}

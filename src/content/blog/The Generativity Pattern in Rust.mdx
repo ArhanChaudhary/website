@@ -8,9 +8,9 @@ import PermutationExample from "../../assets/blog/The Generativity Pattern in Ru
 
 # Background
 
-The *generativity pattern* in Rust is a combination of [typestate](https://cliffle.com/blog/rust-typestate/) and [GhostCell](https://plv.mpi-sws.org/rustbelt/ghostcell/), techniques that eliminate runtime overhead through compile-time safety guarantees. This pattern is not commonplace; its usage warrants a specific set of circumstances. Aside from thinly spread (but admittedly well-written) academic literature, I haven't a found an accessible analysis of this pattern online. Contrary to its name, this post won't be about the generativity pattern until the end. In order to build up a full picture of the "what," and more importantly the "why," we will walk through a realistic example to gradually build an intuition of the type of problem generativity can solve.
+The *generativity pattern* in Rust is a combination of [typestate](https://cliffle.com/blog/rust-typestate/) and [GhostCell](https://plv.mpi-sws.org/rustbelt/ghostcell/), techniques that eliminate runtime overhead through compile-time safety guarantees. This pattern is not commonplace; its usage warrants a specific set of circumstances. Aside from thinly spread (but admittedly well-written) academic literature, I haven't a found an accessible analysis of this pattern online. In order to build up a full picture of the "what" and more importantly the "why," we will first walk through a realistic example to gauge the type of problem generativity can solve. The latter half of this article will explain how to use the generativity pattern and then introduce a novel approach to creating unique "lifetime brands."
 
-Let's take the role of a crate author about permutations. We want to investigate the [composition](https://en.wikipedia.org/wiki/Permutation_group#Composition_of_permutations–the_group_product) of permutations. This can be expressed nicely visually.
+Let us take the role of a crate author about permutations. We want to investigate the [composition](https://en.wikipedia.org/wiki/Permutation_group#Composition_of_permutations–the_group_product) of permutations. This can be expressed nicely visually.
 
 <PermutationExample />
 
@@ -98,9 +98,9 @@ Yes, these aren't *important* problems per se, but they are still inconveniences
 
 We now want to extend our library to model a [permutation group](https://en.wikipedia.org/wiki/Permutation_group), or just a collection of a bunch of permutations. In a permutation group, every permutation can be written as a sequence of compositions of base permutations, which we will use to represent the entire collection. For example, the manipulations of the Rubik's Cube form a permutation group. Its base permutations are the six face rotations. Therefore, every possible state on the Rubik's cube can be reached from a combination of those face rotations. The illustrated turn is a permutation fifty-four elements long, because there are fifty-four stickers on a Rubik's cube <sup id="1-back"><a href="#1">1</a></sup>.
 
-<ContentImage src={stickeredCube} width="300" alt="The solved Rubik's cube" />
+<ContentImage src={stickeredCube} width="600" visualWidth="300" alt="The solved Rubik's cube" />
 
-It follows that if you compose two permutations in a permutation group, the resulting permutation will also be a permutation in that group. The reasoning is not so relevant; take this at face value.
+It follows that if you compose two permutations in a permutation group, the resulting permutation will also be a permutation in that group. The reasoning is not so relevant—take this at face value.
 
 A reasonable data structure for permutation groups looks like this:
 
@@ -162,7 +162,7 @@ All of a sudden, we've opened up an unsafety hole! We implicitly assumed that th
 
 There is a more fundamental reason to care. An invariant of permutation composition within the same permutation group is membership; if the permutations to compose are in the same permutation group, the resulting permutation is also in that group. Even if the lengths of permutations from two different permutation groups *did* match, composing them could produce a permutation outside of either permutation group, which is a logic error. Mitigating this by checking permutation group membership every function call is a very expensive operation. This is an example of the "practical scenario" I mentioned beforehand.
 
-We will analyze different approaches that ensure our library only permits permutation composition from the same permutation group. Each has their own trade-offs, but are all right answers for their own dedicated situations. They will also lay the groundwork to justify using the generativity pattern. All the code segments provided in this article can be found [here](https://github.com/ArhanChaudhary/generativity-pattern-rs).
+We will analyze different approaches that ensure our library only permits permutation composition within the same permutation group. Each has their own trade-offs, but are all right answers for their own dedicated situations. They will also lay the groundwork to justify using the generativity pattern. All the code segments provided in this article can be found [here](https://github.com/ArhanChaudhary/generativity-pattern-rs).
 
 # The unsafe approach
 
@@ -323,6 +323,10 @@ THIS SECTION IS WIP
 
 Let us briefly review how this works.
 
+Since borrowck doesn't do interprocedural analysis, it
+    // sees every call to this function produces values with some opaque
+    // fresh lifetime and can't unify any of them.
+
 You may be wondering about the point of `PermGroup::permutation_from_mapping`
 
 There are a few significant remarks worth being made.
@@ -345,7 +349,7 @@ The fundamental problem is that the invariant of `Permutation` guarantees it is 
 
 'id is contagious
 
-What would really be nice is an *infallible* composition operation; one that we can guarantee is correct at the type level.
+What would really be nice is an *infallible* composition operation—one that we can guarantee is correct at the type level.
 
 ```rust
 use generativity::{Guard, Id};
@@ -457,7 +461,7 @@ the obligation to prove that such accesses are actually safe under all possible 
 Does not use a closure
 
 [Aria Desires' Master's thesis](https://raw.githubusercontent.com/Gankro/thesis/master/thesis.pdf)
-"Hacking Generativity into Rust", right before she says "we really don’t recommend doing this".
+"Hacking Generativity into Rust", right before she says "we really don't recommend doing this".
 
 <Aside>
 
@@ -487,7 +491,7 @@ let second_perm = &second_perm_group.base_permutations()[0];
 first_perm.compose(second_perm); // Compile error!
 ```
 
-The flaw is quite subtle. The [implementation](https://github.com/ArhanChaudhary/generativity-pattern-rs/blob/main/src/6-unsound-token.rs) creates a token per-*call* instead of per-*owner*. Every expression results in a particular type; if the macro call is ran more than once, it will produce the same type. This can be exploited to give multiple owners the same brand.
+The flaw is quite subtle. The [implementation](https://github.com/ArhanChaudhary/generativity-pattern-rs/blob/main/src/6-unsound-token.rs) creates a token per-*call* instead of per-*owner*. Every expression results in a particular type; if the same macro is ran more than once, it will produce the same type. This can be exploited to give multiple owners the same brand.
 
 ```rust
 let first = (4, vec![vec![1, 2, 0, 3]]);
@@ -503,11 +507,82 @@ let second_perm = &perm_groups[1].base_permutations()[0];
 first_perm.compose(second_perm); // No compile error, UB!
 ```
 
-We have just invoked undefined behavior from safe user-facing code. This is unsound with question. There is no point in endorsing this approach.
+We have just invoked undefined behavior from safe user-facing code. This is unsound without question. A possible remedy is to toggle a static `AtomicBool` inside the macro and use it to panic at runtime if the same macro is reinvoked. This only creates a strictly worse version of `generativity`. There is no point in endorsing this approach.
 
 This offers another perspective as to why `generativity`'s invariant lifetimes cannot escape their scope. If this were possible, we would have the exact same unsoundness problem.
 
 </Aside>
+
+# How does generativity work?
+
+Generativity is a limited system that can solve some of the problems usually re-served for dependent typing.
+
+Those familiar with generativity and type systems may see that
+we are ultimately just applying an age-old trick: universal types and
+functions can be combined to construct existential types. In this case
+where `F: for<'id> FnOnce(Array<'arr, 'id>)` is declaring that the
+function F is universal over all lifetimes that can be chosen for id. The
+body of any function that satisfies this signature must work with any
+id it receives opaquely. In effect, it knows that there exists a lifetime,
+and nothing else.
+
+I changed just [nine lines](https://github.com/ArhanChaudhary/generativity-pattern-rs/commit/806c8bef89b1d0c0621db42c130856bf33fffb9f) of code from [GhostCell's implementation](https://plv.mpi-sws.org/rustbelt/ghostcell/paper.pdf) of `BrandedVec` to simplify the API using generativity
+
+before:
+
+```rust
+let vec1: Vec<u8> = vec![10, 11];
+let vec2: Vec<u8> = vec![20, 21];
+
+BrandedVec::new(vec1, move |mut bvec1: BrandedVec<u8>| {
+    bvec1.push(12);
+    let i1 = bvec1.push(13);
+    let _idx = bvec1.get_index(0).unwrap();
+    BrandedVec::new(vec2, move |mut bvec2: BrandedVec<u8>| {
+        let i2 = bvec2.push(22);
+        println!("{:?}", bvec2.get(i2)); // No bound check! Prints 22
+        *bvec2.get_mut(i2) -= 1; // No bound check!
+        println!("{:?}", bvec2.get(i2)); // Prints 21
+        println!("{:?}", bvec1.get(i1)); // Prints 13
+        // rejected: i1 is not an index of bvec2
+        // println!("{:?}", bvec2.get(i1));
+    });
+});
+```
+
+after:
+
+```rust
+let vec1: Vec<u8> = vec![10, 11];
+let vec2: Vec<u8> = vec![20, 21];
+
+let guard1 = make_guard!();
+let mut bvec1 = BrandedVec::new(vec1, guard1);
+bvec1.push(12);
+let i1 = bvec1.push(13);
+let _idx = bvec1.get_index(0).unwrap();
+
+let guard2 = make_guard!();
+let mut bvec2 = BrandedVec::new(vec2, guard2);
+let i2 = bvec2.push(22);
+println!("{:?}", bvec2.get(i2)); // No bound check! Prints 22
+*bvec2.get_mut(i2) -= 1; // No bound check!
+println!("{:?}", bvec2.get(i2)); // Prints 21
+println!("{:?}", bvec1.get(i1)); // Prints 13
+// rejected: i1 is not an index of bvec2
+// println!("{:?}", bvec2.get(i1));
+```
+
+there is a tiny movement to make it a bit more ergonomic https://github.com/rust-lang/rust/issues/135806
+
+the make_guard!() macro creates an `Id<'id>` but also an `&'id Id<'id>` in the same scope
+this forces the drop time of `'id` to be "in between" `&'id Id<'id>` and `Id<'id>`
+since they are both in the same scope this "in between" area has no actual realization in the source code
+This creates an invariant lifetime `'id` here, and ties it to the borrow of tag, which must live until the end of the current scope. i.e., we must have `&'id Id<'id>` at the make_guard! location, and have `&'id Id<'id>` at the drop location for make_guard!, where `'id` is an invariant lifetime
+tag and _guard together guarantee that `'id` lives to a drop point that is different from the drop point of any other make_guard! created lifetime, so unifying the two lifetimes would be incorrect. It's also very important that neither tag nor _guard are leaked from our protected hygiene, as if they could be manipulated, the drop timing could potentially be changed.
+no lifetime can unify with `'id` unless it can end in the same region.
+
+Why the `make_guard!(guard)` macro? super let
 
 # Benchmarks
 
@@ -521,24 +596,11 @@ No comparison would be complete without a benchmark. Yes, the point of the gener
 | 5-generativity | 3.604     |
 | 3-unsafe-trait | 3.602     |
 
-Empirically, this validates all of my observations. The naive `1-slice` is the slowest because it checks every permutation for complete validity. `2-newtype` removes most of the validation overhead. Admittedly this is good enough; you would only care about the other solutions if you could prove that permutation composition was the bottleneck. `4-atomic-id` replaces the validation with a single integer comparison, making it marginally faster. Finally, `5-generativity` and `3-unsafe-trait` emerge the fastest because they avoid validation entirely. The important difference: `3-unsafe-trait` marks permutation composition unsafe while `5-generativity` does not.
-
-# How does generativity work?
-
-Generativity is a limited system that can solve some of the problems usually re-served for dependent typing.
-
-the make_guard!() macro creates an `Id<'id>` but also an `&'id Id<'id>` in the same scope
-this forces the drop time of `'id` to be "in between" `&'id Id<'id>` and `Id<'id>`
-since they are both in the same scope this "in between" area has no actual realization in the source code
-This creates an invariant lifetime `'id` here, and ties it to the borrow of tag, which must live until the end of the current scope. i.e., we must have `&'id Id<'id>` at the make_guard! location, and have `&'id Id<'id>` at the drop location for make_guard!, where `'id` is an invariant lifetime
-tag and _guard together guarantee that `'id` lives to a drop point that is different from the drop point of any other make_guard! created lifetime, so unifying the two lifetimes would be incorrect. It's also very important that neither tag nor _guard are leaked from our protected hygiene, as if they could be manipulated, the drop timing could potentially be changed.
-no lifetime can unify with `'id` unless it can end in the same region.
-
-Why the `make_guard!(guard)` macro? super let
+Empirically, this validates all of my observations. The naive `1-slice` is the slowest because it checks every permutation for complete validity during composition. `2-newtype` removes most of the validation overhead. Admittedly this is good enough; you would only care about the other solutions if you could prove that permutation composition was the bottleneck. `4-atomic-id` replaces the validation with a single integer comparison, making it marginally faster. Finally, `5-generativity` and `3-unsafe-trait` emerge the fastest because they avoid validation entirely. The important difference: `3-unsafe-trait` marks permutation composition unsafe while `5-generativity` does not.
 
 # Closing thoughts
 
-I hope your found our little survey of design patterns interesting. While generativity is indeed a flashy approach to the problem it is trying to solve, . Do not feel let down—I am almost certain you learned something new about writing Rust.
+I hope your found our little survey of design patterns interesting
 
 This concludes the first technical write-up on my blog. I came into this topic with a surface level understanding of what `generativity` is and how it works. I was not expecting this to take two weeks of research and writing, and I was entirely unprepared for how interesting the full story would be. My posts only get more fun to write.
 
@@ -546,4 +608,4 @@ Thank you for reading this far. Until next time!
 
 <hr />
 
-<sup id="1">1</sup> The center stickers don't actually move, and thus can be ignored, so the illustrated turn is usually simplified to a permutation forty-eight elements long. <a href="#1-back" class="back-arrow">↩</a>
+<sup id="1">1</sup> The center stickers don't actually move, and thus can be ignored, so the illustrated turn is traditionally simplified to a permutation forty-eight elements long. <a href="#1-back" class="back-arrow">↩</a>
