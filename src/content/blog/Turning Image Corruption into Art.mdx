@@ -20,7 +20,7 @@ First, I needed a target image to work with, ideally something with interesting 
     desc="This marvelous composition has no idea what it's about to go through"
 />
 
-Perfect! Now, a simple Python script to perform our byte-hacking with some error checking does the trick.
+Perfect! Now, a simple Python script to perform our byte-hacking does the trick, using ffmpeg to perform some error checking.
 
 `image_corrupt.py`
 
@@ -126,7 +126,7 @@ However, most of my experimentation with this approach was uninteresting. ffmpeg
     desc="ffmpeg's entire 30 second video is a green screen with occasional flickering"
 />
 
-Alternatively, you could first use ImageMagick to convert the images to a GIF and then use ffmpeg to convert that GIF to a video. Yes, this was literally the only intermediary step I could get working. The plan isn't entirely foolproof. Despite the error checking, some of the generated images were still invalid. I figured out that feeding each image one-by-one into ffmpeg repaired them enough to shut up ImageMagick's complaints without compromising the image data. [Thanks](https://stackoverflow.com/a/23309346) [kind](https://stackoverflow.com/a/50554953) [strangers](https://superuser.com/a/1261681). I love the Internet!
+Alternatively, you could first use ImageMagick to convert the images to a GIF and then use ffmpeg to convert that GIF to a video. Yes, this was literally the only intermediary step I could get working. The plan isn't entirely foolproof. Despite the error checking from ffmpeg, some of the generated images were still invalid. I figured out that re-feeding each image one-by-one into ffmpeg repaired them enough to shut up ImageMagick's complaints without compromising the image data. [Thanks](https://stackoverflow.com/a/23309346) [kind](https://stackoverflow.com/a/50554953) [strangers](https://superuser.com/a/1261681). I love the Internet!
 
 `image_corrupt.sh`
 
@@ -163,7 +163,7 @@ echo
 echo Done! Generated "$base".gif and "$base".mp4 in the directory "${ext}s".
 ```
 
-Despite the apparent complexity, most of what you're about to see was produced by this manically cursed workaround. Compared to ffmpeg, ImageMagick was far less pedantic about repairing images, so the results turned out more visually interesting.
+Despite the apparent complexity, most of what you're about to see was produced by this cursed workaround. Compared to ffmpeg, ImageMagick was far less pedantic about repairing images, so the results turned out more visually interesting.
 
 With everything in hand, off to the races! First up, PNG.
 

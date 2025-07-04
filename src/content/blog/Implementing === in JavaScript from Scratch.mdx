@@ -3,13 +3,13 @@ url: implementing-strict-equality-in-javascript-from-scratch
 pubDate: 2024-08-17T08:00:00
 description: Object reference comparison on Chromium<=103
 ---
-{/* cspell:ignore xattr extensios reimplementation */}
+{/* cspell:ignore xattr reimplementation extensio */}
 
 Yes, I know exactly what you're thinking.
 
 > Reinventing the wheel? That's the most moronic idea I've ever heard since that guy who wanted to invade Russia in the winter.
 
-And you're not wrong. For all practical purposes, this blog is pointless. I hate to break it to you, but what you're about to read is so obscenely nutty that it only works on a legacy version of Chromium as an extension running millions of times slower.
+And you're not wrong. For all practical purposes, this blog is pointless. What you're about to read is so obscenely nutty that it only works on a legacy version of Chromium as an extension running millions of times slower.
 
 The strict equality operator in JavaScript (===) compares two values for object equality. As you probably already know, this operator tests reference equality for non-primitive JavaScript values. In effect, because `{ foo: 42 } === { foo: 42 }` is `false`, reimplementing spec-compliant functionality becomes much more interesting. I'm not talking about the obvious ways. Various other built-ins make object reference comparison trivial.
 
@@ -53,7 +53,7 @@ await Main.MainImpl.sendOverProtocol('Emulation.setDeviceMetricsOverride', {
 const data = await Main.MainImpl.sendOverProtocol("Page.captureScreenshot");
 ```
 
-This requires explicit access to DevTools and some setup, meaning it wouldn't work plainly on a website. The alternative option is the `chrome.debugger` API within a Chrome extension. Although this would be a bit harder to use, it was actually programmatic and eventually the option I worked with.
+This requires explicit access to DevTools and some setup, meaning it wouldn't work plainly on a website. The alternative option is the `chrome.debugger` API within a Chrome extension. Although this would be a bit harder to use, it was actually programmatic and eventually the option I chose to work with.
 
 I hacked up a Chrome extension but was surprised when my testing errored with the following message.
 
@@ -63,7 +63,7 @@ I hacked up a Chrome extension but was surprised when my testing errored with th
 
 What's going on here? As it turns out, internal documentation reveals that specific protocol domains including the heap profiler are restricted for security reasons.
 
-> However, since the protocol is also exposed to chrome extensions through chrome.debugger API, the backend implements additional access control in some of the methods to prevent extensios form accessing file system or otherwise escaping the sandbox. These restrictions are not extended to other types of clients.
+> However, since the protocol is also exposed to chrome extensions through chrome.debugger API, the backend implements additional access control in some of the methods to prevent extensio[n]s form accessing file system or otherwise escaping the sandbox. These restrictions are not extended to other types of clients.
 
 [Here](https://chromium.googlesource.com/v8/v8/+/c42e620355453fc0510b06e089ca7d92598bd54f%5E%21/) is the v8 commit that adds these restrictions, dating back to May 2022 and Chromium version v104. The solution to our dilemma, you guessed it, is time travel.
 
@@ -71,7 +71,7 @@ Google doesn't distribute legacy versions of Chrome. We'll have to be a bit more
 
 My extension didn't initially work because global content scripts were only supported in Chromium v111 and later, so I had to resort to an [older](https://stackoverflow.com/questions/9602022/chrome-extension-retrieving-global-variable-from-webpage/9636008#9636008) content script hack to get it to work.
 
-That was a lot, let's take a small step back. To reiterate, the goal is to implement a spec-compliant strict equality operation in JavaScript from scratch. We've found a version of Chromium that enables programmatic access to the DevTools heap profiler. Let's build the bridge between the CDP and JavaScript object memory addresses.
+That was a lot; let's take a small step back. To reiterate, the goal is to implement a spec-compliant strict equality operation in JavaScript from scratch. We've found a version of Chromium that enables programmatic access to the DevTools heap profiler. Let's build the bridge between the CDP and JavaScript object memory addresses.
 
 A good place to start is the `HeapProfiler.takeHeapSnapshot` method. This will profile the *entire* page, and is obviously cumbersome, but whatever. Next, the `Runtime.evaluate` method creates a unique object identifier from the evaluation result of a stringified JavaScript expression. The caveat is that this only evaluates the global scope, coercing some really bizarre JavaScript.
 
