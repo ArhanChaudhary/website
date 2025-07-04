@@ -5,13 +5,13 @@ description: AVIF made dead-simple
 
 Thanks to my friend [Eric](https://ericswpark.com/) for telling me about this! If you use [Astro](https://astro.build/), the web framework this site is built on, there is a sweet drop-in replacement for the `<Image>` component that offers better compression:
 
-```diff
--<Image
-+<Picture
-+    formats={["avif", "webp"]}
-     src={penguinSrc}
-     alt="A very cool penguin!"
- />
+```jsx
+<Image // [!code --]
+<Picture // [!code ++]
+    formats={["avif", "webp"]} // [!code ++]
+    src={penguinSrc}
+    alt="A very cool penguin!"
+/>
 ```
 
 Better, you can create a light component wrapper around this technique called `<ContentImage>` to encapsulate the `formats` parameter.

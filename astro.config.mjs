@@ -3,6 +3,7 @@ import remarkToc from "remark-toc";
 import robotsTxt from "astro-robots-txt";
 import sitemap from "@astrojs/sitemap";
 import remarkAutoImport from "./remark-auto-import/remark-auto-import.ts";
+import { transformerNotationDiff } from "@shikijs/transformers";
 import mdx from "@astrojs/mdx";
 import { typst } from "astro-typst";
 
@@ -12,7 +13,27 @@ export default defineConfig({
   integrations: [
     robotsTxt(),
     sitemap(),
-    mdx(),
+    mdx({
+      remarkPlugins: [remarkToc, remarkAutoImport],
+      shikiConfig: {
+        transformers: [
+          transformerNotationDiff({
+            matchAlgorithm: "v3",
+          }),
+        ],
+        theme: "catppuccin-mocha",
+        // theme: "tokyo-night",
+        // theme: "material-theme-ocean",
+        // theme: "kanagawa-wave",
+        // theme: "plastic",
+        // theme: "one-dark-pro",
+      },
+      remarkRehype: {
+        clobberPrefix: "fn",
+        footnoteLabel: "",
+        footnoteBackLabel: "Back to reference 1",
+      },
+    }),
     typst({
       options: {
         remPx: 14,
@@ -23,17 +44,6 @@ export default defineConfig({
       },
     }),
   ],
-  markdown: {
-    remarkPlugins: [remarkToc, remarkAutoImport],
-    shikiConfig: {
-      theme: "catppuccin-mocha",
-      // theme: "tokyo-night",
-      // theme: "material-theme-ocean",
-      // theme: "kanagawa-wave",
-      // theme: "plastic",
-      // theme: "one-dark-pro",
-    },
-  },
   experimental: {
     fonts: [
       {

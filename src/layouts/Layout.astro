@@ -219,21 +219,16 @@ const highlightIndex = sshUsers.indexOf(sshUser);
       </label>
       <div id="nav-grid">
         {
-          [
-            "Home",
-            "Blog",
-            "Projects",
-            "Cubing",
-            "CTFing",
-            "Reading",
-          ].map((name, i) => (
-            <a
-              href={i === 0 ? "/" : `/${mySlugify(name)}/`}
-              class={highlightIndex === i ? "white" : undefined}
-            >
-              {name}
-            </a>
-          ))
+          ["Home", "Blog", "Projects", "Cubing", "CTFing", "Reading"].map(
+            (name, i) => (
+              <a
+                href={i === 0 ? "/" : `/${mySlugify(name)}/`}
+                class={highlightIndex === i ? "white" : undefined}
+              >
+                {name}
+              </a>
+            )
+          )
         }
         {
           sshUser === "nuclear-bomb" && (
@@ -588,21 +583,47 @@ const highlightIndex = sshUsers.indexOf(sshUser);
 
   .astro-code {
     scrollbar-color: hsl(240deg 17% 63%) hsl(240deg 21% 21%);
-    padding: 1em;
+    padding: 1em 0;
     font-size: 14px;
+    position: relative;
+    z-index: 0;
 
-    code {
-      font-size: 14px;
-      background-color: initial;
-      padding: initial;
+    .line {
+      display: inline-block;
+      width: 100%;
+      position: relative;
+      padding: 0 1em;
+
+      &.diff {
+        &.add {
+          --content: "+";
+          --content-color: hsl(122, 43%, 64%);
+          --border-color: hsl(122, 32%, 41%);
+          background-color: hsl(122, 32%, 22%);
+        }
+
+        &.remove {
+          --content: "-";
+          --content-color: hsl(0, 60%, 55%);
+          --border-color: hsl(0, 36%, 43%);
+          background-color: hsl(0, 38%, 24%);
+        }
+
+        &.add::before,
+        &.remove::before {
+          content: var(--content);
+          color: var(--content-color);
+          font-size: 10px;
+          left: 0;
+          align-content: center;
+          height: 100%;
+          padding-left: 1px;
+          border-left: 2px solid var(--border-color);
+          box-sizing: border-box;
+          position: absolute;
+        }
+      }
     }
-  }
-
-  code {
-    background-color: hsl(220, 13%, 27%);
-    border-radius: 2px;
-    padding: 2px 4px;
-    font-size: 14px;
   }
 
   blockquote {
