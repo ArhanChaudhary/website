@@ -121,6 +121,10 @@ const { description = "Arhan's Blog", pubDate, title } = Astro.props;
 
   sup {
     font-weight: bold;
+
+    &::before {
+      content: " ";
+    }
   }
 
   #troll-flex-wrapper {

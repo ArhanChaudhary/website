@@ -96,7 +96,7 @@ This code is a major improvement! It is simple, easy to use, and it provides rea
 
 Yes, these aren't *important* problems per se, but they are still inconveniences to be aware of.
 
-We now want to extend our library to model a [permutation group](https://en.wikipedia.org/wiki/Permutation_group), or just a collection of a bunch of permutations. In a permutation group, every permutation can be written as a sequence of compositions of base permutations, which we will use to represent the entire collection. For example, the manipulations of the Rubik's Cube form a permutation group. Its base permutations are the six face rotations. Therefore, every possible state on the Rubik's cube can be reached from a combination of those face rotations. The illustrated turn is a permutation fifty-four elements long, because there are fifty-four stickers on a Rubik's cube <sup id="1-back"><a href="#1">1</a></sup>.
+We now want to extend our library to model a [permutation group](https://en.wikipedia.org/wiki/Permutation_group), or just a collection of a bunch of permutations. In a permutation group, every permutation can be written as a sequence of compositions of base permutations, which we will use to represent the entire collection. For example, the manipulations of the Rubik's Cube form a permutation group. Its base permutations which represent the entire permutation group are the six face rotations. Therefore, every possible state on the Rubik's cube can be reached from a combination of those face rotations. The illustrated turn is a permutation fifty-four elements long, because there are fifty-four stickers on a Rubik's cube[^cube].
 
 <ContentImage src={stickeredCube} width="600" visualWidth="300" alt="The solved Rubik's cube" />
 
@@ -606,6 +606,4 @@ This concludes the first technical write-up on my blog. I came into this topic w
 
 Thank you for reading this far. Until next time!
 
-<hr />
-
-<sup id="1">1</sup> The center stickers don't actually move, and thus can be ignored, so the illustrated turn is traditionally simplified to a permutation forty-eight elements long. <a href="#1-back" class="back-arrow">↩</a>
+[^cube]: The center stickers don't actually move, and thus can be ignored, so the illustrated turn is traditionally simplified to a permutation forty-eight elements long.

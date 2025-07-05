@@ -29,9 +29,7 @@ export default defineConfig({
         // theme: "one-dark-pro",
       },
       remarkRehype: {
-        clobberPrefix: "fn",
-        footnoteLabel: "",
-        footnoteBackLabel: "Back to reference 1",
+        clobberPrefix: "",
       },
     }),
     typst({
