@@ -585,8 +585,12 @@ const highlightIndex = sshUsers.indexOf(sshUser);
     scrollbar-color: hsl(240deg 17% 63%) hsl(240deg 21% 21%);
     padding: 1em 0;
     font-size: 14px;
-    position: relative;
-    z-index: 0;
+
+    code {
+      background-color: initial;
+      border-radius: initial;
+      padding: initial;
+    }
 
     .line {
       display: inline-block;
@@ -604,8 +608,8 @@ const highlightIndex = sshUsers.indexOf(sshUser);
 
         &.remove {
           --content: "-";
-          --content-color: hsl(0, 60%, 55%);
-          --border-color: hsl(0, 36%, 43%);
+          --content-color: hsl(0, 57%, 55%);
+          --border-color: hsl(0, 38%, 46%);
           background-color: hsl(0, 38%, 24%);
         }
 
@@ -613,17 +617,28 @@ const highlightIndex = sshUsers.indexOf(sshUser);
         &.remove::before {
           content: var(--content);
           color: var(--content-color);
-          font-size: 10px;
+          font-size: 13px;
           left: 0;
           align-content: center;
           height: 100%;
-          padding-left: 1px;
+          padding-left: 4px;
           border-left: 2px solid var(--border-color);
           box-sizing: border-box;
           position: absolute;
         }
       }
     }
+
+    &.has-diff .line {
+      padding-left: 1.5em;
+    }
+  }
+
+  code {
+    background-color: hsl(220, 13%, 27%);
+    border-radius: 2px;
+    padding: 2px 4px;
+    font-size: 14px;
   }
 
   blockquote {
