@@ -36,10 +36,7 @@ export default defineConfig({
       options: {
         remPx: 14,
       },
-      target: (id) => {
-        if (id.endsWith(".html.typ") || id.includes("/html/")) return "html";
-        return "svg";
-      },
+      target: () => "svg",
     }),
   ],
   experimental: {

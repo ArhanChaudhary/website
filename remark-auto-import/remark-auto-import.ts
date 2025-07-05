@@ -62,11 +62,14 @@ function autoImport(tree: any, file: { history: string[] }) {
     ),
     absolute: true,
   })) {
-    let name = path.replace(".mdx", "").split("/").at(-1)?.split(".")[0];
+    let parts = path.split("/").at(-1)?.split(".");
+    let name = parts?.[0];
     if (!name) {
       throw new Error("Failed to get name");
     }
-    name = camelCase(name);
+    name = camelCase(name, {
+      pascalCase: parts?.[1] === "typ",
+    });
 
     if (!name) {
       console.warn(`${path}: Failed to get name, skipping file`);
