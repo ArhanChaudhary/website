@@ -1,16 +1,100 @@
-<aside>
+---
+interface Props {
+  collapse: boolean;
+}
+const { collapse = true } = Astro.props;
+---
+
+<aside class:list={["aside", { collapse }]}>
   <slot />
+  {
+    collapse && (
+      <div class="grad"></div>
+      <div class="expand"></div>
+    )
+  }
 </aside>
 
 <style lang="scss">
   aside {
     border-radius: 5px;
     border: 1px solid hsl(217, 90%, 61%);
-    background-color: hsla(217, 90%, 61%, 0.15);
+    background-color: hsl(217, 39%, 17%);
     padding: 1.5em 1em;
     margin: 0.5em 0;
+    position: relative;
+    transition: height 0.3s ease-in-out;
+
+    &.collapse {
+      overflow-y: hidden;
+      height: 400px;
+    }
+
+    .grad {
+      background-image: linear-gradient(
+        to bottom,
+        transparent,
+        hsl(217, 39%, 17%) 95%
+      );
+      opacity: 1;
+      transition: opacity 0.3s ease-in-out;
+      position: absolute;
+      height: 200px;
+      cursor: pointer;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 0;
+    }
+
+    .expand {
+      border-right: 10px solid transparent;
+      border-left: 10px solid transparent;
+      border-top: 10px solid white;
+      position: absolute;
+      cursor: pointer;
+      right: 0;
+      left: 0;
+      margin-inline: auto;
+      bottom: 7px;
+      width: 0;
+      height: 0;
+    }
+
+    &.show {
+      .grad {
+        opacity: 0;
+      }
+
+      .expand {
+        border-top: initial;
+        border-bottom: 10px solid white;
+      }
+    }
   }
 </style>
+
+<script>
+  let asides = document.querySelectorAll(".aside.collapse");
+  for (let i = 0; i < asides.length; i++) {
+    let grad = asides[i].getElementsByClassName("grad")[0];
+    let expand = asides[i].getElementsByClassName("expand")[0];
+    asides[i].addEventListener(
+      "click",
+      function (this: HTMLElement, event: Event) {
+        if (event.target === grad || event.target === expand) {
+          if (this.classList.contains("show")) {
+            this.style.height = "";
+            this.classList.remove("show");
+          } else {
+            this.style.height = this.scrollHeight + "px";
+            this.classList.add("show");
+          }
+        }
+      }
+    );
+  }
+</script>
 
 <style is:global lang="scss">
   aside {
@@ -20,6 +104,12 @@
 
     :last-child {
       margin-bottom: 0;
+    }
+
+    a {
+      color: hsl(214, 77.27%, 70.1%);
+      position: relative;
+      z-index: 1;
     }
   }
 </style>
