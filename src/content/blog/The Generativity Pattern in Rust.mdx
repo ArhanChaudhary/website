@@ -274,7 +274,7 @@ impl PermGroup {
 }
 ```
 
-Compared to the unsafe approach, the implementation of `PermGroup` does not change much. As before, we check that all mappings from `base_permutation_mappings` are valid permutations of the same length before creating a new `PermGroup`. This time, we utilize a global `AtomicU64` to identify the permutations in a unique permutation group, passing it as an integer to `Permutation`. The integer is guaranteed to be unique among permutation groups because we properly increment the identifier every call to `PermGroup::new`.
+Compared to the unsafe approach, the implementation of `PermGroup` does not change much. As before, we check that all mappings from `base_permutation_mappings` are valid permutations of the same length before creating a new `PermGroup`. This time, we utilize a global `AtomicU64` to identify the permutations in a unique permutation group, passing it as an integer to `Permutation`. The integer is guaranteed to be unique among different permutation groups because we properly increment the identifier every call to `PermGroup::new`.
 
 ```rust
 pub struct Permutation(Box<[usize]>, u64);
@@ -325,11 +325,11 @@ The big reveal: the generativity approach is equivalent to the atomic ID approac
 
 I know you are eager, but first a short background is necessary. The first principles of the generativity approach date back at least to the work of John Launchbury and Peyton Jones on the [ST monad in Haskell](https://doi.org/10.1007/BF01018827) in 1995. Aria Desires' [master's thesis](https://github.com/Gankra/thesis/blob/master/thesis.pdf) (section 6.3) brought this into the context of Rust in 2015. The more recent [GhostCell paper](https://plv.mpi-sws.org/rustbelt/ghostcell/) by Joshua Yanovski and others utilized generativity to present interior mutability as a zero-cost abstraction.
 
-The literature from those last two sources achieves generativity by sacrificing ergonomics and readability. They require wrapping all code in (often deeply nested) closures[^closure], warding off much of their interest in practice. We will spend the rest of this article examining Crystal Durham's [`generativity`](https://crates.io/crates/generativity) crate, which utilizes a novel and highly experimental technique to achieve generativity without needing a closure.
+The literature from those last two sources achieves generativity by sacrificing ergonomics and readability. They require wrapping all code in (often deeply nested) closures[^closure], warding off much of their interest in practice. We will spend the rest of this article examining Crystal Durham's [`generativity`](https://crates.io/crates/generativity) crate, which utilizes a novel and highly experimental technique to achieve generativity without needing a closure. Later, we will prove that the entirety of `generativity` is a zero-cost compile-time abstraction.
 
 *(Subtle-but-no-so-subtle foreshadowing: we will explore my own improvement to this technique in the next section)*
 
-[^closure]: It works by utilizing a [Higher-Rank Trait Bound](https://doc.rust-lang.org/nomicon/hrtb.html) when passing the closure `f` to a constructor like so: `f: impl for<'id> FnOnce(T<'id>) -> R`. Every call to `f` must be prepared to handle an argument with any possible lifetime. Since the borrow checker doesn't (and will likely never) do interprocedural analysis, it conservatively sees every call to `f` as producing an opaque lifetime that can't unified with any other. To avoid any relation with an existing lifetime, a fresh new lifetime is created for every call to the constructor to serve as a *generative lifetime brand* that uniquely identifies a `T`. This is just a brief overview of a well-investigated topic. Repeating for convenience, further reading is encouraged [here](https://github.com/Gankra/thesis/blob/master/thesis.pdf) (section 6.3) and [here](https://plv.mpi-sws.org/rustbelt/ghostcell/).
+[^closure]: It works by utilizing a [Higher-Rank Trait Bound](https://doc.rust-lang.org/nomicon/hrtb.html) when passing the closure `f` to a constructor like so: `f: impl for<'id> FnOnce(T<'id>) -> R`. Every call to `f` must be prepared to handle an argument with any possible lifetime. Since the borrow checker doesn't (and will likely never) do interprocedural analysis, it conservatively sees every call to `f` as producing an opaque lifetime that can't unified with any other. To avoid any relation with an existing lifetime, a fresh new lifetime is created for every call to the constructor to serve as a "generative" lifetime brand that uniquely identifies a `T`. This is just a brief overview of a well-investigated topic. Repeating for convenience, further reading is encouraged [here](https://github.com/Gankra/thesis/blob/master/thesis.pdf) (section 6.3) and [here](https://plv.mpi-sws.org/rustbelt/ghostcell/).
 
 ```rust
 use generativity::{Guard, Id, make_guard}
@@ -342,7 +342,7 @@ fn main() {
 }
 ```
 
-`generativity` publicizes three things: `Guard`, `Id`, and `make_guard`. Invoking the `make_guard` macro creates a `Guard<'_>`, a guaranteed unique identifier that does not implement `Copy` or `Clone`. `Id<'_>`, however, does; to create distributable copies of this identifier, you must consume a `Guard<'_>` into an `Id<'_>` using its `From` implementation. In terms of what `generativity` has to offer, this is it.
+`generativity` publicizes three things: `Guard`, `Id`, and `make_guard`. Invoking the `make_guard` macro creates a `Guard<'_>` with a let binding, an identifier that carries a guaranteed unique lifetime. `Id<'_>` is similar to `Guard<'_>` except that it implements `Copy` and `Clone` while the latter does not. To create distributable copies of this identifier, you must consume a `Guard<'_>` into an `Id<'_>` using its `From` implementation. In terms of what `generativity` has to offer, this is it.
 
 Let us prove its equivalence to the atomic ID approach:
 
@@ -383,7 +383,7 @@ pub fn new(
 }
 ```
 
-Why is `guard` passed as an argument, and why isn't `make_guard` creating it within the function body? This reveals `generativity`'s caveat: a `Guard<'_>` can never escape the scope it was defined in. Think of creating a `Guard<'_>` as creating a reference to a local variable: no matter what, it is only valid inside of its enclosing scope.
+Why is `guard` passed as an argument, and why isn't `make_guard` creating it within the function body? This reveals `generativity`'s caveat: a `Guard<'_>` can never escape the scope it was defined in. Think of creating a `Guard<'_>` as creating a reference to a local variable: no matter what, it is only valid inside of its enclosing scope. It is worth noting that the alternative closure approach has the same restriction. Nothing declared inside of the closures could escape it.
 
 So, instantiating two different permutation groups, for example, looks like this:
 
@@ -398,12 +398,18 @@ let second = PermGroup::new(..., guard2);
 
 This should also highlight the purpose of `Guard<'_>` when `Id<'_>` already exists. If `PermGroup::new` accepted an `Id<'_>`, two different permutation groups could be assigned the same `Id<'_>` because it implements `Copy`.
 
-We have arrived at the crux of this article. Thousands of words later, bask in our ultimate permutation composition implementation—one that is safe, unchecked, and sound because only `Permutation`s with the same `Id<'id>` can be composed. Behold: the divine elegance of Rust's type system.
+Okay, this is all fine and dandy, but how does this help improve permutation composition?
 
 ```rust
 pub struct Permutation(Box<[usize]>, u64); // [!code --]
 pub struct Permutation<'id>(Box<[usize]>, Id<'id>); // [!code ++]
 ```
+
+Recall that every `Id<'id>` carries a guaranteed unique lifetime among different permutation groups. By assigning `Permutation` an `Id<'_>` and a lifetime parameter, we create a `Permutation<'id>` type for all permutations in a permutation group that is distinct from other permutation groups. In Rust, sharing the same underlying data representation while masquerading as a distinct type is known as a *branded lifetime*.
+
+Our permutation composition function takes in the *same* type `Self` for all arguments. `Permutation<'id>`s within different permutation groups are *distinct* types. It follows that `Permutation<'id>`s from different permutation groups cannot be composed with each other at compile-time because they are not the same type.
+
+Behold: a permutation composition function that is safe, unchecked, and sound.
 
 ```rust
 pub fn compose_into(&self, b: &Self, into: &mut Self) -> Result<(), &'static str> { // [!code --]
