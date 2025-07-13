@@ -419,9 +419,9 @@ pub fn compose_into(&self, b: &Self, into: &mut Self) { // [!code ++]
 
 It would be irresponsible for me to advertise the `generativity` crate as a perfect solution barring its implementation caveat. Yes, the implementation caveat is its only functional limitation, but there are some developer experience problems to consider.
 
-- Although there's only a single line marked unsafe in our `Permutation<'id>` example, its soundness is now much harder to justify. It is on the developer to prove that `'id` uniquely brands permutations within a permutation group; any mishandling could easily make the whole thing unsound (i.e. if `PermGroup::new` took an `Id<'id>` instead of a `Guard<'id>`).
-- The `'id` lifetime, like all other lifetimes, is pervasive. Data structures that wish to store `Guard<'_>` or `Id<'_>`, or any other data structure that stores `Guard<'_>` or `Id<'_>`, must have lifetime annotations. But `make_guard` is typically invoked at the outermost scope, and will likely have to be passed through many types, so the number of lifetime annotations is amplified.
-- The compiler errors from misusing lifetime branding are confusing, even with knowledge of how `generativity` works internally,
+- Although there's only a single line marked unsafe in our `Permutation<'id>` example, its soundness is now much harder to justify. It is on the developer to prove that `'id` uniquely associates permutations to their permutation group; any mishandling could easily make the whole thing unsound (i.e. if `PermGroup::new` took an `Id<'id>` instead of a `Guard<'id>`).
+- The `'id` lifetime, like all other lifetimes, is pervasive. Data structures that wish to store `Guard<'_>` or `Id<'_>`, or any other data structure that stores `Guard<'_>` or `Id<'_>`, must have a lifetime annotation. But `make_guard` is typically invoked at the outermost scope, and will likely have to be passed through many types, so the number of lifetime annotations is amplified.
+- The compiler errors from misusing `generativity` are confusing, even when you know how it internally works.
 - Some APIs require types to satisfy `'static`, often resulting in inconvenient workarounds. For example, the closure passed to `thread::spawn` must satisfy `'static`, making it impossible to return a `Permutation<'id>`. The standard library offers `thread::scope` as a band-aid to make this possible, but this does not change the fact that additional complexity is often required.
 
 The atomic ID approach shares only the first problem. Given your use case, it might be what you want.
