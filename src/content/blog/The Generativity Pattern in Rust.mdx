@@ -1,14 +1,18 @@
-{/* cspell:ignore typestate generativity newtype newtypes newtyped newtyping Rustaceans Rovynak rubiks stickered subtyping rustc binarycat typetoken eyepatch Launchbury Peyton Yanovski nilly unergonomic interprocedural amping brandedvec phantomdata rustonomicon Polonius nonunifiable */}
+{/* cspell:ignore typestate generativity newtype newtypes newtyped newtyping Rustaceans Rovynak rubiks stickered subtyping rustc binarycat typetoken eyepatch Launchbury Peyton Yanovski nilly unergonomic interprocedural amping brandedvec phantomdata rustonomicon Polonius nonunifiable footgun UGEH uniqueify nonunifiability */}
 
 *This article was peer-reviewed by my friends [Henry Rovynak](https://hrovnyak.gitlab.io/) and [Jack Hogan](https://www.jackhogan.me/). I thank Henry and Jack for their invaluable feedback. This article also uses special characters like the em-dash (—). These characters were lovingly hand-inserted and are not the result of AI-generated text.*
 
 ## Table of Contents
 
-# Background
+# Introduction
 
-The *generativity pattern* in Rust is a combination of [typestate](https://cliffle.com/blog/rust-typestate/) and [GhostCell](https://plv.mpi-sws.org/rustbelt/ghostcell/), techniques that eliminate runtime overhead through compile-time safety guarantees. This pattern is not commonplace; its usage warrants a specific set of circumstances. Aside from thinly spread (but admittedly well-written) academic literature[^literature], I haven't a found an accessible analysis of this pattern online. In order to build up a full picture of the "what" and more importantly the "why," we will first walk through a realistic example to gauge the type of problem generativity can solve. The latter half of this article will explain how to use the generativity pattern and then introduce a novel approach to creating lifetime brands.
+The *generativity pattern* in Rust is a combination of [typestate](https://cliffle.com/blog/rust-typestate/) and [GhostCell](https://plv.mpi-sws.org/rustbelt/ghostcell/), techniques that move what you'd normally check at runtime to compile-time. This pattern is not commonplace; its usage warrants a specific set of circumstances. However, when it *is* used, such as in popular [garbage](https://github.com/kyren/gc-arena/?tab=readme-ov-file#prior-art) [collection](https://github.com/Manishearth/rust-gc) crates, the effect is pronounced.
+
+Aside from thinly spread (but admittedly well-written) academic literature[^literature], I haven't a found an accessible analysis of this pattern online. In order to build up a full picture of the "what" and more importantly the "why," we will first spend some time walking through a realistic example to gauge the type of problem generativity can solve: statically requiring data to come from or refer to the same source, as a *stronger* form of ownership. The latter half of this article will explain how to use the generativity pattern and then introduce a novel approach to creating "lifetime brands."
 
 [^literature]: Yes, I will eventually get to them. You just need to keep reading.
+
+# Background
 
 Let us take the role of a crate author about permutations. We want to investigate the [composition](https://en.wikipedia.org/wiki/Permutation_group#Composition_of_permutations–the_group_product) of permutations. This can be expressed nicely visually.
 
@@ -95,7 +99,7 @@ The newtype pattern is more useful than just for getting around the [orphan rule
 
 This code is a major improvement! It is simple, easy to use, and it provides reasonable errors. However, a closer examination reveals some problems:
 
-- Every call to our composition function spends time performing a length check. Our example is simplistic so it happens to be cheap, but this type of check may require more expensive logic in a practical scenario. Note that we can't use const generic lengths because our library operates on input provided at runtime.
+- Every call to our composition function spends time performing a length check. Our example is simplistic so it happens to be cheap, but this type of check may require more expensive logic in a practical scenario. Note that we can't use const generic lengths because our library operates on input provided at run-time.
 - Returning a `Result` forces the caller to be prepared to handle the error variant. Library users might be able to guarantee that the length checks will pass, which would make the error handling more annoying than helpful.
 
 Yes, these aren't *important* problems per se, but they are still inconveniences to be aware of.
@@ -162,7 +166,7 @@ impl Permutation {
 }
 ```
 
-All of a sudden, we've opened up an unsafety hole—notice unsafe in the implementation of `Permutation::compose_into`! We implicitly assumed that the permutations to compose were from the same permutation group. This is not necessarily true: what if a library user composes two base permutations from different permutation groups? If the permutation lengths *don't* match, then `get_unchecked` will exhibit undefined behavior; this is clearly a problem! The intent of this operation is obviously nonsensical, but it does not change the fact that it is still our responsibility, as the crate author, that the safe functions we provide can never exhibit undefined behavior.
+All of a sudden, the implementation of `Permutation::compose_into` opens up an unsafety hole, despite privatizing `Permutation`'s construction! We implicitly assumed that the permutations to compose were from the same permutation group. This is not necessarily true: what if a library user composes two base permutations from different permutation groups? If the permutation lengths *don't* match, then `get_unchecked` will exhibit undefined behavior; this is clearly a problem! The intent of this operation is obviously nonsensical, but it does not change the fact that it is still our responsibility, as the crate author, that the safe functions we provide can never exhibit undefined behavior.
 
 There is a more fundamental reason to care. An invariant of permutation composition within the same permutation group is membership; if the permutations to compose are in the same permutation group, the resulting permutation is also in that group. Even if the lengths of permutations from two different permutation groups *did* match, composing them could produce a permutation outside of either group, which is a logic error. Mitigating this by checking permutation group membership every function call is a very expensive operation. This is an example of the "practical scenario" mentioned beforehand.
 
@@ -313,9 +317,11 @@ It is worth taking a step back to reflect. Although this solution might be appre
 
 # The generativity approach
 
-The big reveal: the generativity approach is equivalent to the atomic ID approach, except everything is done at compile-time. Generativity solves the fundamental problem thus far: the invariant of `Permutation` guarantees it is a valid permutation, but not that it is associated with a specific `PermGroup`.
+The big reveal: the generativity approach is equivalent to the atomic ID approach, except everything is done at compile-time. Generativity solves the fundamental problem thus far: the invariant of `Permutation` guarantees it is a valid permutation, but not that it is necessarily associated with a specific `PermGroup`.
 
 Existing literature achieves generativity by sacrificing ergonomics and readability. They require wrapping all code in (often deeply nested) closures, warding off much of their interest in practice. We will spend the rest of this article examining Crystal Durham's [`generativity`](https://crates.io/crates/generativity) crate, which utilizes a novel and highly experimental technique to achieve generativity without needing a closure. Later, we will show that the `generativity` crate is a zero-cost compile-time abstraction.
+
+*(Subtle-but-no-so-subtle foreshadowing: we will explore my own improvement to this technique in the next section)*
 
 ```rust
 use generativity::{Guard, Id, make_guard}
@@ -330,15 +336,15 @@ fn main() {
 
 `generativity` publicizes three things: `Guard`, `Id`, and `make_guard`. Invoking the `make_guard` macro creates a `Guard<'_>` with a let binding, an identifier that carries a guaranteed unique lifetime[^unique]. This lifetime is not actually used as a lifetime in the usual sense. It exists solely to make each instance of `Guard<'_>` a unique type. `Id<'_>` is like `Guard<'_>` except that it implements `Copy` and `Clone` while the latter does not. So, to create distributable copies of this identifier, you must consume a `Guard<'_>` into an `Id<'_>` using its `From` implementation. In terms of what `generativity` has to offer, this is all.
 
-[^unique]: This lifetime is not technically unique. You could unify it with other lifetimes in a function call: `fn unify_lifetimes<'id>(impostor: &'id (), guard: &Guard<'id>) { ... }`. The lifetime is only unique among the provided `Id<'_>` and `Guard<'_>` types, so as long as your lifetime is carried by those types your code will be sound.
+[^unique]: This lifetime is not technically unique. You could unify it with other lifetimes in a function call: `fn unify_lifetimes<'id>(impostor: &'id (), guard: &Guard<'id>) { ... }`. The lifetime is only unique among the provided `Id<'id>` and `Guard<'id>` types, so as long as your lifetime is carried by those types your code will be sound.
 
 Let us informally prove `generativity`'s equivalence to the atomic ID approach:
 
 - In the atomic ID approach, unique integer identifiers are created à la `ID.fetch_add(1, Relaxed)`. This directly parallels `make_guard!(guard)`, which creates a unique `Guard<'_>` identifier.
 - The unique integer identifier is then stored inside a primitive `u64`. This implements `Copy` and it is distributed among the input base permutations to associate each one with its permutation group. Similarly, `Id<'_>` serves this same purpose.
-- Thus, the unique integer identifier is used to test permutation group membership during permutation composition, erroring if not the case. We will momentarily see how the generativity pattern correctly and equivalently solves this problem.
+- The unique integer identifier is used to test permutation group membership during permutation composition, erroring if not the case. Soon we will see how the generativity pattern correctly and equivalently solves this problem.
 
-With their equivalence established, the body of `PermGroup::new` hardly changes at all.
+With their equivalence established, the body of `PermGroup::new` hardly changes at all. It remains sound because the constructor creates `Permutation`s with the same lifetime identifier, making it unique among different `PermGroup`s.
 
 ```rust
 pub struct PermGroup { // [!code --]
@@ -372,7 +378,7 @@ pub fn new(
 }
 ```
 
-Why is `guard` passed as an argument, and why isn't `make_guard` creating it within the function body? This reveals `generativity`'s implementation caveat: a `Guard<'_>` can never escape the scope it was defined in. Think of creating a `Guard<'_>` as creating a reference to a local variable. No matter what, it is only valid inside of its enclosing scope.
+Why is `guard` passed as an argument, and why isn't `make_guard` creating it within the function body? This reveals `generativity`'s implementation caveat: a `Guard<'id>` can never escape the scope it was defined in. Think of creating a `Guard<'id>` as creating a reference to a local variable. No matter what, it is only valid inside of its enclosing scope.
 
 So, instantiating two different permutation groups, for example, looks like this:
 
@@ -385,7 +391,7 @@ let second = PermGroup::new(..., guard2);
 // let third = PermGroup::new(..., guard1);
 ```
 
-The purpose of `Guard<'_>` when `Id<'_>` already exists becomes clear when considering that `third` is rejected by the compiler. If `PermGroup::new` accepted an `Id<'_>`, two different permutation groups could be assigned the same `Id<'_>` because it implements `Copy`.
+The purpose of `Guard<'id>` when `Id<'id>` already exists becomes clear when considering that `third` is rejected by the compiler. If `PermGroup::new` accepted an `Id<'id>`, two different permutation groups could be assigned the same `Id<'id>` because it implements `Copy`.
 
 Okay, this is all fine and dandy, but how does this help improve permutation composition?
 
@@ -394,7 +400,7 @@ pub struct Permutation(Box<[usize]>, u64); // [!code --]
 pub struct Permutation<'id>(Box<[usize]>, Id<'id>); // [!code ++]
 ```
 
-Every `Id<'_>` carries a guaranteed unique lifetime among different permutation groups. By combining `Permutation` with `Id<'_>` and a lifetime parameter, we create *distinct* `Permutation<'id>` types for the permutations in each permutation group. However, our permutation composition function takes in the *same* type `Self` for all arguments—it follows that `Permutation<'id>`s from different permutation groups cannot be composed as they are not the same type. This is the essence of the generativity pattern, enforced at compile-time.
+Recall that every `Id<'id>` carries a unique lifetime among different `PermGroup<'id>`s. By combining `Permutation` with `Id<'id>` and a lifetime parameter, we create a set of the same `Permutation<'id>` type for each permutation that is distinct among different `PermGroup<'id>`s. Our permutation composition function takes in the same type `Self` for all arguments—it follows that `Permutation<'id>`s from different permutation groups cannot be composed as they are not the same type, and `Permutation<'id>`s from the same permutation group can be composed as they are the same type. This is the essence of the generativity pattern, enforced at compile-time.
 
 Behold: a permutation composition function that is unchecked, infallible, and safe. The full implementation is [here](https://github.com/ArhanChaudhary/generativity-pattern-rs/blob/main/src/5-generativity.rs).
 
@@ -418,9 +424,9 @@ pub fn compose_into(&self, b: &Self, into: &mut Self) { // [!code ++]
 It would be irresponsible for me to advertise the `generativity` crate as a perfect solution barring its implementation caveat. Yes, the implementation caveat is its only functional limitation, but there are some developer experience problems to consider.
 
 - Although there's only a single line marked unsafe in our `Permutation<'id>` example, its soundness is now much harder to justify. It is on the developer to prove that `'id` uniquely associates permutations to their permutation group; any mishandling could easily make the whole thing unsound (i.e. if `PermGroup::new` took an `Id<'id>` instead of a `Guard<'id>`).
-- The `'id` lifetime, like all other lifetimes, is pervasive. Data structures that wish to store `Guard<'_>` or `Id<'_>`, or any other data structure that stores `Guard<'_>` or `Id<'_>`, must have a lifetime annotation. But `make_guard` is typically invoked at the outermost scope, and will likely have to be passed through many types, so the number of lifetime annotations is amplified.
+- The `'id` lifetime, like all other lifetimes, is pervasive. Data structures that wish to store `Guard<'id>` or `Id<'id>`, or any other data structure that stores `Guard<'id>` or `Id<'id>`, must have a lifetime annotation. But `make_guard` is typically invoked at the outermost scope, and will likely have to be passed through many types, so the number of lifetime annotations is amplified.
 - Some APIs require types to satisfy `'static`. For example, the closure passed to `thread::spawn` must satisfy `'static`, making it impossible to return a `Permutation<'id>`. The workaround is usually an inconvenient band-aid; in this case the standard library offers `thread::scope` to borrow non-`'static` data in a thread.
-- The compiler errors from misusing `generativity` don't provide the location of the error. They are generally confusing, even when you know how it internally works.
+- The compiler errors from misusing `generativity` don't provide the location of the error. They are generally confusing, even when you know how `generativity` internally works.
 
 The atomic ID approach shares only the first problem. Given your use case, it might be what you want.
 
@@ -428,7 +434,7 @@ Notice how different instances of `Permutation<'id>` masquerade as separate type
 
 This segways into an important point. The fundamental purpose of the generativity pattern is not necessarily to improve performance, but to statically require that individual values come from or refer to the same source. The performance benefits are a symptom of this requirement. I like to informally think of it as stronger form of ownership.
 
-Aria Desires' master's thesis explores this idea with a simple example, `BrandedVec`. When the `i`th element of a vector `vec` is accessed through `&vec[i]`, a runtime check is performed to see if `i` is in bounds. If not, then the program will panic. However, in many situations we know that the indices are always in bounds; one such case regards the append-only vector. All elements pushed to this type of vector are forever valid. Leveraging this fact, the push operation returns the index of the pushed element so it can later be used to soundly perform unchecked indexing.
+Aria Desires' master's thesis explores this idea with a simple example, `BrandedVec`. When the `i`th element of a vector `vec` is accessed through `&vec[i]`, a run-time check is performed to see if `i` is in bounds. If not, then the program will panic. However, in many situations we know that the indices are always in bounds; one such case regards the append-only vector. All elements pushed to this type of vector are forever valid. Leveraging this fact, the push operation returns the index of the pushed element so it can later be used to soundly perform unchecked indexing.
 
 If we wanted to mark the unchecked indexing operation safe, this returned index can't be an ordinary `usize`. Bad actors may provide their own `usize` instead of one returned from the push operation. This returned index can't be a newtyped `usize` either. The problem with this is a microcosm of the problem with our initial `Permutation` example: different indices from different append-only vectors may be used to unsoundly index one another. To make our accesses safe, the solution is to lifetime brand the returned indices to statically associate them with `vec`—the generativity pattern.
 
@@ -483,7 +489,7 @@ println!("{:?}", bvec1.get(i1)); // Prints 13
 
 Our digression in bringing up this comparison has an ulterior motive. The original closure technique bears the exact same implementation caveat with `generativity`: nothing declared inside of the closure can escape it. `make_guard` effectively does the same thing as wrapping the rest of the function in an immediately invoked closure, and is no less capable than the closure technique.
 
-Let us offer another perspective as to why `Guard<'_>` cannot escape its defining scope. StackOverflow user [rodrigo](https://stackoverflow.com/users/865874/rodrigo) [points out](https://stackoverflow.com/a/76876800) that you can achieve something similar to `generativity` using an anonymous unit struct and a macro to create the permutation group. Successive calls to this macro create permutation groups branded by this newly generated unit struct. In the context of our `Permutation` example, example usage looks like this (and you may check out the [full implementation](https://github.com/ArhanChaudhary/generativity-pattern-rs/blob/main/src/6-unsound_token.rs)):
+Let us offer another perspective as to why `Guard<'id>` cannot escape its defining scope. StackOverflow user [rodrigo](https://stackoverflow.com/users/865874/rodrigo) [points out](https://stackoverflow.com/a/76876800) that you can achieve something similar to `generativity` using an anonymous unit struct and a macro to create the permutation group. Successive calls to this macro create permutation groups branded by this newly generated unit struct. In the context of our `Permutation` example, example usage looks like this (and you may check out the [full implementation](https://github.com/ArhanChaudhary/generativity-pattern-rs/blob/main/src/6-unsound_token.rs)):
 
 ```rust
 #[macro_export]
@@ -574,9 +580,9 @@ macro_rules! make_guard {
 }
 ```
 
-*(Note that `min_generativity` benevolently assumes that library users will only use `make_guard` to construct `Id<'_>` and `Guard<'_>`, as both are public types with public field visibility. The actual `generativity` crate privatizes `Id<'_>` (via a newtype) and `Guard<'_>` and marks their constructors unsafe, only to be used within `make_guard`. Such was omitted to be concise.)*
+Before we get started, let's get some low hanging fruit out of the way. We can verify that `min_generativity` is zero-cost. Every single type is some form of `PhantomData`, a zero-sized type that is optimized away at compile-time. However, there is a sharp corner: we create a reference to a `PhantomData` in `make_guard`, and references to zero-sized types are perhaps surprisingly [not zero-sized](https://github.com/rust-lang/rfcs/pull/2040#issuecomment-317275303) due to some idiosyncrasies. Thus, we cannot prove `min_generativity` is zero-cost as Rust lacks a specification for optimization behavior. I claim that in practice this is the case the overwhelming majority of the time. The reference: is never used anywhere, is associated with an unused variable (`lifetime_brand`), and has no `Drop` impl. Even at the most basic optimization level, rustc is smart enough to [no-op everything](https://godbolt.org/z/ns5roTb5d).
 
-Before we get started, let's get some low hanging fruit out of the way. We can verify that `min_generativity` is zero-cost. Every single type is some form of `PhantomData`, a zero-sized type that is optimized away at compile-time. However, there is a sharp corner: we create a reference to a `PhantomData` in `make_guard`, and references to zero-sized types are perhaps surprisingly [not zero-sized](https://github.com/rust-lang/rfcs/pull/2040#issuecomment-317275303) due to some idiosyncrasies. Thus, we cannot prove `min_generativity` is zero-cost as Rust lacks a specification for optimization behavior. I claim that, in practice, this is the case the overwhelming majority of the time. The reference: is never used anywhere, is associated with an unused variable (`lifetime_brand`), and has no `Drop` glue code. Even at the most basic optimization level, rustc is smart enough to [no-op everything](https://godbolt.org/z/ns5roTb5d).
+Note that `min_generativity` benevolently assumes that library users will only use `make_guard` to construct `Id<'id>` and `Guard<'id>`, as both are public types with public field visibility. The actual `generativity` crate privatizes `Id<'id>` (via a newtype) and `Guard<'id>` and marks their constructors unsafe, hidden within `make_guard`. Such was omitted to be concise.
 
 ```rust
 use std::marker::PhantomData;
@@ -584,15 +590,15 @@ use std::marker::PhantomData;
 pub type Id<'id> = PhantomData<fn(&'id ()) -> &'id ()>;
 ```
 
-If you've only used `PhantomData` when the compiler has told you to, this certainly looks nonsensical. The purpose of `Id` as we saw earlier is to carry a *unique* lifetime brand among different permutation groups, but aren't lifetimes already unique? What's the deal?
+If you've only used `PhantomData` when the compiler has told you to, this certainly looks nonsensical. The purpose of `Id<'id>` as we saw earlier is to carry a *unique* lifetime brand among different `PermGroup<'id>`s, but aren't lifetimes already unique? What's the deal?
 
-In Rust, *variance* determines whether you can substitute one lifetime for another. If you have a longer lifetime, Rust lets you use it where a shorter one is expected. This is also known as *subtyping*. Normally this is good—subtyping introduces static analysis that allows for more programs to compile—but in our case this automatic substitution works against our favor. If an `Id<'_>` can be tied to a lifetime other than its lifetime brand, we lose. So, the unique lifetime `'id` must have no subtyping relation with other lifetimes; `'id` is what's called an *invariant* lifetime.
+In Rust, *variance* determines whether you can substitute one lifetime for another. If you have a longer lifetime, Rust lets you use it where a shorter one is expected. This is also known as *subtyping*. Normally this is good—subtyping introduces static analysis that allows for more programs to compile—but in our case this automatic substitution works against our favor. If an `Id<'id>` can be tied to a lifetime other than its lifetime brand, we lose. So, the unique lifetime `'id` must have no subtyping relation with other lifetimes; `'id` is what's called an *invariant* lifetime.
 
-The contemporary usage of the word "invariant" by Rustaceans has two meanings: one as a type-level guarantee (a noun), and one as a no-subtyping relation (an adjective). Invariant generally means something that cannot change or must be fixed to a specific value. If you stretch this definition, both meanings refer to this same general concept. We've been working with the first meaning so far, but for the rest of this article we'll switch to the second one.
+The contemporary usage of the word "invariant" by Rustaceans has two meanings: one as a type-level guarantee (a noun), and one as a no-subtyping relation (an adjective). Invariant generally means something that cannot change or must be fixed to a specific value. Both meanings refer to this same general concept. We've been working with the first meaning so far, but for the rest of this article we'll switch to the second one.
 
 To make `'id` invariant, we take advantage of a fundamental constraint with function pointer types. When you have `fn(&'id T) -> &'id T`, the caller provides a reference with lifetime `'id` and expects to get back a reference with that same lifetime `'id`. If Rust allowed the function pointer type to accept a longer lifetime but return a shorter one, or vice versa, it would break this explicit contract. You might pass in a reference that lives for ten seconds but get one back that lives for five seconds, creating a dangling pointer. Function pointer types with the same lifetime in the input and output positions force that lifetime to be invariant. No substitution allowed.
 
-Of course, we don't actually want to store a function pointer at runtime. We only utilize it to make `'id` invariant at compile-time. The language provides `PhantomData` to enable fine-grained control over variance. In our case it tells the compiler to pretend like it holds a function pointer while not actually taking up any space.
+Of course, we don't actually want to store a function pointer at run-time. We only utilize it to make `'id` invariant at compile-time. The language provides `PhantomData` to enable fine-grained control over variance. In our case it tells the compiler to pretend like it holds a function pointer while not actually taking up any space.
 
 <Aside collapse={false}>
 
@@ -605,11 +611,11 @@ pub type Id<'id> = PhantomData<Cell<&'id u8>>; // Aria Desires' master's thesis
 pub type Id<'id> = PhantomData<Cell<&'id mut ()>>; // Also from her master's thesis
 ```
 
-They work because they follow the core principal that `&mut T` is invariant over `T` because mutable references grant exclusive write access to the data they point to (more in the [Rustonomicon](https://doc.rust-lang.org/nomicon/subtyping.html)). With `T = &'id ()`, `'id` must become invariant. But unlike the others, `PhantomData<fn(&'id ()) -> &'id ()>` implements all auto traits, and is preferred if the only purpose is to indicate invariance. Using this carries further implication of "by example" use of `PhantomData`.
+They work because they follow the core principal that `&mut T` is invariant over `T` (click [here](https://doc.rust-lang.org/nomicon/subtyping.html#variance) to see why). With `T = &'id ()`, `'id` must become invariant. But unlike the others, `PhantomData<fn(&'id ()) -> &'id ()>` implements all auto traits (`Sync`, `Send`, etc) for its owner, and is generally preferred if the only purpose is to indicate invariance. For more reading, the Rustonomicon lists [a table](https://doc.rust-lang.org/nomicon/phantom-data.html#table-of-phantomdata-patterns) of common `PhantomData` patterns.
 
 </Aside>
 
-When I first learned how to use `PhantomData` to indicate variance I couldn't help but think of it as an obnoxiously leaky abstraction. There is a [movement](https://github.com/rust-lang/rust/issues/135806) to make it a bit more ergonomic by introducing custom variance newtypes into the standard library. Sure enough, the status quo of `PhantomData` has been considered "[something of a failure](https://github.com/rust-lang/rfcs/pull/3417#pullrequestreview-1396551771)."
+When I first learned how to use `PhantomData` to indicate variance I couldn't help but think of it as an obnoxiously leaky abstraction. There is a [movement](https://github.com/rust-lang/rust/issues/135806) to make it a bit more ergonomic by introducing custom variance newtypes into the standard library, like `PhantomInvariantLifetime`. Sure enough, the status quo of `PhantomData` has been considered "[something of a failure](https://github.com/rust-lang/rfcs/pull/3417#pullrequestreview-1396551771)."
 
 ```rust
 pub struct Guard<'id>(pub Id<'id>);
@@ -621,7 +627,7 @@ impl<'id> From<Guard<'id>> for Id<'id> {
 }
 ```
 
-The entire implementation of `Guard<'_>` is a newtype around `Id<'_>`. The established difference being that `Guard<'_>` doesn't implement `Copy` or `Clone`. We provide a `From` implementation to consume a `Guard<'_>` into an `Id<'_>` to create distributable copies of the lifetime brand, as we saw earlier.
+The entire implementation of `Guard<'id>` is a newtype around `Id<'id>`. The established difference being that `Guard<'id>` doesn't implement `Copy` or `Clone`. We provide a `From` implementation to consume a `Guard<'id>` into an `Id<'id>` to create distributable copies of the lifetime brand, as we saw earlier.
 
 ```rust
 pub struct LifetimeBrand<'id>(PhantomData<&'id Id<'id>>);
@@ -658,37 +664,53 @@ unify_lifetimes(&id1, &id2);
 
 The constraint solver realizes there is no logical contradiction with the obvious solution of `'id1 = 'id2`, and it allows this program to compile. We need to uniquely tie `id1` and `id2` to their declarations to prevent Rust from unifying them.
 
-After `make_guard` creates `branded_place` and generates an invariant lifetime `'id`, we are now armed with the knowledge to examine how `LifetimeBrand` ensures it is non-unifiable. It takes the approach of establishing distinct lower and upper bounds for `'id`, highlighting the need for a macro to prevent these bounds from potentially being manipulated.
+After `make_guard` creates `branded_place` and generates an invariant lifetime `'id`, we are now armed with the knowledge to examine how `LifetimeBrand` ensures it is non-unifiable. It takes the approach of establishing distinct lower and upper bounds for `'id`, highlighting the need for a macro with protected hygiene to prevent these bounds from potentially being manipulated.
 
-Notice that `LifetimeBrand` carries the phantom type `&'id Id<'id>` (to avoid actually storing the reference). The existence of `LifetimeBrand`'s `Drop` impl means this borrowed data could potentially be used at the end of the scope. Thus, the compiler is forced to extend `'id` to live at the point where `lifetime_brand` is dropped, constituting our lower bound. The actual `Drop` impl is purposefully left blank.
+Notice that `LifetimeBrand` carries the phantom type `&'id Id<'id>` (to avoid actually storing the reference). The existence of `LifetimeBrand`'s `Drop` impl means this borrowed data could potentially be used at the end of the scope, special analysis called the [drop check](https://doc.rust-lang.org/std/ops/trait.Drop.html#drop-check). Drop check forces the compiler to extend `'id` to live at the point where `lifetime_brand` is dropped, constituting our lower bound. The actual `Drop` impl is purposefully left blank.
 
 An important guarantee from the compiler is that local variables in a scope are dropped in the opposite order they are defined. Now we must prevent successive `make_guard` invocations in the same scope from unifying with the first invocation whose lifetime lives the longest. We are left with a need to *upper-bound* `'id`, and this is done by tying `'id` to the *borrow of what created it*. So, any expanding of `'id` would mean `branded_place`'s borrow of lifetime `'id` wouldn't live long enough when it is dropped.
 
-If you still find it confusing, I encourage you to work out rustc's error message [in this example](https://play.rust-lang.org/?version=stable&mode=debug&edition=2024&gist=649d51907c2612c310eb627a0c863399). I also encourage you to play around with the code snippet to see what compiles and what doesn't. Even with my own explanation in mind, I find this exercise illuminating. Another tip to help you understand is to remember that lifetimes are descriptive, not prescriptive.
+If you still find it confusing, I encourage you to work out rustc's error message [in this demonstration](https://play.rust-lang.org/?version=stable&mode=debug&edition=2024&gist=649d51907c2612c310eb627a0c863399). I also encourage you to play around with the code snippet to see what compiles and what doesn't. I've found this exercise illuminating. Another tip to help you understand is to remember the pithy saying that lifetimes are descriptive, not prescriptive.
 
 ## Soundness
 
-It is easy to verify
+It is easy to verify that `generativity` is sound.
 
-- the compiler conservatively assumes that all generic parameters of the Drop impl are used
-- The precise rules that govern drop checking may be less restrictive in the future.
-- The current analysis is deliberately conservative and trivial; it forces all borrowed data in a value to outlive that value, which is certainly sound. Future versions of the language may make the analysis more precise, to reduce the number of cases where sound code is rejected as unsafe.
-- In the meantime, there is an unstable attribute that one can use to assert (unsafely) that a generic type's destructor is guaranteed to not access any expired data, even if its type gives it the capability to do so. That attribute is called may_dangle and was introduced in RFC 1327. is the reason `Box<&'a T>` can be dropped at end of scope despite the `&'a T` borrow being invalidated beforehand.
-- any such weakening of an explicit impl Drop "using" captured lifetimes in the eyes of borrow check will be opt-in. This crate won't opt in to such a feature, and thus will remain sound.
-- what is drop ck https://github.com/rust-lang/rfcs/pull/1327
-- stabilize may_dangle https://github.com/rust-lang/rfcs/pull/3390
-- improve may_dangle https://github.com/rust-lang/rfcs/pull/3417
+```rust
+make_guard!(id1);
+make_guard!(id2);
+assert_eq!(id1, id1);
+assert_eq!(id2, id2);
+// rejected: `branded_place` does not live long enough
+// assert_eq!(id1, id2);
+```
 
-This relies on dead code to impact borrow checking. In theory, a sufficiently advanced borrow checker looking at the CFG after some inlining would be able to see that dropping lifetime_brand doesn't require the captured lifetime to be live, and destroy the uniqueness guarantee which we've created.
+At the time of writing, this test case passes. However, `generativity`'s vice is that it relies on internal behavior from the drop check analysis, the precise rules of which have historically been ill-defined and subject to change. In theory, sufficiently advanced analysis would be able to see that dropping `lifetime_brand` doesn't require `'id` to live because its `Drop` impl is empty, destroying the uniqueness guarantee we have created.
 
-`scopeguard`, a crate with hundreds of millions of downloads, [also relies](https://docs.rs/scopeguard/latest/src/scopeguard/lib.rs.html#287) on the `Drop` glue code of an unused variable
+<Aside collapse={false}>
 
-with Polonius we will hopefully have a formal model of the borrow checker and then proving this would be a fun project
+The full extent of the current drop check analysis is detailed in a [t-types meeting document](https://hackmd.io/h9YBnIbaRSCD7Ej6hUpF_w). [TL;DR](https://doc.rust-lang.org/std/ops/trait.Drop.html#drop-check).
+
+</Aside>
+
+Pertaining to our concerns, any weakening of drop check forcing captured lifetimes to live will most likely be opt-in, based on the direction of the ["drop check eyepatch" RFC](https://rust-lang.github.io/rfcs/1327-dropck-param-eyepatch.html). It introduces the unsafe `#[may_dangle]` attribute which relaxes this requirement. `#[may_dangle]` *opts-in* a struct's `Drop` impl to say, "I don't access a generic parameter, so it can be dropped before I run." Drop check eyepatch was introduced as a hacky refinement over "[unguarded escape hatch](https://rust-lang.github.io/rfcs/1238-nonparametric-dropck.html#unguarded-escape-hatch)," which permitted high-priority collections like `Vec<&T>` to drop despite the `&T` borrow being invalidated beforehand.
+
+<ContentImage src={famousLastWords} width={1100} alt="A contributor commenting how this RFC was supposed to be a temporary fix" />
+
+Here are some famous last words. Drop check eyepatch was accepted nine years ago, yet stabilization is [still opposed](https://rust-lang.zulipchat.com/#narrow/stream/144729-t-types/topic/Perma-unstable.20status.20of.20.60.23.5Bmay_dangle.5D.60). There are too many subtle gotchas with respect to drop check that have been found to be too much of a footgun even for an internal compiler feature. It has resulted in unsoundness [multiple](https://github.com/rust-lang/rust/issues/76367) [times](https://github.com/rust-lang/rust/issues/99408). The stable analysis is deliberately conservative for this reason. To quote from the Rustonomicon's [explanation](https://doc.rust-lang.org/nomicon/dropck.html#an-escape-hatch) of `#[may_dangle]`, "it is better to avoid adding the attribute."
+
+The [existing avenue of improvement](https://github.com/rust-lang/rfcs/pull/3417) clarifies the semantics but still holds that this behavior will be *opt-in*. Hence, we can strengthen our confidence that the livelihood requirements for `generativity` will remain sound.
+
+There are two other soundness concerns that are unlikely to be problematic but are still brought up in brief:
+
+- `generativity` relies on an unused variable, `lifetime_brand`, to impact borrow checking and the drop check. If support for unused variable analysis is ever removed, then [`scopeguard`](https://crates.io/crates/scopeguard), a crate with hundreds of millions of downloads, would break, and Rust is very careful not to break existing code. `scopeguard` [also relies](https://docs.rs/scopeguard/latest/src/scopeguard/lib.rs.html#287) on the `Drop` impl of an unused variable. Additionally, with the drop check, borrow checking must also run by virtue of `lifetime_brand`'s `Drop` impl, which could possibly access the borrow[^unreachable].
+- It may still be hard to trust the delicate configuration of upper and lower bounding the generated lifetime. With [non-lexical lifetimes](https://blog.rust-lang.org/2022/08/05/nll-by-default/) stabilized in 2022 as the second edition of the borrow checker, the only planned next iteration is [Polonius](https://github.com/rust-lang/polonius?tab=readme-ov-file), the implementation of which currently [passes](https://rust.godbolt.org/z/vhMjKGbz3) the aforementioned test case. I haven't given it much thought, but proving `generativity`'s soundness with Polonius' formal model of the borrow checker would be a fun project (to me at least).
+
+[^unreachable]: Unreachable code on the other hand is *not* borrow checked because it simply [wasn't a priority](https://github.com/rust-lang/rust/issues/91377#issuecomment-993875185).
 
 ## Language support
 
-- Why the `make_guard!(guard)` macro?
-- My last contribution to this discussion
+The `make_guard` macro almost has everything going for it, but the elephant in the room is that it looks ugly. It injects local variables defined by let bindings into the current scope, and we saw this was necessary in the statement-position to prevent the lifetime bounding tricks from being manipulated. For a while there was no ultimatum, until just a few months ago when the experimental [`super let`](https://github.com/rust-lang/rust/pull/139080) feature was introduced to extend the lifetimes of block-scoped variables. On nightly Rust, expression-position `make_guard` is now possible.
 
 ```rust
 #![feature(super_let)] // [!code ++]
@@ -709,27 +731,29 @@ macro_rules! make_guard {
     }}; // [!code ++]
 }
 
-fn foo() {
+fn main() {
     make_guard!(guard); // [!code --]
     let guard = make_guard!(); // [!code ++]
 }
 ```
 
-- preliminary ideas https://blog.m-ou.se/super-let#a-potential-extension
+Furthermore, there are [preliminary ideas](https://blog.m-ou.se/super-let#a-potential-extension) that would allow `make_guard` to be a function instead of a macro. The feedback for `super let` has so far been positive, so once the semantics are ironed out I think efforts to stabilize this feature will be underway.
 
-first class
+My last contribution to this discussion is some wishful thinking about first-class language support for `generativity`. The troubles with unique lifetime branding stem from the fact that Rust offers no way to prevent lifetimes from unifying. I propose the `'nonunifiable` lifetime bound, which would allow lifetimes to declaratively guarantee nonunifiability[^word] without having to resort to `generativity`'s lifetime bounding tricks. `'nonunifiable` is not intended to indicate variance—that's the job of `PhantomData`. For the permutation example, first-class support from the compiler would look like this:
+
+[^word]: Is this even a word?
 
 ```rust
 pub struct PermGroup<'id: 'nonunifiable> {
     base_permutation_length: usize,
     base_permutations: Vec<Permutation<'id>>,
-    id: Id<'id>,
+    id: PhantomData<fn(&'id ()) -> &'id ()>
 }
+
+pub struct Permutation<'id>(Box<[usize]>, PhantomData<fn(&'id ()) -> &'id ()>);
 ```
 
-https://lucumr.pocoo.org/2022/11/23/stack-tokens/
-
-I'm not going to pretend this is well-thought out
+Maybe this addition will have an unexpected use case that would make it practical, or maybe not. I'm not going to pretend I've thought about it more than this.
 
 # Benchmarks
 
@@ -749,7 +773,7 @@ Empirically, this validates all of my observations. The naive `1-slice` is the s
 
 Truthfully I don't have many final thoughts. I just needed a transition to end this article. I suppose my primary conclusion is that this article has gotten *far* longer than I had originally planned 😛.
 
-I don't think this is a bad thing. Its comprehensiveness more than makes up for it. The hidden agenda was to survey design patterns and write about design decisions I thought were interesting, culminating with the generativity pattern, which shows us how to take advantage of the type checker's power in a non-obvious manner.
+I don't think this is a bad thing. Its comprehensiveness more than makes up for it. The hidden agenda was to survey design patterns and write about Rust code I thought were interesting, culminating with the generativity pattern, which shows us how to take advantage of the type checker's power in a non-obvious manner.
 
 This concludes my first educational write-up on my blog. I came into this topic with a surface level understanding of what `generativity` is and how it works. I was not expecting this to take a month of writing, and I was entirely unprepared for how interesting the full story would be. My posts only get more fun to write >:).
 
