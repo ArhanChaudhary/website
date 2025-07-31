@@ -6,9 +6,9 @@
 
 # Introduction
 
-The *generativity pattern* in Rust is a combination of [typestate](https://cliffle.com/blog/rust-typestate/) and [GhostCell](https://plv.mpi-sws.org/rustbelt/ghostcell/), techniques that move what you'd normally check at runtime to compile-time. This pattern is not commonplace; its usage warrants a specific set of circumstances. However, when it *is* used, such as in popular [garbage](https://github.com/kyren/gc-arena/?tab=readme-ov-file#prior-art) [collection](https://github.com/Manishearth/rust-gc) crates, the effect is pronounced.
+The *generativity pattern* in Rust is a combination of [typestate](https://cliffle.com/blog/rust-typestate/) and [GhostCell](https://plv.mpi-sws.org/rustbelt/ghostcell/), techniques that move what you'd normally check at runtime to compile-time. This pattern is not commonplace; its usage warrants a specific set of circumstances. However, whenever it *is* used, such as in popular [garbage](https://github.com/kyren/gc-arena/?tab=readme-ov-file#prior-art) [collection](https://github.com/Manishearth/rust-gc) crates, the effect is pronounced.
 
-Aside from thinly spread (but admittedly well-written) academic literature[^literature], I haven't a found an accessible analysis of this pattern online. In order to build up a full picture of the "what" and more importantly the "why," we will first spend some time walking through a realistic example to gauge the type of problem generativity can solve: statically requiring data to come from or refer to the same source, as a *stronger* form of ownership. The latter half of this article will explain how to use the generativity pattern and then introduce a novel approach to creating "lifetime brands."
+Aside from thinly spread (but admittedly well-written) academic literature[^literature], I haven't a found an accessible analysis of this pattern online. In order to build up a full picture of the "what" and more importantly the "why," we will first spend some time walking through a realistic example to gauge the type of problem the generativity pattern can solve: statically requiring data to come from or refer to the same source, as a *stronger* form of ownership. We will introduce the generativity pattern and explain how to use it in the latter half of this article. Finally, we will follow up with a study of [Crystal Durham](https://cad97.com/)'s `generativity` crate, a novel improvement to the generativity pattern. Buckle up!
 
 [^literature]: Yes, I will eventually get to them. You just need to keep reading.
 
@@ -319,7 +319,7 @@ It is worth taking a step back to reflect. Although this solution might be appre
 
 The big reveal: the generativity approach is equivalent to the atomic ID approach, except everything is done at compile-time. Generativity solves the fundamental problem thus far: the invariant of `Permutation` guarantees it is a valid permutation, but not that it is necessarily associated with a specific `PermGroup`.
 
-Existing literature achieves generativity by sacrificing ergonomics and readability. They require wrapping all code in (often deeply nested) closures, warding off much of their interest in practice. We will spend the rest of this article examining Crystal Durham's [`generativity`](https://crates.io/crates/generativity) crate, which utilizes a novel and highly experimental technique to achieve generativity without needing a closure. Later, we will show that the `generativity` crate is a zero-cost compile-time abstraction.
+Existing literature achieves generativity by sacrificing ergonomics and readability. They require wrapping all code in (often deeply nested) closures, warding off much of their interest in practice. We will spend the rest of this article examining [Crystal Durham](https://cad97.com/)'s [`generativity`](https://crates.io/crates/generativity) crate, which utilizes a novel and highly experimental technique to achieve generativity without needing a closure. Later, we will show that the `generativity` crate is a zero-cost compile-time abstraction.
 
 *(Subtle-but-no-so-subtle foreshadowing: we will explore my own improvement to this technique in the next section)*
 
@@ -704,13 +704,13 @@ The [existing avenue of improvement](https://github.com/rust-lang/rfcs/pull/3417
 There are two other soundness concerns that are unlikely to be problematic but are still brought up in brief:
 
 - `generativity` relies on an unused variable, `lifetime_brand`, to impact borrow checking and the drop check. If support for unused variable analysis is ever removed, then [`scopeguard`](https://crates.io/crates/scopeguard), a crate with hundreds of millions of downloads, would break, and Rust is very careful not to break existing code. `scopeguard` [also relies](https://docs.rs/scopeguard/latest/src/scopeguard/lib.rs.html#287) on the `Drop` impl of an unused variable. Additionally, with the drop check, borrow checking must also run by virtue of `lifetime_brand`'s `Drop` impl, which could possibly access the borrow[^unreachable].
-- It may still be hard to trust the delicate configuration of upper and lower bounding the generated lifetime. With [non-lexical lifetimes](https://blog.rust-lang.org/2022/08/05/nll-by-default/) stabilized in 2022 as the second edition of the borrow checker, the only planned next iteration is [Polonius](https://github.com/rust-lang/polonius?tab=readme-ov-file), the implementation of which currently [passes](https://rust.godbolt.org/z/vhMjKGbz3) the aforementioned test case. I haven't given it much thought, but proving `generativity`'s soundness with Polonius' formal model of the borrow checker would be a fun project (to me at least).
+- It may still be hard to trust the delicate configuration of upper and lower bounding the generated lifetime. With [non-lexical lifetimes](https://blog.rust-lang.org/2022/08/05/nll-by-default/) stabilized in 2022 as the second edition of the borrow checker, the only planned next iteration is [Polonius](https://github.com/rust-lang/polonius), the implementation of which currently [passes](https://rust.godbolt.org/z/vhMjKGbz3) the aforementioned test case. I haven't given it much thought, but proving `generativity`'s soundness with Polonius' formal model of the borrow checker would be a fun project (to me at least).
 
 [^unreachable]: Unreachable code on the other hand is *not* borrow checked because it simply [wasn't a priority](https://github.com/rust-lang/rust/issues/91377#issuecomment-993875185).
 
 ## Language support
 
-The `make_guard` macro almost has everything going for it, but the elephant in the room is that it looks ugly. It injects local variables defined by let bindings into the current scope, and we saw this was necessary in the statement-position to prevent the lifetime bounding tricks from being manipulated. For a while there was no ultimatum, until just a few months ago when the experimental [`super let`](https://github.com/rust-lang/rust/pull/139080) feature was introduced to extend the lifetimes of block-scoped variables. On nightly Rust, expression-position `make_guard` is now possible.
+We can no longer ignore the elephant in the room with the `make_guard` macro: it looks ugly. It injects local variables into the current scope, and we saw this was necessary in the statement-position to prevent the lifetime bounding tricks from being manipulated. For a while there was no ultimatum, until just a few months ago when the experimental [`super let`](https://github.com/rust-lang/rust/pull/139080) feature was introduced to extend the lifetimes of block-scoped variables. By creating a block scope, expression-position `make_guard` is now possible on nightly Rust.
 
 ```rust
 #![feature(super_let)] // [!code ++]
@@ -753,7 +753,7 @@ pub struct PermGroup<'id: 'nonunifiable> {
 pub struct Permutation<'id>(Box<[usize]>, PhantomData<fn(&'id ()) -> &'id ()>);
 ```
 
-Maybe this addition will have an unexpected use case that would make it practical, or maybe not. I'm not going to pretend I've thought about it more than this.
+Maybe this addition will have an unexpected use case that would make it practical, or maybe not. I'm not going to pretend like I've thought about it more than this.
 
 # Benchmarks
 
