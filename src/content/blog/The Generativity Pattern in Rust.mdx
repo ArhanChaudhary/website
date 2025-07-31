@@ -8,7 +8,7 @@
 
 The *generativity pattern* in Rust is a combination of [typestate](https://cliffle.com/blog/rust-typestate/) and [GhostCell](https://plv.mpi-sws.org/rustbelt/ghostcell/), techniques that move what you'd normally check at runtime to compile-time. This pattern is not commonplace; its usage warrants a specific set of circumstances. However, whenever it *is* used, such as in popular [garbage](https://github.com/kyren/gc-arena/?tab=readme-ov-file#prior-art) [collection](https://github.com/Manishearth/rust-gc) crates, the effect is pronounced.
 
-Aside from thinly spread (but admittedly well-written) academic literature[^literature], I haven't a found an accessible analysis of this pattern online. In order to build up a full picture of the "what" and more importantly the "why," we will first spend some time walking through a realistic example to gauge the type of problem the generativity pattern can solve: statically requiring data to come from or refer to the same source, as a *stronger* form of ownership. We will introduce the generativity pattern and explain how to use it in the latter half of this article. Finally, we will follow up with a study of [Crystal Durham](https://cad97.com/)'s `generativity` crate, a novel improvement to the generativity pattern. Buckle up!
+Aside from thinly spread (but admittedly well-written) academic literature[^literature], I haven't a found an accessible analysis of this pattern online. In order to build up a full picture of the "what" and more importantly the "why," we will first spend some time walking through a realistic example to gauge the type of problem the generativity pattern solves: statically requiring data to come from or refer to the same source, as a *stronger* form of ownership. We will introduce the generativity pattern and explain how to use it in the latter half of this article. Finally, we will follow up with a study of [Crystal Durham](https://cad97.com/)'s `generativity` crate, a novel improvement to the generativity pattern. Buckle up!
 
 [^literature]: Yes, I will eventually get to them. You just need to keep reading.
 
@@ -149,6 +149,9 @@ Your *inner Ferris* awakens. With the annoyances of our last iteration freshly i
 
 ```rust
 impl Permutation {
+    // No `from_mapping` method. `Permutation` can only be
+    // constructed within `PermGroup::new`.
+
     pub fn compose_into(&self, b: &Permutation, into: &mut Permutation) {
         for i in 0..into.0.len() {
             // SAFETY: ... ?
@@ -166,7 +169,7 @@ impl Permutation {
 }
 ```
 
-All of a sudden, the implementation of `Permutation::compose_into` opens up an unsafety hole, despite privatizing `Permutation`'s construction! We implicitly assumed that the permutations to compose were from the same permutation group. This is not necessarily true: what if a library user composes two base permutations from different permutation groups? If the permutation lengths *don't* match, then `get_unchecked` will exhibit undefined behavior; this is clearly a problem! The intent of this operation is obviously nonsensical, but it does not change the fact that it is still our responsibility, as the crate author, that the safe functions we provide can never exhibit undefined behavior.
+All of a sudden, the implementation of `Permutation::compose_into` opens up an unsafety hole! We implicitly assumed that the permutations to compose were from the same permutation group. This is not necessarily true: what if a library user composes two base permutations from different permutation groups? If the permutation lengths *don't* match, then `get_unchecked` will exhibit undefined behavior; this is clearly a problem! The intent of this operation is obviously nonsensical, but it does not change the fact that it is still our responsibility, as the crate author, that the safe functions we provide can never exhibit undefined behavior.
 
 There is a more fundamental reason to care. An invariant of permutation composition within the same permutation group is membership; if the permutations to compose are in the same permutation group, the resulting permutation is also in that group. Even if the lengths of permutations from two different permutation groups *did* match, composing them could produce a permutation outside of either group, which is a logic error. Mitigating this by checking permutation group membership every function call is a very expensive operation. This is an example of the "practical scenario" mentioned beforehand.
 
