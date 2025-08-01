@@ -10,7 +10,7 @@ description: Imagine ownership but stranger
 
 # Introduction
 
-The *generativity pattern* in Rust is a combination of [typestate](https://cliffle.com/blog/rust-typestate/) and [GhostCell](https://plv.mpi-sws.org/rustbelt/ghostcell/), techniques that move what you'd normally check at runtime to compile-time. This pattern is not commonplace; its usage warrants a specific set of circumstances. However, whenever it *is* used, like in popular [garbage](https://github.com/kyren/gc-arena/?tab=readme-ov-file#prior-art) [collection](https://github.com/Manishearth/rust-gc) crates and in various corners of the Internet, the effect is pronounced.
+The *generativity pattern* in Rust is a combination of [typestate](https://cliffle.com/blog/rust-typestate/) and [GhostCell](https://plv.mpi-sws.org/rustbelt/ghostcell/), techniques that move what you'd normally check at runtime to compile-time. This pattern is not commonplace; its usage warrants a specific set of circumstances. However, whenever it *is* used, like in popular [garbage](https://github.com/kyren/gc-arena/?tab=readme-ov-file#prior-art) [collection](https://github.com/Manishearth/rust-gc) crates and other corners of the Internet, the effect is pronounced.
 
 Aside from thinly spread (but admittedly well-written) academic literature[^literature], I haven't a found an accessible analysis of this pattern online. In order to build up a full picture of the "what" and more importantly the "why," we will first spend some time walking through a realistic example to gauge the type of problem the generativity pattern solves: statically requiring data to come from or refer to the same source, as a *stronger* form of ownership. We will introduce the generativity pattern and explain how to use it in the latter half of this article. Finally, we will follow up with a study of [Crystal Durham](https://cad97.com/)'s [`generativity`](https://crates.io/crates/generativity) crate, a novel improvement to the generativity pattern. Buckle up!
 
@@ -346,13 +346,13 @@ fn main() {
 `generativity` publicizes three things: `Guard`, `Id`, and `make_guard`. Invoking the `make_guard` macro creates a `Guard<'_>` with a let binding, an identifier that carries a guaranteed unique lifetime. This lifetime is not actually used as a lifetime in the usual sense. It exists solely to make each instance of `Guard<'_>` a unique type. This is not voluntary nor merely a suggestion; the following *does not compile* because `make_guard`'s lifetime uniqueness guarantee cannot be broken[^unique].
 
 ```rust
-fn unify_lifetimes<'a>(a: Guard<'a>, b: Guard<'a>) {}
+fn unify_lifetimes<'a>(a: &Guard<'a>, b: &Guard<'a>) {}
 
 make_guard!(a);
 make_guard!(b);
 // rejected: unique lifetimes cannot be unified (this
 // is not the actual compiler error message)
-unify_lifetimes(a, b);
+unify_lifetimes(&a, &b);
 ```
 
 `Id<'_>` is like `Guard<'_>` except that it implements `Copy` and `Clone` while the latter does not. So, to create distributable copies of this identifier, you must consume a `Guard<'_>` into an `Id<'_>` using its `From` implementation. In terms of what `generativity` has to offer, this is all.
@@ -696,7 +696,7 @@ unify_lifetimes(&id1, &id2);
 
 The constraint solver realizes there is no logical contradiction with the obvious solution of `'id1 = 'id2`, and it allows this program to compile. We need to uniquely tie `id1` and `id2` to their declarations to prevent Rust from unifying them.
 
-After `make_guard` creates `branded_place` and generates an invariant lifetime `'id`, we are now armed with the knowledge required to be able to examine how `LifetimeBrand` ensures it is non-unifiable. It takes the approach of establishing distinct lower and upper bounds for `'id`, highlighting the need for a macro with protected hygiene to prevent these bounds from potentially being manipulated.
+After `make_guard` creates `branded_place` and generates an invariant lifetime `'id`, we are now armed with the knowledge required to examine how `LifetimeBrand` ensures it is non-unifiable. It takes the approach of establishing distinct lower and upper bounds for `'id`, highlighting the need for a macro with protected hygiene to prevent these bounds from potentially being manipulated.
 
 Notice that `LifetimeBrand` carries the phantom type `&'id Id<'id>` (to avoid actually storing the reference). The existence of `LifetimeBrand`'s `Drop` impl means this borrowed data could potentially be used at the end of the scope, special analysis called the [drop check](https://doc.rust-lang.org/std/ops/trait.Drop.html#drop-check). Drop check forces the compiler to extend `'id` to live at the point where `lifetime_brand` is dropped, constituting our lower bound. The actual `Drop` impl is purposefully left blank.
 
