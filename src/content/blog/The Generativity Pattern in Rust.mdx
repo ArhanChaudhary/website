@@ -1,12 +1,16 @@
+---
+description: Imagine ownership but stranger
+---
+
 {/* cspell:ignore typestate generativity newtype newtypes newtyped newtyping Rustaceans Rovynak rubiks stickered subtyping rustc binarycat typetoken eyepatch Launchbury Peyton Yanovski nilly unergonomic interprocedural amping brandedvec phantomdata rustonomicon Polonius nonunifiable footgun UGEH uniqueify nonunifiability */}
 
-*This article was peer-reviewed by my friends [Henry Rovynak](https://hrovnyak.gitlab.io/) and [Jack Hogan](https://www.jackhogan.me/). I thank Henry and Jack for their invaluable feedback. This article also uses special characters like the em-dash (—). These characters were lovingly hand-inserted and are not the result of AI-generated text.*
+*This article was peer-reviewed by my friends [Henry Rovynak](https://hrovnyak.gitlab.io/), [Jack Hogan](https://www.jackhogan.me/), and [Crystal Durham](https://cad97.com/). I thank them for their invaluable feedback. This article also uses special characters like the em-dash (—). These characters were lovingly hand-inserted and are not the result of AI-generated text.*
 
 ## Table of Contents
 
 # Introduction
 
-The *generativity pattern* in Rust is a combination of [typestate](https://cliffle.com/blog/rust-typestate/) and [GhostCell](https://plv.mpi-sws.org/rustbelt/ghostcell/), techniques that move what you'd normally check at runtime to compile-time. This pattern is not commonplace; its usage warrants a specific set of circumstances. However, whenever it *is* used, such as in popular [garbage](https://github.com/kyren/gc-arena/?tab=readme-ov-file#prior-art) [collection](https://github.com/Manishearth/rust-gc) crates, the effect is pronounced.
+The *generativity pattern* in Rust is a combination of [typestate](https://cliffle.com/blog/rust-typestate/) and [GhostCell](https://plv.mpi-sws.org/rustbelt/ghostcell/), techniques that move what you'd normally check at runtime to compile-time. This pattern is not commonplace; its usage warrants a specific set of circumstances. However, whenever it *is* used, like in popular [garbage](https://github.com/kyren/gc-arena/?tab=readme-ov-file#prior-art) [collection](https://github.com/Manishearth/rust-gc) crates and in various corners of the Internet, the effect is pronounced.
 
 Aside from thinly spread (but admittedly well-written) academic literature[^literature], I haven't a found an accessible analysis of this pattern online. In order to build up a full picture of the "what" and more importantly the "why," we will first spend some time walking through a realistic example to gauge the type of problem the generativity pattern solves: statically requiring data to come from or refer to the same source, as a *stronger* form of ownership. We will introduce the generativity pattern and explain how to use it in the latter half of this article. Finally, we will follow up with a study of [Crystal Durham](https://cad97.com/)'s [`generativity`](https://crates.io/crates/generativity) crate, a novel improvement to the generativity pattern. Buckle up!
 
@@ -14,14 +18,14 @@ Aside from thinly spread (but admittedly well-written) academic literature[^lite
 
 # Background
 
-Let us take the role of a crate author about permutations. We want to investigate the [composition](https://en.wikipedia.org/wiki/Permutation_group#Composition_of_permutations–the_group_product) of permutations. This can be expressed nicely visually.
+Let us take the role of a crate author about permutations. We want to investigate the [composition](https://en.wikipedia.org/wiki/Permutation_group#Composition_of_permutations–the_group_product) of zero-indexed permutations. This can be expressed nicely visually.
 
 <PermutationExample />
 
 The permutation `b` defines the remapping of the elements from permutation `a`. Pretty simple. Notice that permutation composition is only possible under the following three conditions:
 
 1. `a` and `b` must have the same length.
-2. Every element from `a` and `b` must be less than or equal to the length.
+2. Every element from `a` and `b` must be less than the length.
 3. Every element from `a` and `b` must be unique.
 
 Our library is general-purpose, so it is important to handle these error cases. Here is the simplest way to do that.
@@ -29,16 +33,16 @@ Our library is general-purpose, so it is important to handle these error cases. 
 ```rust
 /// We provide a `compose_into` function in case the caller already
 /// has a permutation preallocated. (This is good practice IMO).
-pub fn compose_into(a: &[usize], b: &[usize], into: &mut [usize]) -> Result<(), &'static str> {
-    if a.len() != b.len() || b.len() != into.len() {
+pub fn compose_into(a: &[usize], b: &[usize], result: &mut [usize]) -> Result<(), &'static str> {
+    if a.len() != b.len() || b.len() != result.len() {
         return Err("Permutations must have the same length");
     }
     let mut seen_b = vec![false; a.len()];
     let mut seen_a = vec![false; b.len()];
-    for (into_value, &b_value) in into.iter_mut().zip(b) {
+    for (result_value, &b_value) in result.iter_mut().zip(b) {
         if *seen_b
             .get(b_value)
-            .ok_or("B contains an element greater than the length")?
+            .ok_or("B contains an element greater than or equal to the length")?
         {
             return Err("B contains repeated elements");
         }
@@ -47,13 +51,13 @@ pub fn compose_into(a: &[usize], b: &[usize], into: &mut [usize]) -> Result<(), 
         let a_value = a[b_value];
         if *seen_a
             .get(a_value)
-            .ok_or("A contains an element greater than the length")?
+            .ok_or("A contains an element greater than or equal to the length")?
         {
             return Err("A contains repeated elements");
         }
         seen_a[a_value] = true;
 
-        *into_value = a_value;
+        *result_value = a_value;
     }
     Ok(())
 }
@@ -73,14 +77,14 @@ impl Permutation {
         Ok(Self(mapping.into_boxed_slice()))
     }
 
-    pub fn compose_into(&self, b: &Self, into: &mut Self) -> Result<(), &'static str> {
-        if self.0.len() != b.0.len() || b.0.len() != into.0.len() {
+    pub fn compose_into(&self, b: &Self, result: &mut Self) -> Result<(), &'static str> {
+        if self.0.len() != b.0.len() || b.0.len() != result.0.len() {
             return Err("Permutations must have the same length");
         }
-        for (into_value, &b_value) in into.0.iter_mut().zip(&b.0) {
+        for (result_value, &b_value) in result.0.iter_mut().zip(&b.0) {
             // SAFETY: `b` is guaranteed to be a valid permutation
             // whose elements can index `self`
-            *into_value = unsafe { *self.0.get_unchecked(b_value) };
+            *result_value = unsafe { *self.0.get_unchecked(b_value) };
         }
         Ok(())
     }
@@ -104,7 +108,7 @@ This code is a major improvement! It is simple, easy to use, and it provides rea
 
 Yes, these aren't *important* problems per se, but they are still inconveniences to be aware of.
 
-We now want to extend our library to model a [permutation group](https://en.wikipedia.org/wiki/Permutation_group), or just a collection of a bunch of permutations. In a permutation group, every permutation can be written as a sequence of compositions of base permutations, which we will use to represent the entire collection. For example, the manipulations of the Rubik's Cube form a permutation group. Its base permutations which represent the entire permutation group are the six face rotations. Therefore, every possible state on the Rubik's cube can be reached from a combination of those face rotations.
+We now want to extend our library to model a [permutation group](https://en.wikipedia.org/wiki/Permutation_group), a description of a set of permutations. In a permutation group, every permutation in the set can be written as a sequence of compositions of a select few *base permutations*, which we will use to represent the entire collection. For example, the manipulations of the Rubik's Cube form a permutation group. Its base permutations which represent the entire permutation group are the six face rotations. By definition, every possible state on the Rubik's cube can be reached from a combination of those face rotations.
 
 The illustrated turn is a permutation fifty-four elements long, because there are fifty-four stickers on a Rubik's cube[^cube].
 
@@ -152,11 +156,11 @@ impl Permutation {
     // No `from_mapping` method. `Permutation` can only be
     // constructed within `PermGroup::new`.
 
-    pub fn compose_into(&self, b: &Permutation, into: &mut Permutation) {
-        for i in 0..into.0.len() {
+    pub fn compose_into(&self, b: &Permutation, result: &mut Permutation) {
+        for i in 0..result.0.len() {
             // SAFETY: ... ?
             unsafe {
-                *into.0.get_unchecked_mut(i) = *self.0.get_unchecked(*b.0.get_unchecked(i));
+                *result.0.get_unchecked_mut(i) = *self.0.get_unchecked(*b.0.get_unchecked(i));
             }
         }
     }
@@ -171,7 +175,9 @@ impl Permutation {
 
 All of a sudden, the implementation of `Permutation::compose_into` opens up an unsafety hole! We implicitly assumed that the permutations to compose were from the same permutation group. This is not necessarily true: what if a library user composes two base permutations from different permutation groups? If the permutation lengths *don't* match, then `get_unchecked` will exhibit undefined behavior; this is clearly a problem! The intent of this operation is obviously nonsensical, but it does not change the fact that it is still our responsibility, as the crate author, that the safe functions we provide can never exhibit undefined behavior.
 
-There is a more fundamental reason to care. An invariant of permutation composition within the same permutation group is membership; if the permutations to compose are in the same permutation group, the resulting permutation is also in that group. Even if the lengths of permutations from two different permutation groups *did* match, composing them could produce a permutation outside of either group, which is a logic error. Mitigating this by checking permutation group membership every function call is a very expensive operation. This is an example of the "practical scenario" mentioned beforehand.
+There is a more fundamental reason to care. An invariant of permutation composition within the same permutation group is membership; if the permutations to compose are in the same permutation group, the resulting permutation is also in that group. Even if the lengths of permutations from two different permutation groups *did* match, composing them could produce a permutation outside of either group, which is a logic error. Other code may even have unsafe blocks that rely on permutation group membership, for example a Rubik's cube solver optimized for speed.
+
+Mitigating this by checking permutation group membership every function call is a very expensive operation. This is an example of the "practical scenario" mentioned beforehand.
 
 The newtype pattern alone is not powerful enough to prevent this error. We will analyze different approaches that ensure our library only permits permutation composition within the same permutation group. Each has their own trade-offs, but are all right answers for their own dedicated situations. They will also lay the groundwork to justify using the generativity pattern. All the code segments provided in this article can be found [here](https://github.com/ArhanChaudhary/generativity-pattern-rs).
 
@@ -182,14 +188,14 @@ The simplest solution is to mark `Permutation::compose_into` and `Permutation::c
 ```rust
 /// # Safety
 ///
-/// `self`, `b`, and `into` must all be from the same
+/// `self`, `b`, and `result` must all be from the same
 /// permutation group.
-pub unsafe fn compose_into(&self, b: &Permutation, into: &mut Permutation) {
-    for i in 0..into.0.len() {
+pub unsafe fn compose_into(&self, b: &Permutation, result: &mut Permutation) {
+    for i in 0..result.0.len() {
         // SAFETY: permutations within the same group can be
         // composed.
         unsafe {
-            *into.0.get_unchecked_mut(i) = *self.0.get_unchecked(*b.0.get_unchecked(i));
+            *result.0.get_unchecked_mut(i) = *self.0.get_unchecked(*b.0.get_unchecked(i));
         }
     }
 }
@@ -207,9 +213,9 @@ pub trait ComposablePermutation: Clone {
 
     /// # Safety
     ///
-    /// `self`, `b`, and `into` must all be from the same
+    /// `self`, `b`, and `result` must all be from the same
     // permutation group.
-    unsafe fn compose_into(&self, b: &Self, into: &mut Self);
+    unsafe fn compose_into(&self, b: &Self, result: &mut Self);
 
     /// # Safety
     ///
@@ -289,16 +295,16 @@ impl Permutation {
         Ok(permutation)
     }
 
-    pub fn compose_into(&self, b: &Self, into: &mut Self) -> Result<(), &'static str> {
-        if self.1 != b.1 || b.1 != into.1 {
+    pub fn compose_into(&self, b: &Self, result: &mut Self) -> Result<(), &'static str> {
+        if self.1 != b.1 || b.1 != result.1 {
             return Err("Permutations must come from the same permutation group");
         }
-        for i in 0..into.0.len() {
-            // SAFETY: `self`, `b`, and `into` have the same ID.
+        for i in 0..result.0.len() {
+            // SAFETY: `self`, `b`, and `result` have the same ID.
             // Therefore, they are members of the same group and
             // can be composed.
             unsafe {
-                *into.0.get_unchecked_mut(i) = *self.0.get_unchecked(*b.0.get_unchecked(i));
+                *result.0.get_unchecked_mut(i) = *self.0.get_unchecked(*b.0.get_unchecked(i));
             }
         }
         Ok(())
@@ -316,7 +322,7 @@ Creating a new `Permutation` now requires a mapping and a `PermGroup` reference.
 
 The fruits of our labor are rewarded in `Permutation::compose_into`. The expensive permutation group membership test is performed exclusively during `Permutation`'s creation. When two permutations are composed, those same "tokens" are used to cheaply verify membership within the same permutation group. Hence, callers can safely assume permutation composition produces another permutation in the same permutation group without compromising efficiency.
 
-It is worth taking a step back to reflect. Although this solution might be appreciated in academia, some programmers are likely to consider it over-engineered. I offer no rebuttal: indeed, you would need a good reason to care this much. However, if your interest is piqued, what would really be nice is an *infallible* yet *zero-cost* permutation composition operation—one that is guaranteed to be valid at compile-time and as fast as the unsafe approach. If you're willing to go a small step farther, we arrive at...
+It is worth taking a step back to reflect. Although this solution might be appreciated in academia, some programmers are likely to consider it over-engineered. I offer no rebuttal: indeed, from a practical standpoint, you would need a good reason to care this much. However, if your interest is piqued, what would really be nice is an *infallible* yet *zero-cost* permutation composition operation—one that is guaranteed to be valid at compile-time and as fast as the unsafe approach. If you're willing to go a small step farther, we arrive at...
 
 # The generativity approach
 
@@ -337,17 +343,23 @@ fn main() {
 }
 ```
 
-`generativity` publicizes three things: `Guard`, `Id`, and `make_guard`. Invoking the `make_guard` macro creates a `Guard<'_>` with a let binding, an identifier that carries a guaranteed unique lifetime[^unique]. This lifetime is not actually used as a lifetime in the usual sense. It exists solely to make each instance of `Guard<'_>` a unique type. `Id<'_>` is like `Guard<'_>` except that it implements `Copy` and `Clone` while the latter does not. So, to create distributable copies of this identifier, you must consume a `Guard<'_>` into an `Id<'_>` using its `From` implementation. In terms of what `generativity` has to offer, this is all.
+`generativity` publicizes three things: `Guard`, `Id`, and `make_guard`. Invoking the `make_guard` macro creates a `Guard<'_>` with a let binding, an identifier that carries a guaranteed unique lifetime. This lifetime is not actually used as a lifetime in the usual sense. It exists solely to make each instance of `Guard<'_>` a unique type. This is not voluntary nor merely a suggestion; the following *does not compile* because `make_guard`'s lifetime uniqueness guarantee cannot be broken[^unique].
 
-[^unique]: This lifetime is not technically unique. You could unify it with other lifetimes in a function call: `fn unify_lifetimes<'id>(impostor: &'id (), guard: &Guard<'id>) { ... }`. The lifetime is only unique among the provided `Id<'id>` and `Guard<'id>` types, so as long as your lifetime is carried by those types your code will be sound.
+```rust
+fn unify_lifetimes<'a>(a: Guard<'a>, b: Guard<'a>) {}
 
-Let us informally prove `generativity`'s equivalence to the atomic ID approach:
+make_guard!(a);
+make_guard!(b);
+// rejected: unique lifetimes cannot be unified (this
+// is not the actual compiler error message)
+unify_lifetimes(a, b);
+```
 
-- In the atomic ID approach, unique integer identifiers are created à la `ID.fetch_add(1, Relaxed)`. This directly parallels `make_guard!(guard)`, which creates a unique `Guard<'_>` identifier.
-- The unique integer identifier is then stored inside a primitive `u64`. This implements `Copy` and it is distributed among the input base permutations to associate each one with its permutation group. Similarly, `Id<'_>` serves this same purpose.
-- The unique integer identifier is used to test permutation group membership during permutation composition, erroring if not the case. Soon we will see how the generativity pattern correctly and equivalently solves this problem.
+`Id<'_>` is like `Guard<'_>` except that it implements `Copy` and `Clone` while the latter does not. So, to create distributable copies of this identifier, you must consume a `Guard<'_>` into an `Id<'_>` using its `From` implementation. In terms of what `generativity` has to offer, this is all.
 
-With their equivalence established, the body of `PermGroup::new` hardly changes at all. It remains sound because the constructor creates `Permutation`s with the same lifetime identifier, making it unique among different `PermGroup`s.
+[^unique]: This lifetime is not technically unique. You could unify it with another lifetime in a similar function call: `fn unify_lifetimes<'id>(impostor: &'id (), guard: &Guard<'id>) { ... }`. The lifetime is only unique among the provided `Id<'id>` and `Guard<'id>` types, so as long as your lifetime is carried by those types your code will be sound.
+
+With the generativity pattern in place, the body of `PermGroup::new` remains sound because it creates `Permutation`s with the same lifetime identifier, making it unique among different `PermGroup`s.
 
 ```rust
 pub struct PermGroup { // [!code --]
@@ -403,26 +415,32 @@ pub struct Permutation(Box<[usize]>, u64); // [!code --]
 pub struct Permutation<'id>(Box<[usize]>, Id<'id>); // [!code ++]
 ```
 
-Recall that every `Id<'id>` carries a unique lifetime among different `PermGroup<'id>`s. By combining `Permutation` with `Id<'id>` and a lifetime parameter, we create a set of the same `Permutation<'id>` type for each permutation that is distinct among different `PermGroup<'id>`s. Our permutation composition function takes in the same type `Self` for all arguments—it follows that `Permutation<'id>`s from different permutation groups cannot be composed as they are not the same type, and `Permutation<'id>`s from the same permutation group can be composed as they are the same type. This is the essence of the generativity pattern, enforced at compile-time.
+Recall that every `Id<'id>` carries a unique lifetime among different `PermGroup<'id>`s. By combining `Permutation` with `Id<'id>` and a lifetime parameter, we create a collection of the same `Permutation<'id>` type for each permutation that is distinct among different `PermGroup<'id>`s. Our permutation composition function takes in the same type `Self` for all arguments—it follows that `Permutation<'id>`s from different permutation groups cannot be composed as they are not the same type, and `Permutation<'id>`s from the same permutation group can be composed as they are the same type. This is the essence of the generativity pattern, enforced at compile-time.
 
 Behold: a permutation composition function that is unchecked, infallible, and safe. The full implementation is [here](https://github.com/ArhanChaudhary/generativity-pattern-rs/blob/main/src/5-generativity.rs).
 
 ```rust
-pub fn compose_into(&self, b: &Self, into: &mut Self) -> Result<(), &'static str> { // [!code --]
-    if self.1 != b.1 || b.1 != into.1 { // [!code --]
+pub fn compose_into(&self, b: &Self, result: &mut Self) -> Result<(), &'static str> { // [!code --]
+    if self.1 != b.1 || b.1 != result.1 { // [!code --]
         return Err("Permutations must come from the same permutation group"); // [!code --]
     } // [!code --]
-pub fn compose_into(&self, b: &Self, into: &mut Self) { // [!code ++]
-    for i in 0..into.0.len() {
-        // SAFETY: `self`, `b`, and `into` are members of the
+pub fn compose_into(&self, b: &Self, result: &mut Self) { // [!code ++]
+    for i in 0..result.0.len() {
+        // SAFETY: `self`, `b`, and `result` are members of the
         // same group and can be composed.
         unsafe {
-            *into.0.get_unchecked_mut(i) = *self.0.get_unchecked(*b.0.get_unchecked(i));
+            *result.0.get_unchecked_mut(i) = *self.0.get_unchecked(*b.0.get_unchecked(i));
         }
     }
     Ok(()) // [!code --]
 }
 ```
+
+Let us informally prove `generativity`'s equivalence to the atomic ID approach:
+
+- In the atomic ID approach, unique integer identifiers are created à la `ID.fetch_add(1, Relaxed)`. This directly parallels `make_guard!(guard)`, which creates a unique `Guard<'id>` identifier.
+- The unique integer identifier is then stored inside a primitive `u64`. This implements `Copy` and it is distributed among the input base permutations to associate each one with its permutation group. Similarly, `Id<'id>` serves this purpose.
+- The unique integer identifier is used to test permutation group membership during permutation composition, erroring if not the case. The generativity pattern directly embeds the same test into the type system.
 
 It would be irresponsible for me to advertise the `generativity` crate as a perfect solution barring its implementation caveat. Yes, the implementation caveat is its only functional limitation, but there are some developer experience problems to consider.
 
@@ -519,7 +537,7 @@ let second_perm = &second_perm_group.base_permutations()[0];
 // first_perm.compose(second_perm);
 ```
 
-The flaw is quite subtle. The macro constructor creates a token per-*call* instead of per-*owner*. Every expression results in a particular type; if the same macro is ran more than once, it will produce the same type, even if it is unique to the expression. This can be exploited to give multiple owners the same brand. To exemplify:
+The flaw is quite subtle. The macro constructor creates a token per-*call-site* instead of per-*owner*. Every expression results in a particular type; if the same macro is ran more than once, it will produce the same type, even if it is unique to the expression. This can be exploited to give multiple owners the same brand. To exemplify:
 
 ```rust
 let first = (4, vec![vec![1, 2, 0, 3]]);
@@ -527,7 +545,18 @@ let second = (3, vec![vec![2, 0, 1]]);
 
 let mut perm_groups = vec![];
 for (len, mappings) in [first, second] {
-    perm_groups.push(new_perm_group!(len, mappings).unwrap());
+    // I expanded the macro to make it easier to understand!
+    // perm_groups.push(new_perm_group!(len, mappings).unwrap());
+
+    perm_groups.push({
+        let len = len;
+        let mappings = mappings;
+        struct InvariantToken;
+        // SAFETY: private API, only used in this macro.
+        unsafe {
+            crate::PermGroup::<InvariantToken>::new(len, mappings)
+        }
+    }.unwrap());
 }
 let first_perm = &perm_groups[0].base_permutations()[0];
 let second_perm = &perm_groups[1].base_permutations()[0];
@@ -536,9 +565,9 @@ let second_perm = &perm_groups[1].base_permutations()[0];
 first_perm.compose(second_perm);
 ```
 
-We have just invoked undefined behavior from safe user-facing code. This is unsound without question.
+We have just invoked undefined behavior from safe user-facing code. This is unsound without question, and there is no point in endorsing this approach.
 
-There is a remedy: combine `InvariantToken` with a locally-scoped lifetime, as [illustrated](https://codeberg.org/binarycat/typetoken/src/branch/trunk/src/lib.rs) in [binarycat](https://codeberg.org/binarycat)'s crate [`typetoken`](https://crates.io/crates/typetoken). This only creates a strictly less capable version of `generativity`. There is no point in endorsing either approach.
+There is a remedy: combine `InvariantToken` with a locally-scoped lifetime, as [illustrated](https://codeberg.org/binarycat/typetoken/src/branch/trunk/src/lib.rs) in [binarycat](https://codeberg.org/binarycat)'s crate [`typetoken`](https://crates.io/crates/typetoken). This only creates a strictly less capable version of `generativity`. There is no point in endorsing this approach either.
 
 If the above code were possible with `generativity`, we would have the exact same unsoundness problem.
 
@@ -667,7 +696,7 @@ unify_lifetimes(&id1, &id2);
 
 The constraint solver realizes there is no logical contradiction with the obvious solution of `'id1 = 'id2`, and it allows this program to compile. We need to uniquely tie `id1` and `id2` to their declarations to prevent Rust from unifying them.
 
-After `make_guard` creates `branded_place` and generates an invariant lifetime `'id`, we are now armed with the knowledge to examine how `LifetimeBrand` ensures it is non-unifiable. It takes the approach of establishing distinct lower and upper bounds for `'id`, highlighting the need for a macro with protected hygiene to prevent these bounds from potentially being manipulated.
+After `make_guard` creates `branded_place` and generates an invariant lifetime `'id`, we are now armed with the knowledge required to be able to examine how `LifetimeBrand` ensures it is non-unifiable. It takes the approach of establishing distinct lower and upper bounds for `'id`, highlighting the need for a macro with protected hygiene to prevent these bounds from potentially being manipulated.
 
 Notice that `LifetimeBrand` carries the phantom type `&'id Id<'id>` (to avoid actually storing the reference). The existence of `LifetimeBrand`'s `Drop` impl means this borrowed data could potentially be used at the end of the scope, special analysis called the [drop check](https://doc.rust-lang.org/std/ops/trait.Drop.html#drop-check). Drop check forces the compiler to extend `'id` to live at the point where `lifetime_brand` is dropped, constituting our lower bound. The actual `Drop` impl is purposefully left blank.
 
@@ -713,7 +742,7 @@ There are two other soundness concerns that are unlikely to be problematic but a
 
 ## Language support
 
-We can no longer ignore the elephant in the room with the `make_guard` macro: it looks ugly. It injects local variables into the current scope, and we saw this was necessary in the statement-position to prevent the lifetime bounding tricks from being manipulated. For a while there was no ultimatum, until just a few months ago when the experimental [`super let`](https://github.com/rust-lang/rust/pull/139080) feature was introduced to extend the lifetimes of block-scoped variables. By creating a block scope, expression-position `make_guard` is now possible on nightly Rust.
+We can no longer ignore the elephant in the room with the `make_guard` macro: it looks ugly. It injects local variables into the current scope, and we saw this was necessary in the statement-position to prevent the lifetime bounding tricks from being manipulated. For a while there was no resolution, until just a few months ago when the experimental [`super let`](https://github.com/rust-lang/rust/pull/139080) feature was introduced to extend the lifetimes of block-scoped variables. By creating a block scope, expression-position `make_guard` is now possible on nightly Rust.
 
 ```rust
 #![feature(super_let)] // [!code ++]
@@ -742,12 +771,12 @@ fn main() {
 
 Furthermore, there are [preliminary ideas](https://blog.m-ou.se/super-let#a-potential-extension) that would allow `make_guard` to be a function instead of a macro. The feedback for `super let` has so far been positive, so once the semantics are ironed out I think efforts to stabilize this feature will be underway.
 
-My last contribution to this discussion is some wishful thinking about first-class language support for `generativity`. The troubles with unique lifetime branding stem from the fact that Rust offers no way to prevent lifetimes from unifying. I propose the `'nonunifiable` lifetime bound, which would allow lifetimes to declaratively guarantee nonunifiability[^word] without having to resort to `generativity`'s lifetime bounding tricks. `'nonunifiable` is not intended to indicate variance—that's the job of `PhantomData`. For the permutation example, first-class support from the compiler would look like this:
+My last contribution to this discussion is some wishful thinking about first-class language support for `generativity`. The troubles with unique lifetime branding stem from the fact that Rust offers no way to prevent lifetimes from unifying. I propose the `#[nonunifiable]` lifetime attribute, which would allow lifetimes to declaratively guarantee nonunifiability[^word] without having to resort to `generativity`'s lifetime bounding tricks and confusing compiler errors. `#[nonunifiable]` is not intended to indicate variance—that's the job of `PhantomData`. For the permutation example, first-class support from the compiler would look like this:
 
 [^word]: Is this even a word?
 
 ```rust
-pub struct PermGroup<'id: 'nonunifiable> {
+pub struct PermGroup<#[nonunifiable] 'id> {
     base_permutation_length: usize,
     base_permutations: Vec<Permutation<'id>>,
     id: PhantomData<fn(&'id ()) -> &'id ()>
@@ -770,7 +799,7 @@ No comparison would be complete without a benchmark. Yes, the point of the gener
 | 5-generativity | 3.604     |
 | 3-unsafe_trait | 3.602     |
 
-Empirically, this validates all of my observations. The naive `1-slice` is the slowest because it checks every permutation for complete validity during composition. `2-newtype` removes most of the validation overhead. Admittedly this is good enough; you would only care about the other solutions if you could prove that permutation composition was the bottleneck. `4-atomic_id` replaces the validation with a single integer comparison, making it marginally faster, likely because it avoids dereferencing. Finally, `5-generativity` and `3-unsafe_trait` emerge the fastest because they avoid validation entirely. The important difference: `3-unsafe_trait` marks permutation composition unsafe while `5-generativity` does not.
+Empirically, this validates all of my observations. The naive `1-slice` is the slowest because it checks every permutation for complete validity during composition. `2-newtype` removes most of the validation overhead. Admittedly this is good enough; again, from a practical standpoint, you would only care about the other solutions if you could prove that permutation composition was the bottleneck. `4-atomic_id` replaces the validation with a single integer comparison, making it marginally faster, likely because it avoids dereferencing. Finally, `5-generativity` and `3-unsafe_trait` emerge the fastest because they avoid validation entirely, and I have also verified that the generated machine code is identical. The important difference: `3-unsafe_trait` marks permutation composition unsafe while `5-generativity` does not.
 
 # Conclusion
 
