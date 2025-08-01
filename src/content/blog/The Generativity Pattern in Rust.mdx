@@ -643,7 +643,7 @@ pub type Id<'id> = PhantomData<Cell<&'id u8>>; // Aria Desires' master's thesis
 pub type Id<'id> = PhantomData<Cell<&'id mut ()>>; // Also from her master's thesis
 ```
 
-They work because they follow the core principal that `&mut T` is invariant over `T` (click [here](https://doc.rust-lang.org/nomicon/subtyping.html#variance) to see why). With `T = &'id ()`, `'id` must become invariant. But unlike the others, `PhantomData<fn(T) -> T>` implements all auto traits for its owner, and is generally preferred if the only purpose is to indicate invariance. For further reading, the Rustonomicon provides [a table](https://doc.rust-lang.org/nomicon/phantom-data.html#table-of-phantomdata-patterns) of common `PhantomData` patterns.
+They work because they follow the core principal that `&mut T` is invariant over `T` (click [here](https://doc.rust-lang.org/nomicon/subtyping.html#variance) to see why). With `T = &'id ()`, `'id` must become invariant. But unlike the others, `PhantomData<fn(T) -> T>` implements all auto traits (`Send`, `Sync`, etc) for its owner, and is generally preferred if the only purpose is to indicate invariance. For further reading, the Rustonomicon provides [a table](https://doc.rust-lang.org/nomicon/phantom-data.html#table-of-phantomdata-patterns) of common `PhantomData` patterns.
 
 </Aside>
 
