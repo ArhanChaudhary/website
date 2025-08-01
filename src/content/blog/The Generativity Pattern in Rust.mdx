@@ -357,7 +357,7 @@ unify_lifetimes(&a, &b);
 
 `Id<'_>` is like `Guard<'_>` except that it implements `Copy` and `Clone` while the latter does not. So, to create distributable copies of this identifier, you must consume a `Guard<'_>` into an `Id<'_>` using its `From` implementation. In terms of what `generativity` has to offer, this is all.
 
-[^unique]: This lifetime is not technically unique. You could unify it with another lifetime in a similar function call: `fn unify_lifetimes<'id>(impostor: &'id (), guard: &Guard<'id>) { ... }`. The lifetime is only unique among the provided `Id<'id>` and `Guard<'id>` types, so as long as your lifetime is carried by those types your code will be sound.
+[^unique]: This lifetime is not technically unique. You could unify it with another lifetime in a similar function call: `fn unify_lifetimes<'id>(impostor: &'id (), guard: &Guard<'id>) { ... }`. The lifetime is only unique among the provided `Id<'id>` and `Guard<'id>` types, so as long as your code only trusts lifetimes carried by those types it will be sound.
 
 With the generativity pattern in place, the body of `PermGroup::new` remains sound because it creates `Permutation`s with the same lifetime identifier, making it unique among different `PermGroup`s.
 
@@ -643,11 +643,11 @@ pub type Id<'id> = PhantomData<Cell<&'id u8>>; // Aria Desires' master's thesis
 pub type Id<'id> = PhantomData<Cell<&'id mut ()>>; // Also from her master's thesis
 ```
 
-They work because they follow the core principal that `&mut T` is invariant over `T` (click [here](https://doc.rust-lang.org/nomicon/subtyping.html#variance) to see why). With `T = &'id ()`, `'id` must become invariant. But unlike the others, `PhantomData<fn(&'id ()) -> &'id ()>` implements all auto traits (`Sync`, `Send`, etc) for its owner, and is generally preferred if the only purpose is to indicate invariance. For more reading, the Rustonomicon lists [a table](https://doc.rust-lang.org/nomicon/phantom-data.html#table-of-phantomdata-patterns) of common `PhantomData` patterns.
+They work because they follow the core principal that `&mut T` is invariant over `T` (click [here](https://doc.rust-lang.org/nomicon/subtyping.html#variance) to see why). With `T = &'id ()`, `'id` must become invariant. But unlike the others, `PhantomData<fn(T) -> T>` implements all auto traits for its owner, and is generally preferred if the only purpose is to indicate invariance. For further reading, the Rustonomicon provides [a table](https://doc.rust-lang.org/nomicon/phantom-data.html#table-of-phantomdata-patterns) of common `PhantomData` patterns.
 
 </Aside>
 
-When I first learned how to use `PhantomData` to indicate variance I couldn't help but think of it as an obnoxiously leaky abstraction. There is a [movement](https://github.com/rust-lang/rust/issues/135806) to make it a bit more ergonomic by introducing custom variance newtypes into the standard library, like `PhantomInvariantLifetime`. Sure enough, the status quo of `PhantomData` has been considered "[something of a failure](https://github.com/rust-lang/rfcs/pull/3417#pullrequestreview-1396551771)."
+When I first learned how to use `PhantomData` to indicate variance I couldn't help but think of it as an obnoxiously leaky abstraction. There is a [movement](https://github.com/rust-lang/rust/issues/135806) to make it a bit more ergonomic by introducing custom variance newtypes into the standard library, i.e. `PhantomInvariantLifetime`. Sure enough, the status quo of `PhantomData` has been considered "[something of a failure](https://github.com/rust-lang/rfcs/pull/3417#pullrequestreview-1396551771)."
 
 ```rust
 pub struct Guard<'id>(pub Id<'id>);
