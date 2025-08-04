@@ -708,7 +708,7 @@ let id2: Id<'id2> = PhantomData;
 unify_lifetimes(&id1, &id2);
 ```
 
-The constraint solver realizes there is no logical contradiction with the obvious solution of `'id1 = 'id2`, and it allows this program to compile. We need to uniquely tie `id1` and `id2` to their declarations to prevent Rust from unifying them.
+The constraint solver realizes there is no logical contradiction with the obvious solution of `'id2 = 'id1`, and it allows this program to compile. We need to uniquely tie `id1` and `id2` to their declarations to prevent Rust from unifying them.
 
 After `make_guard` creates `branded_place` and generates an invariant lifetime `'id`, we are now armed with the knowledge required to examine how `LifetimeBrand` ensures it is non-unifiable. It takes the approach of establishing distinct lower and upper bounds for `'id`, highlighting the need for a macro with protected hygiene to prevent these bounds from potentially being manipulated.
 
@@ -785,7 +785,7 @@ fn main() {
 
 Furthermore, there are [preliminary ideas](https://blog.m-ou.se/super-let#a-potential-extension) that would allow `make_guard` to be a function instead of a macro. The feedback for `super let` has so far been positive, so once the semantics are ironed out I think efforts to stabilize this feature will be underway.
 
-My last contribution to this discussion is some wishful thinking about first-class language support for `generativity`. The troubles with unique lifetime branding stem from the fact that Rust offers no way to prevent lifetimes from unifying. I propose the `#[nonunifiable]` attribute macro, which would allow lifetimes to declaratively guarantee non-unifiability without having to resort to `generativity`'s lifetime bounding tricks. `#[nonunifiable]` is *not* intended to indicate variance—that's the job of `PhantomData`. For the permutation example, first-class language support from the compiler would look like this (and you may check out the [full implementation](https://github.com/ArhanChaudhary/generativity-pattern-rs/blob/main/src/7-nonunifiable_proposal.rs)):
+My last contribution to this discussion is some wishful thinking about first-class language support for `generativity`. The troubles with unique lifetime branding stem from the fact that Rust offers no way to prevent lifetimes from unifying. So, I propose the `#[nonunifiable]` lifetime attribute. It would allow lifetimes to declaratively guarantee non-unifiability without having to resort to `generativity`'s lifetime bounding tricks. `#[nonunifiable]` is *not* intended to indicate variance—that's the job of `PhantomData`. For the permutation example, first-class language support from the compiler would look like this (and you may check out the [full implementation](https://github.com/ArhanChaudhary/generativity-pattern-rs/blob/main/src/7-nonunifiable_proposal.rs)):
 
 ```rust
 pub struct PermGroup<#[nonunifiable] 'id> {
@@ -824,10 +824,10 @@ error[E0308]: mismatched types
   |
   = note: expected reference `&Permutation<'1>`
              found reference `&Permutation<'2>`
-  = note: `Permtuation<'1>` and `Permutation<'2>` are similar types, but distinct because they carry `#[nonunifiable]` lifetimes
+  = note: `Permtuation<'1>` and `Permutation<'2>` look like similar types, but are distinct because they carry `#[nonunifiable]` lifetimes
 ```
 
-Jack (one of this article's peer reviewers) and I discussed what first-class language support to remove the lifetime parameter, allowing `Guard<'id>` to escape its scope, could look like. Unfortunately we never came to a conclusion because we realized such a system would be equivalent to the problem case described in [Why the implementation caveat?](#why-the-implementation-caveat). Creating an arbitrary number of branded types in a loop during run-time would require deep changes to the type system.
+Jack (one of this article's peer reviewers) and I discussed what first-class language support to remove the lifetime parameter and allow `Guard` to escape its scope could look like. Unfortunately we never came to a conclusion because we realized such a system would be equivalent to the problem case described in [Why the implementation caveat?](#why-the-implementation-caveat). Creating an arbitrary number of branded types in a loop during run-time would require deep changes to the type system.
 
 Maybe `#[nonunifiable]` will have an unexpected use case that would make it practical, or maybe not. I'm not going to pretend like I've figured out all of the semantics. The point is to get my thoughts up in the air.
 
