@@ -1,5 +1,6 @@
 ---
 description: Reinventing ownership
+pubDate: 1754330341308
 ---
 
 {/* cspell:ignore typestate generativity newtype newtypes newtyped newtyping Rustaceans Rovynak rubiks stickered subtyping rustc binarycat typetoken eyepatch Launchbury Peyton Yanovski nilly unergonomic interprocedural amping brandedvec phantomdata rustonomicon Polonius footgun UGEH uniqueify unifiability Kartavya Vashishtha */}
@@ -187,7 +188,9 @@ There is a more fundamental reason to care about this unsoundness if left unchec
 
 Mitigating this by checking permutation group membership every function call is a very expensive operation. This is an example of the "practical scenario" mentioned beforehand.
 
-We have demonstrated that the newtype pattern alone is not powerful enough to prevent this logic error. We will analyze different approaches to ensure our library only permits permutation composition within the same permutation group. Each has their own trade-offs, but are all right answers for different situations. They will also lay the groundwork to justify using the generativity pattern. All the code segments provided in this article can be found [here](https://github.com/ArhanChaudhary/generativity-pattern-rs).
+We have demonstrated that the newtype pattern alone is not powerful enough to prevent this logic error. We will analyze different approaches that ensure our library only permits permutation composition within the same permutation group. Each has their own trade-offs, but are all right answers for different situations. They will also lay the groundwork to justify using the generativity pattern.
+
+All the code segments provided in this article can be found [here](https://github.com/ArhanChaudhary/generativity-pattern-rs).
 
 # The unsafe approach
 
@@ -522,7 +525,7 @@ Our digression in bringing up this comparison has an ulterior motive. The origin
 
 ## Why the implementation caveat?
 
-Let us offer another perspective as to why `Guard<'id>` cannot escape its defining scope. StackOverflow user [rodrigo](https://stackoverflow.com/users/865874/rodrigo) [points out](https://stackoverflow.com/a/76876800) that you can achieve something similar to `generativity` using an anonymous unit struct and a macro to create the permutation group. Successive calls to this macro create permutation groups branded by this newly generated unit struct. In the context of our `Permutation` example, example usage looks like this (and you may check out the [full implementation](https://github.com/ArhanChaudhary/generativity-pattern-rs/blob/main/src/6-unsound_token.rs)):
+Let us offer another perspective as to why `Guard<'id>` cannot escape its defining scope. StackOverflow user [rodrigo](https://stackoverflow.com/users/865874/rodrigo) [points out](https://stackoverflow.com/a/76876800) that you can achieve something similar to `generativity` using an anonymous unit struct and a macro to create the permutation group. Successive calls to this macro create permutation groups branded by this newly generated unit struct. In the context of our `Permutation` example, example usage looks like this. The full implementation is [here](https://github.com/ArhanChaudhary/generativity-pattern-rs/blob/main/src/6-unsound_token.rs).
 
 ```rust
 #[macro_export]
@@ -644,7 +647,7 @@ The contemporary usage of the word "invariant" by Rustaceans has two meanings: o
 
 To make `'id` invariant, we take advantage of a fundamental constraint with function pointer types. When you have `fn(&'id T) -> &'id T`, the caller provides a reference with lifetime `'id` and expects to get back a reference with that same lifetime `'id`. If Rust allowed the function pointer type to accept a longer lifetime but return a shorter one, or vice versa, it would break this explicit contract. You might pass in a reference that lives for ten seconds but get one back that lives for five seconds, creating a dangling pointer. Function pointer types with the same lifetime in the input and output positions force that lifetime to be invariant. No substitution allowed.
 
-Of course, we don't actually want to store a function pointer at run-time. We only utilize it to make `'id` invariant at compile-time. The language provides `PhantomData` to enable fine-grained control over variance. In our case it tells the compiler to pretend like it holds a function pointer while not actually taking up any space.
+Of course, we don't actually want to store a function pointer at run-time. We only utilize it to make `'id` invariant at compile-time. The language provides `PhantomData` to enable fine-grained control over variance. In this case it tells the compiler to pretend like it holds a function pointer while not actually taking up any space.
 
 <Aside collapse={false}>
 
@@ -712,7 +715,7 @@ let id2: Id<'id2> = PhantomData;
 unify_lifetimes(&id1, &id2);
 ```
 
-The constraint solver realizes there is no logical contradiction with the obvious solution of `'id2 = 'id1`, and it allows this program to compile. We need to uniquely tie `id1` and `id2` to their declarations to prevent Rust from unifying them.
+The constraint solver realizes there is no logical contradiction with the obvious solution of `'id2 = 'id1`, and it allows this program to compile. We need to uniquely tie `'id1` and `'id2` to their respective declaration sites to prevent Rust from unifying them.
 
 After `make_guard` creates `branded_place` and generates an invariant lifetime `'id`, we are now armed with the knowledge required to examine how `LifetimeBrand` ensures it is non-unifiable. It takes the approach of establishing distinct lower and upper bounds for `'id`, highlighting the need for a macro with protected hygiene to prevent these bounds from potentially being manipulated.
 
@@ -789,7 +792,7 @@ fn main() {
 
 Furthermore, there are [preliminary ideas](https://blog.m-ou.se/super-let#a-potential-extension) that would allow `make_guard` to be a function instead of a macro. The feedback for `super let` has so far been positive, so once the semantics are ironed out I think efforts to stabilize this feature will be underway.
 
-My last contribution to this discussion is some wishful thinking about first-class language support for `generativity`. The troubles with unique lifetime branding stem from the fact that Rust offers no way to prevent lifetimes from unifying. So, I propose the `#[nonunifiable]` lifetime attribute. It would allow lifetimes to declaratively guarantee non-unifiability without having to resort to `generativity`'s lifetime bounding tricks. `#[nonunifiable]` is *not* intended to indicate variance—that's the job of `PhantomData`. For the permutation example, first-class language support from the compiler would look like this (and you may check out the [full implementation](https://github.com/ArhanChaudhary/generativity-pattern-rs/blob/main/src/7-nonunifiable_proposal.rs)):
+My last contribution to this discussion is some wishful thinking about first-class language support for `generativity`. The troubles with unique lifetime branding stem from the fact that Rust offers no way to prevent lifetimes from unifying. So, I propose the `#[nonunifiable]` lifetime attribute. It would allow lifetimes to declaratively guarantee non-unifiability without having to resort to `generativity`'s lifetime bounding tricks. `#[nonunifiable]` is *not* intended to indicate variance—that's the job of `PhantomData`. For the permutation example, first-class language support from the compiler would look like this. The full implementation is [here](https://github.com/ArhanChaudhary/generativity-pattern-rs/blob/main/src/7-nonunifiable_proposal.rs).
 
 ```rust
 pub struct PermGroup<#[nonunifiable] 'id> {
@@ -801,7 +804,7 @@ pub struct PermGroup<#[nonunifiable] 'id> {
 pub struct Permutation<'id>(Box<[usize]>, PhantomData<fn(&'id ()) -> &'id ()>);
 ```
 
-First-class language support is also the perfect excuse to improve the [compiler errors](https://play.rust-lang.org/?version=stable&mode=debug&edition=2024&gist=47b36de838eaeeebe236e2f3b4aa279b):
+First-class language support is also the perfect excuse to improve the [confusing](https://play.rust-lang.org/?version=stable&mode=debug&edition=2024&gist=47b36de838eaeeebe236e2f3b4aa279b) compiler errors:
 
 ```rust
 let first = PermGroup::new(4, vec![vec![1, 2, 0, 3]]).unwrap();
@@ -814,7 +817,7 @@ first_perm.compose(second_perm);
 
 ```rust
 error[E0308]: mismatched types
- --> src/main.rs:9:5
+ --> src/main.rs:9:23
   |
 6 |     let first_perm = &first.base_permutations()[0];
   |         ---------- binding `first_perm` declared here with nonunifiable lifetime `’1`
@@ -831,7 +834,7 @@ error[E0308]: mismatched types
   = note: `Permtuation<'1>` and `Permutation<'2>` look like similar types, but are distinct because they carry `#[nonunifiable]` lifetimes
 ```
 
-Jack (one of this article's peer reviewers) and I discussed what first-class language support to remove the lifetime parameter and allow `Guard` to escape its scope could look like. Unfortunately we never came to a conclusion because we realized such a system would be equivalent to the problem case described in [Why the implementation caveat?](#why-the-implementation-caveat). Creating an arbitrary number of branded types in a loop during run-time would require deep changes to the type system.
+Jack (one of this article's peer reviewers) and I discussed what first-class language support to remove the lifetime parameter and allow `Guard` to escape its scope could look like. Unfortunately, we came to the conclusion that such a system would be equivalent to the problem case described in [Why the implementation caveat?](#why-the-implementation-caveat). Creating an arbitrary number of branded types in a loop during run-time would require deep changes to the type system.
 
 Maybe `#[nonunifiable]` will have an unexpected use case that would make it practical, or maybe not. I'm not going to pretend like I've figured out all of the semantics. The point is to get my thoughts up in the air.
 
@@ -855,6 +858,6 @@ Truthfully I don't have many final thoughts. I just needed a transition to end t
 
 I don't think this is a bad thing; its comprehensiveness more than makes up for it. The hidden agenda was to survey design patterns and write about Rust code I thought were interesting, culminating with the generativity pattern, which shows us how to take advantage of the type checker's power in a non-obvious manner.
 
-This concludes my first educational write-up on my blog. I came into this topic with surface level understandings of what `generativity`, `PhantomData`, and the drop check are and how they work. I was not expecting this to take five weeks of meticulous research and writing throughout my summer break from university. I was entirely unprepared for how interesting the full story would be.
+This concludes my first educational write-up on my blog. I came into this topic with surface level understandings of what `generativity`, `PhantomData`, and the drop check are and how they work. I was not expecting this to take five weeks of meticulous research and writing throughout my summer break in undergrad. I was entirely unprepared for how interesting the full story would be.
 
 Thank you for reading this far :-). Until next time!
