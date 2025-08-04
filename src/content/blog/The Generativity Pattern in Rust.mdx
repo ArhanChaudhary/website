@@ -120,6 +120,10 @@ We now want to extend our library to model a [permutation group](https://en.wiki
 
 <ContentImage src={stickeredCube} width="600" visualWidth="300" alt="The solved Rubik's cube" />
 
+The illustrated turn is a permutation fifty-four elements long, because there are fifty-four stickers on a Rubik's cube[^cube].
+
+[^cube]: The center stickers don't actually move, and thus can be ignored, so the illustrated turn is traditionally simplified to a permutation forty-eight elements long.
+
 It follows that if you compose two permutations in a permutation group, the resulting permutation will also be a permutation in that group. The reasoning is not so relevant; take this at face value.
 
 A reasonable data structure for permutation groups looks like this:
@@ -653,7 +657,7 @@ pub type Id<'id> = PhantomData<Cell<&'id u8>>; // Aria Desires' master's thesis
 pub type Id<'id> = PhantomData<Cell<&'id mut ()>>; // Also from her master's thesis
 ```
 
-They work because they follow the core principal that `&mut T` is invariant over `T` (click [here](https://doc.rust-lang.org/nomicon/subtyping.html#variance) to see why). With `T = &'id ()`, `'id` must become invariant. But unlike the others, `PhantomData<fn(T) -> T>` implements all auto traits (`Send`, `Sync`, etc) for its owner, and it is generally preferred to convey that the only purpose is to indicate invariance. For further reading, the Rustonomicon provides [a table](https://doc.rust-lang.org/nomicon/phantom-data.html#table-of-phantomdata-patterns) of common `PhantomData` patterns.
+They work because they follow the core principal that `&mut T` is invariant over `T` (click [here](https://doc.rust-lang.org/nomicon/subtyping.html#variance) to see why). With `T = &'id ()`, `'id` must become invariant. Unlike the others, `PhantomData<fn(T) -> T>` implements all auto traits (`Send`, `Sync`, etc) for its owner, and it is generally preferred to convey that the only purpose is to indicate invariance. For further reading, the Rustonomicon provides [a table](https://doc.rust-lang.org/nomicon/phantom-data.html#table-of-phantomdata-patterns) of common `PhantomData` patterns.
 
 </Aside>
 
@@ -851,6 +855,6 @@ Truthfully I don't have many final thoughts. I just needed a transition to end t
 
 I don't think this is a bad thing; its comprehensiveness more than makes up for it. The hidden agenda was to survey design patterns and write about Rust code I thought were interesting, culminating with the generativity pattern, which shows us how to take advantage of the type checker's power in a non-obvious manner.
 
-This concludes my first educational write-up on my blog. I came into this topic with surface level understandings of what `generativity`, `PhantomData`, and the drop check are and how they work. I was not expecting this to take five weeks of meticulous research and writing, and I was entirely unprepared for how interesting the full story would be. My posts only get more fun to write >:).
+This concludes my first educational write-up on my blog. I came into this topic with surface level understandings of what `generativity`, `PhantomData`, and the drop check are and how they work. I was not expecting this to take five weeks of meticulous research and writing throughout my summer break from university. I was entirely unprepared for how interesting the full story would be.
 
-Thank you for reading this far. Until next time!
+Thank you for reading this far :-). Until next time!
