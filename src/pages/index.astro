@@ -4,6 +4,129 @@ import Layout from "../layouts/Layout.astro";
 
 <!-- cspell:ignore webring -->
 <Layout title="Arhan's Homepage" sshUser="home">
+  <script>
+    // cspell:disable
+    const trollText = "sudo rm -rf --no-preserve-root /";
+    let running = false;
+    function onSSHClick(e: MouseEvent) {
+      e.preventDefault();
+      if (running) {
+        return;
+      }
+      running = true;
+      document.getElementById("cursor")!.classList.add("blinking");
+      const delays = [
+        600, 400, 300, 300,
+
+        500,
+
+        300, 300,
+
+        600,
+
+        200, 300, 300,
+
+        500,
+
+        200, 100, 400, 200, 400, 300, 100, 200, 100, 200, 100, 300, 300, 600,
+        300, 100, 200,
+
+        600,
+
+        800, 2000,
+      ];
+      const initialLength = delays.length;
+      const troll = document.getElementById("troll")!;
+      function type() {
+        if (delays.length) {
+          setTimeout(type, delays.shift());
+          troll.textContent = trollText.slice(0, initialLength - delays.length);
+        } else {
+          setTimeout(del.bind(undefined, root as ChildNode), 1000);
+          troll.textContent = "";
+        }
+      }
+      setTimeout(type, 2000);
+
+      function visible(node: ChildNode): boolean {
+        if (node.nodeType === Node.COMMENT_NODE) {
+          return false;
+        } else if (node.nodeType === Node.TEXT_NODE) {
+          return node.textContent!.trim() !== "";
+        } else if ((node as any).offsetParent === undefined) {
+          return true;
+        } else {
+          return (node as any).offsetParent !== null;
+        }
+      }
+      const root = document.querySelector("main");
+      const deletionTime = 4000;
+      const removeTextCharacters = 15;
+      function totalNodes(node: ChildNode): number {
+        const childrenTotalNodes = [...node.childNodes]
+          .filter(visible)
+          .reduce((p, q) => totalNodes(q) + p, 0);
+        if (node.nodeType === Node.TEXT_NODE) {
+          return (
+            Math.ceil(node.textContent!.length / removeTextCharacters) +
+            childrenTotalNodes
+          );
+        } else {
+          return 1 + childrenTotalNodes;
+        }
+      }
+      const totalNodesRoot = totalNodes(root as ChildNode);
+      function del(node: ChildNode) {
+        const children = [...node.childNodes].filter(visible);
+        if (children.length > 0) {
+          del(children[Math.floor(Math.random() * children.length)]);
+        } else if (node !== root) {
+          if (node.nodeType === Node.TEXT_NODE) {
+            const text = node.textContent!.trim();
+            const indicies = new Set<number>();
+            while (
+              indicies.size !== removeTextCharacters &&
+              indicies.size !== text.length
+            ) {
+              indicies.add(Math.floor(Math.random() * text.length));
+            }
+            node.textContent = text
+              .split("")
+              .map((c, i) => (indicies.has(i) ? "" : c))
+              .join("");
+          } else {
+            node.remove();
+          }
+          setTimeout(
+            del.bind(undefined, root as ChildNode),
+            deletionTime / totalNodesRoot
+          );
+        } else {
+          showTroll(root);
+        }
+      }
+      function showTroll(root: HTMLElement) {
+        root.innerHTML = document.getElementById("troll-text")!.innerHTML;
+      }
+    }
+    document.getElementById("ssh-text")!.addEventListener("click", onSSHClick);
+
+    let overlay = document.getElementById("content-image-overlay")!;
+    let overlayImg = overlay.firstElementChild!;
+    overlay.addEventListener("click", () => {
+      overlay.style.display = "none";
+    });
+    for (let img of document.querySelectorAll<HTMLImageElement>(
+      ".content-image-positioner img"
+    )) {
+      img.addEventListener("click", () => {
+        overlay.style.display = "flex";
+        overlayImg.setAttribute("src", img.src);
+        overlayImg.setAttribute("alt", img.alt);
+      });
+    }
+    // cspell:enable
+  </script>
   <div id="outer-flex-wrapper">
     <div id="shape-thing-1">
       <div class="first"></div>
