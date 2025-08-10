@@ -11,7 +11,7 @@ const { description = "Arhan's Blog", pubDate, title } = Astro.props;
 // cspell:ignore dolk
 ---
 
-<Layout {title} description={description} sshUser="blog">
+<Layout {title} description={description} sshUser="blog" homeToBlog={true}>
   <script is:inline>
     let flexWrapper;
     document.addEventListener("DOMContentLoaded", () => {
@@ -57,6 +57,9 @@ const { description = "Arhan's Blog", pubDate, title } = Astro.props;
     <hr />
     <div class="offwhite" id="blog-body">
       <slot />
+      <a href="#page-top">
+        ↑ Scroll to top ↑
+      </a>
     </div>
     {
       pubDate && !import.meta.env.DEV && (
@@ -90,6 +93,13 @@ const { description = "Arhan's Blog", pubDate, title } = Astro.props;
 
     #blog-body {
       padding-bottom: 15px;
+
+      a:last-of-type {
+        color: inherit;
+        font-weight: bold;
+        display: flex;
+        justify-self: center;
+      }
     }
   }
 </style>
@@ -128,17 +138,7 @@ const { description = "Arhan's Blog", pubDate, title } = Astro.props;
     }
   }
 
-  #troll-flex-wrapper {
-    margin-left: var(--main-margin-left);
-  }
-
   table td {
     padding: 0.1em 1.25em;
-  }
-
-  @media (max-width: variables.$mobile-width) {
-    #troll-flex-wrapper {
-      margin-left: var(--mobile-outer-padding) !important;
-    }
   }
 </style>

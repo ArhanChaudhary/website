@@ -4,6 +4,18 @@ import Layout from "../layouts/Layout.astro";
 
 <!-- cspell:ignore webring -->
 <Layout title="Arhan's Homepage" sshUser="home">
+  <template id="troll-text">
+    <div id="troll-flex-wrapper" class="input-mono">
+      <span>
+        🤨 We are sorry. This page has been made unavailable under... mysterious
+        circumstances.
+        <br />
+        Please click <span id="reload-text" onclick="window.location.reload()"
+          >here</span
+        > to reload.
+      </span>
+    </div>
+  </template>
   <script>
     // cspell:disable
     const trollText = "sudo rm -rf --no-preserve-root /";
@@ -436,6 +448,23 @@ import Layout from "../layouts/Layout.astro";
           color: inherit;
         }
       }
+    }
+  }
+
+  #troll-flex-wrapper {
+    font-weight: bold;
+    font-size: 28px;
+    color: white;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    animation: 0.3s ease-in-out both;
+    animation-name: opacity, fromTop;
+
+    #reload-text {
+      cursor: pointer;
+      text-decoration: underline;
     }
   }
 

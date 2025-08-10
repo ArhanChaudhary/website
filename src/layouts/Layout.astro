@@ -17,12 +17,14 @@ interface Props {
   title: string;
   sshUser: (typeof sshUsers)[number];
   description?: string;
+  homeToBlog?: boolean;
 }
 
 const {
   title,
   sshUser,
   description = "Arhan's personal website",
+  homeToBlog = false,
 } = Astro.props;
 
 const highlightIndex = sshUsers.indexOf(sshUser);
@@ -60,7 +62,8 @@ const highlightIndex = sshUsers.indexOf(sshUser);
       <img />
     </div>
     <div id="flex-wrapper">
-      <a id="ssh-text" class="input-mono" href="/">
+      <span id="page-top"></span>
+      <a id="ssh-text" class="input-mono" href={homeToBlog ? "/blog/" : "/"}>
         <!-- https://stackoverflow.com/a/77568291/12230735 -->
         {sshUser}@&#8203;arhan.sh:~$ <span id="troll"></span><span id="cursor"
           >█</span
@@ -74,19 +77,6 @@ const highlightIndex = sshUsers.indexOf(sshUser);
       <main>
         <slot class="slot" />
       </main>
-      <template id="troll-text">
-        <div id="troll-flex-wrapper" class="input-mono">
-          <span>
-            🤨 We are sorry. This page has been made unavailable under...
-            mysterious circumstances.
-            <br />
-            Please click <span
-              id="reload-text"
-              onclick="window.location.reload()">here</span
-            > to reload.
-          </span>
-        </div>
-      </template>
       <div id="copyright" class="input-mono">
         &copy; 2025 Arhan Chaudhary &#x2022; <a
           href="https://github.com/ArhanChaudhary/website">source</a
@@ -196,6 +186,7 @@ const highlightIndex = sshUsers.indexOf(sshUser);
       flex: 1;
       display: flex;
       flex-direction: column;
+      scrollbar-color: white hsl(240, 6%, 16%);
       overflow-y: auto;
       position: relative;
       z-index: 1;
@@ -228,23 +219,6 @@ const highlightIndex = sshUsers.indexOf(sshUser);
         margin-right: var(--mobile-outer-padding);
         position: relative;
         color: white;
-
-        #troll-flex-wrapper {
-          font-weight: bold;
-          font-size: 28px;
-          color: white;
-          height: 100%;
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          animation: 0.3s ease-in-out both;
-          animation-name: opacity, fromTop;
-
-          #reload-text {
-            cursor: pointer;
-            text-decoration: underline;
-          }
-        }
       }
 
       #copyright {
