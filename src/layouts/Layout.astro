@@ -48,6 +48,10 @@ const highlightIndex = sshUsers.indexOf(sshUser);
       title={title}
       href={`${Astro.site}rss.xml`}
     />
+    <script
+      defer
+      src="https://cloud.umami.is/script.js"
+      data-website-id="c1209f7a-7700-4bad-8d73-6f16ce529e75"></script>
     <Font cssVariable="--font-input-mono" preload />
     <title>{title}</title>
   </head>
@@ -522,7 +526,12 @@ const highlightIndex = sshUsers.indexOf(sshUser);
     font-size: 14px;
   }
 
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     & code {
       font-size: inherit;
     }
