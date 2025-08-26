@@ -12,6 +12,9 @@ const blogCollection = defineCollection({
       .optional(),
     pubDate: z.coerce.date().optional(),
     description: z.string().optional(),
+    reddit: z.string().url().optional(),
+    lobsters: z.string().url().optional(),
+    hackernews: z.string().url().optional(),
   }),
 });
 

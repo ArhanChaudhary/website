@@ -1,14 +1,21 @@
 ---
+// cspell:ignore hackernews dolk
+
 import Layout from "./Layout.astro";
+import RedditSVG from "../assets/blog/reddit.svg";
+import LobstersSVG from "../assets/blog/lobsters.svg";
+import HackernewsSVG from "../assets/blog/hackernews.svg";
 
 interface Props {
   title: string;
   description?: string;
   pubDate?: Date;
+  lobsters?: string;
+  hackernews?: string;
+  reddit?: string;
 }
 
-const { description = "Arhan's Blog", pubDate, title } = Astro.props;
-// cspell:ignore dolk
+const { description = "Arhan's Blog", pubDate, title, lobsters, hackernews, reddit } = Astro.props;
 ---
 
 <Layout {title} description={description} sshUser="blog" homeToBlog={true}>
@@ -33,33 +40,53 @@ const { description = "Arhan's Blog", pubDate, title } = Astro.props;
   </script>
   <div class="system-ui" id="max-width-wrapper">
     <h1>{title}</h1>
-    <p>
-      {
-        pubDate ?
-        (
-          <>
-            Published
-            <span data-date={pubDate?.valueOf()}>
-              <script>
-                const parent = document.querySelector("[data-date]")!;
-                parent.textContent = new Date(+parent.getAttribute("data-date")!).toLocaleDateString("en-US", {
-                  year: "numeric",
-                  month: "long",
-                  day: "numeric",
-                });
-              </script>
+    <p id="top-row">
+      <span id="left-top-row">
+        {
+          pubDate ?
+          (
+            <>
+              Published
+              <span data-date={pubDate?.valueOf()}>
+                <script>
+                  const parent = document.querySelector("[data-date]")!;
+                  parent.textContent = new Date(+parent.getAttribute("data-date")!).toLocaleDateString("en-US", {
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                  });
+                </script>
+              </span>
             </span>
-          </>
-        ) : "!! UNPUBLISHED !!"
-      }
-      &#x2022; <a href="/blog/">more posts</a>
+          ) : "!! UNPUBLISHED !!"
+        }
+        &#x2022; <a href="/blog/">more posts</a>
+      </span>
+      <span id="right-top-row">
+        {
+          (lobsters || hackernews || reddit) &&
+          "View on"
+        }
+        {
+          lobsters && <a href={lobsters}><LobstersSVG width={27} height={27} /></a>
+        }
+        {
+          reddit && <a href={reddit}><RedditSVG width={27} height={27} /></a>
+        }
+        {
+          hackernews && <a href={hackernews}><HackernewsSVG width={27} height={27} /></a>
+        }
+      </span>
     </p>
     <hr />
     <div class="offwhite" id="blog-body">
       <slot />
-      <a href="#page-top">
-        ↑ Scroll to top ↑
-      </a>
+      {
+        !import.meta.env.DEV &&
+        <a id="scroll-to-top" href="#page-top">
+          ↑ Scroll to top ↑
+        </a>
+      }
     </div>
     {
       pubDate && !import.meta.env.DEV && (
@@ -94,7 +121,7 @@ const { description = "Arhan's Blog", pubDate, title } = Astro.props;
     #blog-body {
       padding-bottom: 15px;
 
-      a:last-child {
+      #scroll-to-top {
         color: inherit;
         font-weight: bold;
         display: flex;
@@ -128,6 +155,33 @@ const { description = "Arhan's Blog", pubDate, title } = Astro.props;
     margin-left: auto;
     max-width: 100%;
     display: block;
+  }
+
+  #top-row {
+    display: flex;
+    flex-wrap: wrap;
+  }
+
+  #left-top-row {
+    margin-right: 40px;
+  }
+
+  #right-top-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 4px;
+    margin-left: auto;
+
+    svg {
+      // pointer-events: none;
+      display: inline-block;
+      margin: 0;
+      margin-left: 8px;
+    }
+
+    a {
+      display: flex;
+    }
   }
 
   sup {
