@@ -119,11 +119,11 @@ Yes, these aren't *important* problems per se, but they are still inconveniences
 
 ## Permutation groups
 
-We now want to extend our library to model a [permutation group](https://en.wikipedia.org/wiki/Permutation_group), a description of a set of permutations. In a permutation group, every permutation in the set can be written as a sequence of compositions of a select few *base permutations*, which we will use to represent the entire collection. For example, the manipulations of the Rubik's Cube form a permutation group. Its base permutations which represent the entire permutation group are the six face rotations. By definition, every possible state on the Rubik's cube can be reached from a combination of those face rotations.
+We now want to extend our library to model a [permutation group](https://en.wikipedia.org/wiki/Permutation_group), a description of a set of permutations. In a permutation group, every permutation in the set can be written as a sequence of compositions of a select few *base permutations*, which we will use to represent the entire collection. For example, the manipulations of the Rubik's Cube form a permutation group. Its base permutations which represent the entire permutation group are the six face rotations. By definition, every possible state on the Rubik's Cube can be reached from a combination of those face rotations.
 
-<ContentImage src={stickeredCube} width="600" visualWidth="300" alt="The solved Rubik's cube" />
+<ContentImage src={stickeredCube} width="600" visualWidth="300" alt="The solved Rubik's Cube" />
 
-The illustrated turn is a permutation fifty-four elements long, because there are fifty-four stickers on a Rubik's cube[^cube].
+The illustrated turn is a permutation fifty-four elements long, because there are fifty-four stickers on a Rubik's Cube[^cube].
 
 [^cube]: The center stickers don't actually move, and thus can be ignored, so the illustrated turn is traditionally simplified to a permutation forty-eight elements long.
 
@@ -186,7 +186,7 @@ impl Permutation {
 
 All of a sudden, we've opened up an unsafety hole! We implicitly assumed that the permutations to compose were from the same permutation group. This is not necessarily true: what if a library user composes two base permutations from different permutation groups? If the permutation lengths *don't* match, `get_unchecked` will index out of bounds and exhibit undefined behavior; this is clearly a problem! The intent of this operation is obviously nonsensical, but it does not change the fact that it is still our responsibility, as the crate author, that the safe functions we provide can never cause undefined behavior.
 
-There is a more fundamental reason to care about this unsoundness if left unchecked. An invariant of permutation composition within the same permutation group is membership; if the permutations to compose are in the same permutation group, the resulting permutation is also in that group. Even if the lengths of permutations from two different permutation groups *did* match, composing them could produce a permutation outside of either group, which is a logic error. Other code may even have unsafe blocks that rely on permutation group membership, for example a Rubik's cube solver optimized for speed.
+There is a more fundamental reason to care about this unsoundness if left unchecked. An invariant of permutation composition within the same permutation group is membership; if the permutations to compose are in the same permutation group, the resulting permutation is also in that group. Even if the lengths of permutations from two different permutation groups *did* match, composing them could produce a permutation outside of either group, which is a logic error. Other code may even have unsafe blocks that rely on permutation group membership, for example a Rubik's Cube solver optimized for speed.
 
 Mitigating this by checking permutation group membership every function call is a very expensive operation. This is an example of the "practical scenario" mentioned beforehand.
 
