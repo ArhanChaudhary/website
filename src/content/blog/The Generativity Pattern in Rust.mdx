@@ -428,7 +428,7 @@ pub struct Permutation(Box<[usize]>, u64); // [!code --]
 pub struct Permutation<'id>(Box<[usize]>, Id<'id>); // [!code ++]
 ```
 
-Recall that every `Id<'id>` carries a unique lifetime among different `PermGroup<'id>`s. By combining `Permutation` with `Id<'id>` and a lifetime parameter, we create a collection of the same `Permutation<'id>` type for each permutation that is distinct among different `PermGroup<'id>`s. Our permutation composition function takes in the same type `Self` for all arguments—it follows that `Permutation<'id>`s from different permutation groups cannot be composed as they are not the same type, and `Permutation<'id>`s from the same permutation group can be composed as they are the same type. This is the essence of the generativity pattern, enforced at compile-time.
+Recall that every `Id<'id>` carries a unique lifetime among different `PermGroup<'id>`s. By combining `Permutation` with `Id<'id>` and a lifetime parameter, we create a collection `Permutation<'id>`s whose types are the same within a `PermGroup<'id>` but distinct from permutations within other `PermGroups<'id2>`s. Our permutation composition function takes in the same type `Self` for all arguments—it follows that `Permutation<'id>`s from different permutation groups cannot be composed as they are not the same type, and `Permutation<'id>`s from the same permutation group can be composed as they are the same type. This is the essence of the generativity pattern, enforced at compile-time.
 
 Behold: a permutation composition function that is unchecked, infallible, and safe. The full implementation is [here](https://github.com/ArhanChaudhary/generativity-pattern-rs/blob/main/src/5-generativity.rs).
 
@@ -729,8 +729,6 @@ If you still find it confusing, I encourage you to work out rustc's error messag
 
 ## Verifying soundness
 
-**NOTE: After I published this blog post a commenter realized the current implementation of `generativity` is unsound. It's for a very stinky, but fixable reason. I will update this section to cover the full story sometime in the next few days.**
-
 It is easy to verify that `generativity` is sound.
 
 ```rust
@@ -761,6 +759,7 @@ The [existing avenue of improvement](https://github.com/rust-lang/rfcs/pull/3417
 There are two other soundness concerns that are unlikely to be problematic but are still brought up in brief:
 
 - `generativity` relies on an unused variable, `lifetime_brand`, to impact borrow checking and the drop check. If support for unused variable analysis is ever removed, then [`scopeguard`](https://crates.io/crates/scopeguard), a crate with hundreds of millions of downloads, would break, and Rust is very careful not to break existing code. `scopeguard` [also relies](https://docs.rs/scopeguard/latest/src/scopeguard/lib.rs.html#287) on the `Drop` impl of an unused variable. Additionally, with the drop check, borrow checking must also run by virtue of `lifetime_brand`'s `Drop` impl, which could possibly access the borrow[^unreachable].
+- In the ultra rare case where `generativity` is used in a divergent function, the drop checker will realize that `Drop` never runs and skip the drop check entirely. [Special care](https://github.com/CAD97/generativity/pull/16) is required in this case to uphold soundness.
 - It may still be hard to trust the delicate configuration of upper and lower bounding the generated lifetime. With [non-lexical lifetimes](https://blog.rust-lang.org/2022/08/05/nll-by-default/) stabilized in 2022 as the second edition of the borrow checker, the only planned next iteration is [Polonius](https://github.com/rust-lang/polonius), the implementation of which currently [passes](https://rust.godbolt.org/z/vhMjKGbz3) the aforementioned test case. I haven't given it much thought, but proving `generativity`'s soundness with Polonius' formal model of the borrow checker would be a fun project (to me at least).
 
 [^unreachable]: Unreachable code on the other hand is *not* borrow checked because it simply [wasn't a priority](https://github.com/rust-lang/rust/issues/91377#issuecomment-993875185).
