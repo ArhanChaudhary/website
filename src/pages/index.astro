@@ -122,21 +122,6 @@ import Layout from "../layouts/Layout.astro";
       }
     }
     document.getElementById("ssh-text")!.addEventListener("click", onSSHClick);
-
-    let overlay = document.getElementById("content-image-overlay")!;
-    let overlayImg = overlay.firstElementChild!;
-    overlay.addEventListener("click", () => {
-      overlay.style.display = "none";
-    });
-    for (let img of document.querySelectorAll<HTMLImageElement>(
-      ".content-image-positioner img"
-    )) {
-      img.addEventListener("click", () => {
-        overlay.style.display = "flex";
-        overlayImg.setAttribute("src", img.src);
-        overlayImg.setAttribute("alt", img.alt);
-      });
-    }
     // cspell:enable
   </script>
   <div id="outer-flex-wrapper">

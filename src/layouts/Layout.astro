@@ -51,6 +51,7 @@ const highlightIndex = sshUsers.indexOf(sshUser);
       href={`${Astro.site}rss.xml`}
     />
     <script
+      is:inline
       defer
       src="https://cloud.umami.is/script.js"
       data-website-id="c1209f7a-7700-4bad-8d73-6f16ce529e75"></script>
@@ -74,6 +75,22 @@ const highlightIndex = sshUsers.indexOf(sshUser);
         <div></div>
         <div></div>
       </label>
+      <script>
+        let overlay = document.getElementById("content-image-overlay")!;
+        let overlayImg = overlay.firstElementChild!;
+        overlay.addEventListener("click", () => {
+          overlay.style.display = "none";
+        });
+        for (let img of document.querySelectorAll<HTMLImageElement>(
+          ".content-image-positioner img"
+        )) {
+          img.addEventListener("click", () => {
+            overlay.style.display = "flex";
+            overlayImg.setAttribute("src", img.src);
+            overlayImg.setAttribute("alt", img.alt);
+          });
+        }
+      </script>
       <main>
         <slot class="slot" />
       </main>
