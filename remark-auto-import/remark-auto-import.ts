@@ -25,6 +25,10 @@ const additionals = new Array<{
     defaultImport: "ContentVideo",
   },
   {
+    importPath: "astro-typst/src/components",
+    namedImports: [{ name: "Typst" }],
+  },
+  {
     importPath: "/src/components/Aside.astro",
     defaultImport: "Aside",
   }
@@ -53,7 +57,7 @@ function autoImport(tree: any, file: { history: string[] }) {
   }
 
   const seen: { [key: string]: string } = {};
-  for (const path of fg.sync(pattern, {
+  for (let path of fg.sync(pattern, {
     cwd: join(
       process.cwd(),
       baseDirectory,
@@ -67,8 +71,12 @@ function autoImport(tree: any, file: { history: string[] }) {
     if (!name) {
       throw new Error("Failed to get name");
     }
+    let isTypst = parts?.[1] === "typ";
+    if (isTypst) {
+      path += "?raw";
+    }
     name = camelCase(name, {
-      pascalCase: parts?.[1] === "typ",
+      pascalCase: isTypst,
     });
 
     if (!name) {

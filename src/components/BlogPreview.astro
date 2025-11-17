@@ -1,6 +1,7 @@
 ---
 interface Props {
   pubDate?: Date;
+  minutesRead: string,
   title: string;
   description: string | undefined;
   url: string | undefined;
@@ -8,7 +9,7 @@ interface Props {
   first: boolean;
   last: boolean;
 }
-const { pubDate, title, description, url, colorDotRed, first, last } =
+const { pubDate, title, description, url, colorDotRed, first, last, minutesRead } =
   Astro.props;
 if (
   pubDate &&
@@ -24,7 +25,11 @@ if (
   >
   <span class:list={["boop", { lb: !colorDotRed, lr: colorDotRed }]}></span>
   <a href={url} class="white-link">{title}</a>
-  <div class="description">{description}</div>
+  <div class="description-container">
+    <span class="reading-time">{minutesRead}</span>
+    {description && <>–</>}
+    <span class="description">{description}</span>
+  </div>
   <div class:list={["timeline-1", { first, last }]}></div>
   <div class:list={["timeline-2", { first, last }]}></div>
 </div>
@@ -75,11 +80,18 @@ if (
       color: white;
     }
 
-    .description {
+    .description-container {
       word-wrap: break-word;
       grid-row-start: 3;
       grid-column-start: 5;
-      color: hsl(0, 0%, 65%);
+
+      .description {
+          color: hsl(0, 0%, 65%);
+      }
+
+      .reading-time {
+
+      }
     }
 
     .timeline-1,

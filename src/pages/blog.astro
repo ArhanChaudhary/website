@@ -1,6 +1,7 @@
 ---
 import { decodeFilePath1, mySlugify } from "../lib/utils";
 import fs from "node:fs";
+import { render } from "astro:content"
 import Layout from "../layouts/Layout.astro";
 import BlogPreview from "../components/BlogPreview.astro";
 import { getCollection } from "astro:content";
@@ -9,14 +10,24 @@ const publishedBlogs = await getCollection(
   "blog",
   ({ data: { pubDate } }) => import.meta.env.DEV || pubDate
 );
+
+const publishedBlogsWithReadTime = await Promise.all(
+  publishedBlogs.map(async (publishedBlog) => {
+    const { remarkPluginFrontmatter } = await render(publishedBlog);
+    return {
+      publishedBlog,
+      minutesRead: remarkPluginFrontmatter.minutesRead as string,
+    };
+  })
+);
 ---
 
 <Layout title="Arhan's Blog" sshUser="blog">
   <div id="max-width-wrapper" class="input-mono">
     <h1>My blog</h1>
     {
-      publishedBlogs
-        .sort((a, b) => {
+    publishedBlogsWithReadTime
+        .sort(({ publishedBlog: a } , { publishedBlog: b }) => {
           if (a.data.pubDate && b.data.pubDate)
             return b.data.pubDate.getTime() - a.data.pubDate.getTime();
           else if (a.data.pubDate) return 1;
@@ -27,12 +38,13 @@ const publishedBlogs = await getCollection(
             fs.statSync(b.filePath).mtimeMs - fs.statSync(a.filePath).mtimeMs
           );
         })
-        .map((blog, i) => (
+        .map(({ publishedBlog, minutesRead }, i) => (
           <BlogPreview
-            pubDate={blog.data.pubDate}
-            title={decodeFilePath1(blog.filePath)}
-            description={blog.data.description}
-            url={`/blog/${blog.data.url || mySlugify(decodeFilePath1(blog.filePath))}/`}
+            pubDate={publishedBlog.data.pubDate}
+            minutesRead={minutesRead}
+            title={decodeFilePath1(publishedBlog.filePath)}
+            description={publishedBlog.data.description}
+            url={`/blog/${publishedBlog.data.url || mySlugify(decodeFilePath1(publishedBlog.filePath))}/`}
             colorDotRed={(publishedBlogs.length - i) % 2 === 1}
             first={i === 0}
             last={i === publishedBlogs.length - 1}

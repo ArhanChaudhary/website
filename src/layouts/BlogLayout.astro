@@ -9,13 +9,14 @@ import HackernewsSVG from "../assets/blog/hackernews.svg";
 interface Props {
   title: string;
   description?: string;
+  minutesRead: string,
   pubDate?: Date;
   lobsters?: string;
   hackernews?: string;
   reddit?: string;
 }
 
-const { description = "Arhan's Blog", pubDate, title, lobsters, hackernews, reddit } = Astro.props;
+const { description = "Arhan's Blog", pubDate, minutesRead, title, lobsters, hackernews, reddit } = Astro.props;
 ---
 
 <Layout {title} description={description} sshUser="blog" homeToBlog={true}>
@@ -60,6 +61,7 @@ const { description = "Arhan's Blog", pubDate, title, lobsters, hackernews, redd
             </span>
           ) : "!! UNPUBLISHED !!"
         }
+        &#x2022; {minutesRead}
         &#x2022; <a href="/blog/">more posts</a>
       </span>
       <span id="right-top-row">

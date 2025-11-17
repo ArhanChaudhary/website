@@ -16,9 +16,9 @@ export async function getStaticPaths() {
 }
 
 const { blog } = Astro.props;
-const { Content } = await render(blog);
+const { Content, remarkPluginFrontmatter } = await render(blog);
 ---
 
-<BlogLayout {...blog.data} title={decodeFilePath1(blog.filePath)}>
+<BlogLayout {...blog.data} minutesRead={remarkPluginFrontmatter.minutesRead} title={decodeFilePath1(blog.filePath)}>
   <Content />
 </BlogLayout>

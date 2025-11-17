@@ -1,3 +1,4 @@
+import { remarkReadingTime } from './remark-reading-time.mjs';
 import { defineConfig } from "astro/config";
 import remarkToc from "remark-toc";
 import robotsTxt from "astro-robots-txt";
@@ -10,11 +11,16 @@ import { typst } from "astro-typst";
 // https://astro.build/config
 export default defineConfig({
   site: "https://arhan.sh",
+  vite: {
+      ssr: {
+          external: ["@myriaddreamin/typst-ts-node-compiler"]
+      }
+  },
   integrations: [
     robotsTxt(),
     sitemap(),
     mdx({
-      remarkPlugins: [remarkToc, remarkAutoImport],
+      remarkPlugins: [remarkToc, remarkAutoImport, remarkReadingTime],
       shikiConfig: {
         transformers: [
           transformerNotationDiff({
@@ -35,6 +41,7 @@ export default defineConfig({
     typst({
       options: {
         remPx: 14,
+        props: { preserveAspectRatio: "xMidYMid meet", width: null, height: null },
       },
       target: () => "svg",
     }),

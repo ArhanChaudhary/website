@@ -1,7 +1,6 @@
 ---
 description: Allocating heap memory on the screen
 ---
-
 If you've kept up with my blog, you might know that my recent *"street-cred"* has been messing around with "[corruption art](../turning-image-corruption-into-art)." I can't help it. Stuff like this is always so fascinating to me.
 
 Some context would be in order. Two years ago, I made [NAND](https://nand.arhan.sh), a 16-bit computer made entirely from NAND gates emulated on the web. NAND features its own custom CPU architecture, virtual machine, programming language, compiler, and IDE, and it is based on the Jack-VM-Hack platform specified in the [Nand to Tetris](https://www.nand2tetris.org/) course. Here's (single-player) pong!
@@ -27,7 +26,7 @@ The compiler stores the local variables of a function in a memory region called 
 
 After you run the above program, the NAND memory allocator does this:
 
-<Memory />
+<Typst code={Memory} props={{ "style": "max-height: 500px", preserveAspectRatio: "xMidYMid meet", width: null, height: null }} />
 
 The NAND memory allocator source code [looks obtuse](https://github.com/ArhanChaudhary/NAND/blob/2c6c52f733970e48ad9cba211ce73b42b43fb2b4/src/os/Memory.jack#L31), but all it's really doing is traversing a linked list of memory blocks and returning the first one with enough memory to satisfy the allocation request. It can undoubtedly be made [more efficient](https://en.wikipedia.org/wiki/Memory_management#Implementations). The screen is stored as a bitmap of 512 (length) * 256 (width) = 131072 pixels in its own dedicated memory region. There are no colors; a 0 means black and a 1 means green. To *allocate memory on the screen instead of the heap* means to tell the memory allocator to treat the screen memory region as the heap memory region.
 

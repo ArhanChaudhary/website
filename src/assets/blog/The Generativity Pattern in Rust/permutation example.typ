@@ -1,5 +1,5 @@
-#import "../blog_template.typ": *
-#show: template
+#set text(fill: color.hsl(0deg, 0, 88%), size: 10pt)
+#set page(width: auto, height: auto, margin: 0em)
 
 #let y(x) = text(fill: rgb("#f8ff00"), $#x$)
 

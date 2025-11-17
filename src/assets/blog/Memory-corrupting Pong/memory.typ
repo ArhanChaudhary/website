@@ -1,5 +1,8 @@
-#import "../blog_template.typ": *
-#show: template
+// #import "../blog_template.typ": *
+// #show: template
+#set text(fill: color.hsl(0deg, 0, 88%), size: 10pt)
+#set page(width: auto, height: auto, margin: 0em)
+
 
 #import "@preview/cetz:0.4.2"
 #let offwhite = color.hsl(0deg, 0, 88%)

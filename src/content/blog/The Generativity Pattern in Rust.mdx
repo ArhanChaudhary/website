@@ -4,7 +4,6 @@ pubDate: 1754330341308
 reddit: https://www.reddit.com/r/rust/comments/1mhkvrs/the_generativity_pattern_in_rust/
 lobsters: https://lobste.rs/s/q1vfez/generativity_pattern_rust/
 ---
-
 {/* cspell:ignore typestate generativity newtype newtypes newtyped newtyping Rustaceans Rovynak rubiks stickered subtyping rustc binarycat typetoken eyepatch Launchbury Peyton Yanovski nilly unergonomic interprocedural amping brandedvec phantomdata rustonomicon Polonius footgun UGEH uniqueify unifiability Kartavya Vashishtha */}
 
 *This article was peer-reviewed by my close friends [Henry Rovynak](https://hrovnyak.gitlab.io/), [Kartavya Vashishtha](https://github.com/kartva), [Jack Hogan](https://www.jackhogan.me/), [Mikhail Khan](https://mikail-khan.com/) and [Crystal Durham](https://cad97.com/). I thank them for their invaluable feedback. This article also uses special characters like the em-dash (—). These characters were lovingly hand-inserted and are not the result of AI-generated text.*
@@ -25,7 +24,7 @@ Aside from thinly spread academic literature[^literature], I haven't found an ac
 
 Let us take the role of a crate author about permutations. We want to investigate the [composition](https://en.wikipedia.org/wiki/Permutation_group#Composition_of_permutations–the_group_product) of zero-indexed permutations. This can be expressed nicely visually.
 
-<PermutationExample />
+<Typst code={PermutationExample} props={{ style: "max-height: 250px", preserveAspectRatio: "xMidYMid meet", width: null, height: null }} />
 
 The permutation `b` defines the remapping of the elements from permutation `a`. Pretty simple. Notice that permutation composition is only possible under the following three conditions:
 
