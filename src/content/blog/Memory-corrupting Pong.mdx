@@ -118,7 +118,7 @@ Great, there's our heap! If you look at the top left corner of the screen, you'l
     ...
 ```
 
-First, whenever a NAND program is finished or the operating system detects something logically invalid like dividing by zero, the operating system calls `Sys.halt` to terminate the program[^termination]. We don't want our program to terminate for any reason, so we simply delete this code.
+First, whenever a NAND program is finished or the operating system detects something logically invalid like dividing by zero, the operating system prints "ERR" followed by an [error code number](https://github.com/ArhanChaudhary/NAND#error-codes) to the screen and calls `Sys.halt` to terminate the program[^termination]. We don't want our program to terminate for any reason, so we simply delete this code.
 
 [^termination]: If `Memory.poke(24576, 32767)` terminates the program, why does `Sys.halt` need an infinite loop? It boils down to an [implementation detail in the computer runtime](https://github.com/ArhanChaudhary/NAND/blob/main/src/core/builtins/runtime_worker.rs#L60-L82): the program will execute up to 30000 instructions at a time before polling memory address 24576 and testing if it is equal to 32767. So, it's possible for other instructions to modify the program memory after setting the termination flag but before it is polled. It wouldn't make sense for random memory to be modified after calling `Sys.halt` because it can be used to debug the program memory using the built-in memory view. As such, `Sys.halt` enters an infinite loop until the termination flag is actively polled again.
 
