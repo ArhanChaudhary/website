@@ -22,15 +22,15 @@ class Main {
 }
 ```
 
-The compiler stores the local variables of a function in a memory region called the stack. Everything on the stack must have a size that is known at compile time so the compiler knows how much memory to reserve for it. However, the compiler has no way of knowing how much memory is required to store the array `a`—it's a dynamic amount only known at run time. The contemporary solution is to use a *memory allocator*, a component of the operating system that you can ask to give you an arbitrary amount of memory and returns a pointer to a chunk of that memory. The memory allocator looks for memory in a memory region called the heap.
+The compiler stores the local variables of a function in a memory region called the stack. Everything on the stack must have a size that is known at compile time so the compiler knows how much memory to reserve for it. However, the compiler has no way of knowing how much memory is required to store the array `a`—it's a dynamic amount only known at run time. The contemporary solution is to use a *memory allocator*, something that you can ask for an arbitrary amount of memory and will return a pointer to a chunk of that much memory. The memory allocator looks for memory in a memory region called the heap.
 
-After you run the above program, the NAND memory allocator does this:
+If you run the above program and enter 5, the NAND memory allocator does this to allocate the array:
 
 <Typst code={Memory} props={{ "style": "max-height: 500px", preserveAspectRatio: "xMidYMid meet", width: null, height: null }} />
 
-The NAND memory allocator source code [looks obtuse](https://github.com/ArhanChaudhary/NAND/blob/2c6c52f733970e48ad9cba211ce73b42b43fb2b4/src/os/Memory.jack#L31), but all it's really doing is traversing a linked list of memory blocks and returning the first one with enough memory to satisfy the allocation request. It can undoubtedly be made [more efficient](https://en.wikipedia.org/wiki/Memory_management#Implementations). The screen is stored as a bitmap of 512 (length) * 256 (width) = 131072 pixels in its own dedicated memory region. There are no colors; a 0 means black and a 1 means green. To *allocate memory on the screen instead of the heap* means to tell the memory allocator to treat the screen memory region as the heap memory region.
+The NAND memory allocator traverses a linked list of memory blocks and returns the first one with enough memory to satisfy the allocation request. It can undoubtedly be made [more efficient](https://en.wikipedia.org/wiki/Memory_management#Implementations). The screen is stored as a bitmap of 512 (length) * 256 (width) = 131072 pixels in its own dedicated memory region. There are no colors; a 0 means black and a 1 means green. To *allocate memory on the screen instead of the heap* means to tell the memory allocator to treat the screen memory region as the heap memory region.
 
-What makes this so interesting is the fact that NAND has no trap instructions, no hardware interrupts, and no concept of a kernel mode. Universally among modern computers, if you try to read or write memory that belongs to another process or memory region, the operating system will correctly trigger a segmentation fault and terminate your program. But NAND gives every program full reign to modify any part of the computer memory, meaning logically invalid memory operations are allowed, permitting strange yet fascinating undefined behavior.
+What makes this so interesting is the fact that NAND has no trap instructions, no hardware interrupts, and no concept of a kernel mode. Universally among modern computers, if you try to read or write memory that belongs to another process or memory region, the operating system will trigger a segmentation fault and terminate your program. But NAND gives every program full reign to modify any part of the computer memory; hence, logically invalid memory operations are shamelessly allowed.
 
 Now to actually do it.
 
@@ -64,7 +64,7 @@ class Memory {
         ...
 ```
 
-*(This is NAND's custom programming language; you can read it like Java)*
+*(Reminder that this is NAND's custom programming language; you can read it like Java)*
 
 In terms of modifying the memory allocator, this is all that is needed! The memory allocator normally starts at memory address 2048 and initializes its linked list data structure over there, the start of the heap memory region. This modification tells the memory allocator to start at the integer `offset_` provided as an argument during initialization.
 
@@ -87,7 +87,7 @@ class Sys {
     ...
 ```
 
-The entrypoint of every NAND program is hardcoded to be `Sys.init`. When this function is called, it initializes the operating system libraries, runs `Main.main` to execute the program, and runs `Sys.halt` to terminate the program. It's analogous to the [`_start`](http://dbp-consulting.com/tutorials/debugging/linuxProgramStartup.html) entrypoint on Linux. We change `Memory.init` to take as input the start of the screen memory region, 16384, so the memory allocator allocates memory on the screen. We have to disable the routine that automatically clears the screen at the start of every program because it zeros out the metadata that was just configured by `Memory.init` and renders the memory allocator unusable.
+The entrypoint of every NAND program is hardcoded to be `Sys.init`. When this function is called, it initializes the operating system libraries, runs `Main.main` to execute the program, and runs `Sys.halt` to terminate the program. It's analogous to the [`_start`](http://dbp-consulting.com/tutorials/debugging/linuxProgramStartup.html) entrypoint on Linux. We change `Memory.init` to take as input the start of the screen memory region, 16384, so the memory allocator allocates memory on the screen. Additionally, we have to disable the routine that automatically clears the screen at the start of every program because it zeros out the metadata that was just configured by `Memory.init` and renders the memory allocator unusable.
 
 With that out of the way, let's run it on a hello world program and see what happens!
 
@@ -103,7 +103,7 @@ class Main {
 
 <ContentImage src={helloworld} width={null} alt="A screen with heap memory and hello world printed" />
 
-Great, there's our heap! If you look at the top left corner of the screen, you'll see "Hello World!". Printing the text to the screen *overwrote* some of the heap memory data! It looks wonderful, but this program is actually relatively uninteresting as it immediately terminates afterwards. Can we run the pong program initially shown with our modified, silly memory allocator? We need to do two more things.
+Great, there's our heap! If you look at the top left corner of the screen, you'll see "Hello World!". Printing the text to the screen *overwrote* some of the heap memory data! It looks wonderful, but this program is relatively uninteresting: it immediately terminates afterwards. Can we run the pong program initially shown with our modified, silly memory allocator? We need to do two more things.
 
 `Sys.jack`
 
@@ -111,24 +111,26 @@ Great, there's our heap! If you look at the top left corner of the screen, you'l
     ...
     /** Halts the program execution. */
     function void halt() {
-        // hardware-specific flag to tell the computer runtime to stop // [!code --]
+        // Set a hardware-specific flag to tell the computer runtime to stop // [!code --]
         do Memory.poke(24576, 32767); // [!code --]
         while (~false) {} // [!code --]
     }
     ...
 ```
 
-First, whenever a NAND program is finished or the operating system detects something logically invalid like divide by zero, the operating system calls `Sys.halt` to terminate the program and enter an infinite loop. We don't want our program to terminate for any reason, so we simply delete this code.
+First, whenever a NAND program is finished or the operating system detects something logically invalid like dividing by zero, the operating system calls `Sys.halt` to terminate the program[^termination]. We don't want our program to terminate for any reason, so we simply delete this code.
+
+[^termination]: If `Memory.poke(24576, 32767)` terminates the program, why does `Sys.halt` need an infinite loop? It boils down to an [implementation detail in the computer runtime](https://github.com/ArhanChaudhary/NAND/blob/main/src/core/builtins/runtime_worker.rs#L60-L82): the program will execute up to 30000 instructions at a time before polling memory address 24576 and testing if it is equal to 32767. So, it's possible for other instructions to modify the program memory after setting the termination flag but before it is polled. It wouldn't make sense for random memory to be modified after calling `Sys.halt` because it can be used to debug the program memory using the built-in memory view. As such, `Sys.halt` enters an infinite loop until the termination flag is actively polled again.
 
 Second, we add a prompt before running the program that asks the user to enter an integer offset to add to the screen region memory address (i.e `Memory.init(16384 + offset)`).  We do this because allocating heap data at the same place on the screen would produce the same results every time. It's nice (as you will soon see) to introduce variety in the results. The code at this point doesn't feel necessary to explain in full detail, so I've omitted it.
 
-We're off to the races. I spent a few days playing around with memory offsets and want to showcase the most interesting results. First up is pong at offset 914:
+We're off to the races. I spent a few days playing around with memory offsets and want to showcase the most interesting results. First up is memory offset 914:
 
 <ContentVideo src={offset914} alt="Corrupted pong with memory offset 914" />
 
 There's a lot to unpack here! You might have noticed that the ball appears to *teleport*—this is because it is literally overwriting the bits that control its position on the screen while in motion. The ball then overwrites the *paddle's* position bits to the top of the screen and height bits to approximately three times as tall. Despite the extensive memory corruption, why did the pong program still have some semblance of being able to run? NAND uses the [Harvard architecture](https://en.wikipedia.org/wiki/Harvard_architecture), which means that the program memory is stored separately from the instruction memory. The instruction memory can only be written to once when loading a program; it is read-only during its execution. So, the logic to move the paddle around and bounce the ball will always still exist.
 
-Next, here is pong at offset -10:
+Next, here is memory offset -10:
 
 <ContentVideo src={offsetMinus10} alt="Corrupted pong with memory offset -10" />
 
@@ -136,28 +138,28 @@ The ball is doing some spooky things here—it's supposed to move in a straight 
 
 <ContentVideo src={cthulu} alt="Corrupted pong with the entire screen exploding" />
 
-Bam, what happened here? I would be lying if I said I knew the exact details, but what probbaly happened is the program executed an instruction to jump to some random part in the instruction memory. At that point, all bets what is supposed to happen are off: the abstraction of function calls and the program logic flow is destroyed. The processor might as well just be executing random instructions and interpreting random noise as memory. You invoked *undefined behavior*. NAND invoked *Cthulhu*.
+Bam, what happened here? I would be lying if I said I knew exact what happened, but what probably did is the program executed an instruction to jump to some random part in the instruction memory. At that point, all bets on what is supposed to happen are off: the abstractions of function calls and the program logic flow are destroyed. The processor might as well just be executing random instructions and interpreting random noise as memory. You invoked *undefined behavior*. NAND invoked *Cthulhu*.
 
 I don't have much to say about the next few videos, but you should give each one a moment to marvel at what is actually happening.
 
-Here is pong at offset 6:
+Here is memory offset 6:
 
 <ContentVideo src={offset6} alt="Corrupted pong with memory offset 6" />
 
-Here is pong with extra modifications that I don't remember:
+Here is a run with extra modifications that I don't remember:
 
 <ContentVideo src={blinking} alt="Corrupted pong with a blinking paddle" />
 
-Here is pong at offset 577:
+Here is memory offset 577:
 
 <ContentVideo src={offset577} alt="Corrupted pong with memory offset 577" />
 
-Here is pong at offset 777:
+Here is memory offset 777:
 
 <ContentVideo src={offset777} alt="Corrupted pong with memory offset 777" />
 
 This last one is my personal favorite because of how it long it lasts before restarting the program. Try to play pong all the way to the end; it's a fun challenge!
 
-I invite you to try out this program for yourself at [NAND](https://nand.arhan.sh/)'s website. To run it, click "Load example program", select "CorruptedPong", and click "Start". Note that your results will not always be deterministic because the program memory persists when a program is manually reset. If you want the same behavior every time, or if you want to reproduce the results of the offsets in my videos, make sure to first clear the program memory by clicking "Dec" on the memory view and selecting "Clr".
+I invite you to try out this program with your own memory offsets at [NAND's website](https://nand.arhan.sh/). To run it, click "Load example program", select "CorruptedPong", and click "Start". Note that your results will not always be deterministic because the program memory persists when a program is manually reset. If you want the same behavior every time, or if you want to reproduce the results of the memory offsets in my videos, make sure to first clear the program memory by clicking "Dec" on the memory view and selecting "Clr".
 
 So, yeah. Your takeaway should be that this could technically happen the next time you read one byte of memory out of bounds in C. Until next time!

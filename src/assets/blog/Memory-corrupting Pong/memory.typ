@@ -1,8 +1,5 @@
-// #import "../blog_template.typ": *
-// #show: template
 #set text(fill: color.hsl(0deg, 0, 88%), size: 10pt)
 #set page(width: auto, height: auto, margin: 0em)
-
 
 #import "@preview/cetz:0.4.2"
 #let offwhite = color.hsl(0deg, 0, 88%)
@@ -121,14 +118,3 @@
     })
   ]
 }
-
-// #label-arrow(<first>, <second>, tip: (symbol: ">", fill: white, stroke: white))
-// #label-arrow(
-//   <third>,
-//   <fourth>,
-//   tip: (symbol: ">", fill: white, stroke: white),
-//   bend: -30,
-//   both-offset: (-3.5mm, 0mm),
-// )
-
-
