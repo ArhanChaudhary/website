@@ -25,11 +25,7 @@ if (
   >
   <span class:list={["boop", { lb: !colorDotRed, lr: colorDotRed }]}></span>
   <a href={url} class="white-link">{title}</a>
-  <div class="description-container">
-    <span class="reading-time">{minutesRead}</span>
-    {description && <>–</>}
-    <span class="description">{description}</span>
-  </div>
+  <div class="reading-time">{minutesRead}</div>
   <div class:list={["timeline-1", { first, last }]}></div>
   <div class:list={["timeline-2", { first, last }]}></div>
 </div>
@@ -47,7 +43,7 @@ if (
       8ch var(--date-gap) var(--timeline-width) calc(var(--date-gap) * 2)
       minmax(0, 45ch);
     --description-gap: 0px;
-    grid-template-rows: auto var(--description-gap) auto 4em;
+    grid-template-rows: auto var(--description-gap) auto 2.5em;
 
     .pub-date {
       color: hsl(0, 0%, 60%);
@@ -80,20 +76,13 @@ if (
       color: white;
     }
 
-    .description-container {
+    .reading-time {
       word-wrap: break-word;
       grid-row-start: 3;
       grid-column-start: 5;
-
-      .description {
-          color: hsl(0, 0%, 65%);
-      }
-
-      .reading-time {
-
-      }
+      color: hsl(0, 0%, 65%);
     }
-
+      
     .timeline-1,
     .timeline-2 {
       grid-column-start: 3;
