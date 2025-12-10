@@ -68,7 +68,7 @@ class Memory {
 
 *(Reminder that this is NAND's custom programming language; you can read it like Java)*
 
-In terms of modifying the memory allocator, this is all that is needed! The memory allocator normally starts at memory address 2048 and initializes its linked list data structure over there, the start of the heap memory region. This modification tells the memory allocator to start at the integer `offset_` provided as an argument during initialization.
+In terms of modifying the memory allocator, this is all that is needed. The memory allocator normally starts at memory address 2048 and initializes its linked list data structure over there, the start of the heap memory region. This modification tells the memory allocator to start at the integer `offset_` provided as an argument during initialization.
 
 `Sys.jack`
 
@@ -91,7 +91,7 @@ class Sys {
 
 The entrypoint of every NAND program is hardcoded to be `Sys.init`. When this function is called, it initializes the operating system libraries, runs `Main.main` to execute the program, and runs `Sys.halt` to terminate the program. It's analogous to the [`_start`](http://dbp-consulting.com/tutorials/debugging/linuxProgramStartup.html) entrypoint on Linux. We change `Memory.init` to take as input the start of the screen memory region, 16384, so the memory allocator allocates memory on the screen. Additionally, we have to disable the routine that automatically clears the screen at the start of every program because it zeros out the metadata that was just configured by `Memory.init` and renders the memory allocator unusable.
 
-With that out of the way, let's run it on a hello world program and see what happens!
+With that out of the way, let's run it on a hello world program and see what happens.
 
 `Main.jack`
 
@@ -105,7 +105,7 @@ class Main {
 
 <ContentImage src={helloworld} width={null} alt="A screen with heap memory and hello world printed" />
 
-Great, there's our heap! If you look at the top left corner of the screen, you'll see "Hello World!". Printing the text to the screen *overwrote* some of the heap memory data! It looks wonderful, but this program is relatively uninteresting: it immediately terminates afterwards. Can we run the pong program initially shown with our modified, silly memory allocator? We need to do two more things.
+Great, there's our heap! If you look at the top left corner of the screen, you'll see "Hello World!". Printing the text to the screen *overwrote* some of the heap memory data. It looks wonderful, but this program is relatively uninteresting: it immediately terminates afterwards. Can we run the pong program initially shown with our modified, silly memory allocator? We need to do two more things.
 
 `Sys.jack`
 
@@ -160,7 +160,7 @@ Here is memory offset 777:
 
 <ContentVideo src={offset777} alt="Corrupted pong with memory offset 777" />
 
-This last one is my personal favorite because of how it long it lasts before restarting the program. Try to play pong all the way to the end; it's a fun challenge!
+This last one is my personal favorite because of how it long it lasts before restarting the program. Try to play pong all the way to the end; it's a fun challenge.
 
 I invite you to try out this program with your own memory offsets at [NAND's website](https://nand.arhan.sh/). To run it, click "Load example program", select "CorruptedPong", and click "Start". Note that your results will not always be deterministic because the program memory persists when a program is manually reset. If you want the same behavior every time, or if you want to reproduce the results of the memory offsets in my videos, make sure to first clear the program memory by clicking "Dec" on the memory view and selecting "Clr".
 
