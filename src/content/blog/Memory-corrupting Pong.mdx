@@ -132,9 +132,9 @@ We're off to the races. I spent a few days playing around with memory offsets an
 
 There's a lot to unpack here! You might have noticed that the ball appears to *teleport*—this is because it is literally overwriting the bits that control its position on the screen while in motion. The ball then overwrites the *paddle's* position bits to the top of the screen and height bits to approximately three times as tall. Despite the extensive memory corruption, why did the pong program still have some semblance of being able to run? NAND uses the [Harvard architecture](https://en.wikipedia.org/wiki/Harvard_architecture), which means that the program memory is stored separately from the instruction memory. The instruction memory can only be written to once when loading a program; it is read-only during its execution. So, the logic to move the paddle around and bounce the ball will always still exist.
 
-Next, here is memory offset -10:
+Next, here is memory offset 777:
 
-<ContentVideo src={offsetMinus10} alt="Corrupted pong with memory offset -10" />
+<ContentVideo src={offset777} alt="Corrupted pong with memory offset 777" />
 
 The ball is doing some spooky things here—it's supposed to move in a straight line as a reminder 👻. The main takeaway with this program is that it somehow *restarts itself* at the end. Why this happens is simple: the program executed an instruction that sets the [program counter](https://en.wikipedia.org/wiki/Program_counter)'s value to 0, effectively telling the program to jump to the first instruction and start over.
 
@@ -156,9 +156,9 @@ Here is memory offset 577:
 
 <ContentVideo src={offset577} alt="Corrupted pong with memory offset 577" />
 
-Here is memory offset 777:
+Here is memory offset -10:
 
-<ContentVideo src={offset777} alt="Corrupted pong with memory offset 777" />
+<ContentVideo src={offsetMinus10} alt="Corrupted pong with memory offset -10" />
 
 This last one is my personal favorite because of how it long it lasts before restarting the program. Try to play pong all the way to the end; it's a fun challenge.
 
