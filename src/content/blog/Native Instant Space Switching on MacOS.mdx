@@ -1,0 +1,57 @@
+---
+pubDate: 1774258022168
+---
+
+The worst part about the MacOS window management situation is the inability to instantly switch spaces, and that Apple has [continuously ignored requests](https://discussions.apple.com/thread/253938203?sortBy=rank) to disable the nauseating switching animation. Sure, it's not *that* long, but I switch spaces often enough to the point where it becomes very noticeable and drives me insane.
+
+I believe to have found the best solution to instant space switching!
+
+But before I show you, of course, other people share the same sentiment. I claim that none of the surveyed contemporary solutions, except for what I bring up at the end of this article, suffice for what I want:
+
+1. Enable the "Reduce motion" setting in System Settings.
+
+    This is always the default answer to this question online, and I'm sick of it! It doesn't even solve the problem, but rather replaces it with an equally useless fade-in animation. It also has the side effect of activating the [prefers-reduced-motion](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/At-rules/@media/prefers-reduced-motion) media query on web browsers.
+
+1. Install the [yabai](https://github.com/asmvik/yabai) tiling window manager and use its instant space switcher.
+
+    And to be fair, it works pretty well. There are only two problems: for one, yabai does this by binary patching a part of the operating system. This is only possible by disabling [System Integrity Protection](https://en.wikipedia.org/wiki/System_Integrity_Protection) at your own discretion. For the second, installing yabai forces you to learn and use it as your tiling window manager[^instantspaces]. I personally use [PaperWM.spoon](https://github.com/mogenson/PaperWM.spoon) as my window manager. Both of which are incompatible when installed together.
+
+    [^instantspaces]: I found [instantspaces](https://github.com/flawnn/instantspaces) on GitHub, which attempts to isolate yabai's instant space switcher. Unfortunately, I tried, and I really tried, but I could not get it to work on MacOS Tahoe. Although I prefer InstantSpaceSwitcher anyways, please let me know if you can get it working!
+
+1. Use a third-party virtual space manager facade, hiding and showing windows as needed when switching spaces.
+
+    Some popular options are [FlashSpace](https://github.com/wojciech-kulik/FlashSpace) and [AeroSpace virtual workspaces](https://nikitabobko.github.io/AeroSpace/guide#emulation-of-virtual-workspaces). I actually offer no criticism other than that they are not native to MacOS, and feel unnecessary given that all we want to do is disable an animation.
+
+1. Pay for a license for [BetterTouchTool](https://folivora.ai). Enable "Move Right Space (Without Animation)" and "Move Left Space (Without Animation)".
+
+Without further ado, I managed to find [InstantSpaceSwitcher](https://github.com/jurplel/InstantSpaceSwitcher) by [jurplel](https://github.com/jurplel) on GitHub. It is a simple menu bar application that achieves instant space switching while offering *none* of the aforementioned drawbacks.
+
+<ContentImage
+  src={settings}
+  desc={`Here I have InstantSpaceSwitcher paired up with <a href="https://github.com/ekalinin/SpaceName">SpaceName</a>.`}
+  width="800"
+  alt="A commit with 2,000 contributors"
+/>
+
+InstantSpaceSwitcher does not require disabling Security Integration Protection; it works by simulating a trackpad swipe with a large amount of velocity. It additionally allows you to instantly jump to a space number. The last thing it provides is a command line interface.
+
+The installation instructions are not listed on the README, so they are:
+
+```bash
+$ git clone https://github.com/jurplel/InstantSpaceSwitcher
+$ cd InstantSpaceSwitcher
+$ ./build.sh
+```
+
+InstantSpaceSwitcher should now be available as a native application.
+
+After running the above, the command line interface is available at:
+
+```bash
+$ .build/release/ISSCli --help
+Usage: .build/release/ISSCli [left|right|index <n>]
+```
+
+Did I mention that the repository literally has one star on GitHub (me)? I want more people to discover InstantSpaceSwitcher and consider it trustworthy; hence, please consider giving it a star if you find it helpful.
+
+Until next time!
