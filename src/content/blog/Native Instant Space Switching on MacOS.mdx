@@ -19,7 +19,7 @@ But before I show you, of course, other people share the same sentiment. I claim
 
     And to be fair, it works pretty well. There are only two problems: for one, yabai does this by binary patching a part of the operating system. This is only possible by disabling [System Integrity Protection](https://en.wikipedia.org/wiki/System_Integrity_Protection) at your own discretion. For the second, installing yabai forces you to learn and use it as your tiling window manager[^instantspaces]. I personally use [PaperWM.spoon](https://github.com/mogenson/PaperWM.spoon) as my window manager. Both of which are incompatible when installed together.
 
-    [^instantspaces]: I found [instantspaces](https://github.com/flawnn/instantspaces) on GitHub, which attempts to isolate yabai's instant space switcher. Unfortunately, I tried, and I really tried, but I could not get it to work on MacOS Tahoe. Although I prefer InstantSpaceSwitcher anyways, please let me know if you can get it working!
+    [^instantspaces]: I found [instantspaces](https://github.com/flawnn/instantspaces) on GitHub, which attempts to isolate yabai's instant space switcher. Unfortunately, I tried, and I really tried, but I could not get it to work on MacOS Tahoe. Although I anyways prefer InstantSpaceSwitcher, please let me know if you can get this working.
 
 1. Use a third-party virtual space manager facade, hiding and showing windows as needed when switching spaces.
 
@@ -38,21 +38,28 @@ Without further ado, I managed to find [InstantSpaceSwitcher](https://github.com
 
 InstantSpaceSwitcher does not require disabling Security Integration Protection; it works by simulating a trackpad swipe with a large amount of velocity. It additionally allows you to instantly jump to a space number. The last thing it provides is a command line interface.
 
-The installation instructions are not listed on the README, so they are:
+The installation instructions are [listed on the README](https://github.com/jurplel/InstantSpaceSwitcher#installation), and I will briefly repeat them. You can either install InstantSpaceSwiter via Homebrew:
+
+```bash
+$ brew install --cask jurplel/tap/instant-space-switcher
+```
+
+Building from source:
 
 ```bash
 $ git clone https://github.com/jurplel/InstantSpaceSwitcher
 $ cd InstantSpaceSwitcher
-$ ./build.sh
+$ ./dist/build.sh
+$ open ./build/InstantSpaceSwitcher.app
 ```
 
-InstantSpaceSwitcher should now be available as a native application.
+Or using a [pre-built binary](https://github.com/jurplel/InstantSpaceSwitcher/tags).
 
-After running the above, the command line interface is available at:
+Once InstantSpaceSwitcher is installed as a native application, the command line interface is provided at:
 
 ```bash
-$ .build/release/ISSCli --help
-Usage: .build/release/ISSCli [left|right|index <n>]
+$ InstantSpaceSwitcher.app/Contents/MacOS/ISSCli --help
+Usage: InstantSpaceSwitcher.app/Contents/MacOS/ISSCli [left|right|index <n>]
 ```
 
 Did I mention that the repository literally has one star on GitHub (me)? I want more people to discover InstantSpaceSwitcher and consider it trustworthy; hence, please consider giving it a [star](https://github.com/jurplel/InstantSpaceSwitcher) if you find it helpful.
