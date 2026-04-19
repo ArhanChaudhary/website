@@ -1,0 +1,95 @@
+{/*
+- kart saying that Rust isn't good enough
+- will only bring up specific rust project goals, accepted RFCs, or existing nightly feature flags
+- no optimizations
+- will not bring up refinements to current implementations of features like
+    - const generics
+        - https://github.com/rust-lang/project-const-generics
+    - async dyn
+        - https://github.com/rust-lang/rust/issues/133119
+        - box box box?
+    - permit impl trait type alias
+        - https://github.com/rust-lang/rfcs/pull/2515
+- bring up the LLVM author's blog post and how I very much liked that 
+- categorize every new feature
+
+
+
+- specialization
+    - https://github.com/rust-lang/rfcs/blob/master/text/1210-impl-specialization.md
+- generic const exprs
+- associated traits
+    - https://github.com/rust-lang/rfcs/pull/3938
+- https://github.com/rust-lang/lang-team/blob/master/src/design_notes/variadic_generics.md
+- https://github.com/rust-lang/rfcs/pull/3869
+- https://github.com/rust-lang/rfcs/pull/3844
+- https://github.com/rust-lang/rfcs/pull/3530
+
+rust is beautiful https://github.com/rust-lang/rust/issues/100000
+*/}
+- integer manipulation
+    - https://github.com/rust-lang/libs-team/issues/204 
+- std rand
+    - https://github.com/rust-lang/rust/issues/130703
+    - https://nindalf.com/posts/rust-stdlib/
+    - esl https://github.com/rust-lang/rfcs/pull/3810
+- in place initialization
+    - https://rust-lang.github.io/rust-project-goals/2026/redesigning-super-let.html
+    - out ptr? https://hackmd.io/@rust-for-linux-/H11r2RXpgl
+- f16 and f128 
+    - was stabilized in LLVM
+    - happened because of AI lol
+    - https://github.com/rust-lang/rust/issues/116909
+    - https://rust-lang.github.io/rust-project-goals/2026/stabilizing-f16.html
+- new range api 
+    - https://kaylynn.gay/blog/post/rust_ranges_and_suffering
+    - https://ridiculousfish.com/blog/posts/least-favorite-rust-type.html
+    - https://github.com/rust-lang/rust/pull/125751
+    - https://github.com/rust-lang/rust/pull/150522
+- Share trait + move expressions
+    - https://rust-lang.github.io/rust-project-goals/2026/ergonomic-rc.html#add-a-share-trait
+    - https://github.com/rust-lang/rfcs/pull/2229
+- reflection 
+    - https://rust-lang.github.io/rust-project-goals/2026/reflection-and-comptime.html#explore-design-space-for-comptime-const-fn    - 
+    - detail "Why Not Zig?"
+- gen blocks
+    - https://github.com/rust-lang/rfcs/pull/3861
+    - https://github.com/rust-lang/rust/issues/43122?issue=rust-lang%7Crust%7C117078#issuecomment-3614678914
+- try blocks
+    - https://github.com/rust-lang/rust/issues/154391
+- cargo script
+    - https://rust-lang.github.io/rust-project-goals/2026/cargo-script.html
+    - https://github.com/rust-lang/rust/issues/136889
+- cool core intrinsics
+    - https://doc.rust-lang.org/std/intrinsics/fn.const_eval_select.html
+- become
+    - that recent blog post
+    - https://github.com/rust-lang/rust/issues/112788
+- declarative macros 2.0
+    - but with the original one there's this https://github.com/rust-lang/rfcs/blob/master/text/3697-declarative-attribute-macros.md
+    - https://github.com/rust-lang/rust/issues/39412
+- oneshot
+    - https://github.com/rust-lang/libs-team/issues/610
+    - https://github.com/rust-lang/rust/issues/143674
+- rethink dont rebuild
+    - https://rust-lang.github.io/rust-project-goals/2025h2/relink-dont-rebuild.html
+- nonpoison mutexes
+    - https://github.com/rust-lang/rust/issues/149359
+    - https://smallcultfollowing.com/babysteps/blog/2024/05/02/unwind-considered-harmful/
+- derive from
+    - https://github.com/rust-lang/rust/issues/144889
+- portable_simd
+    - https://github.com/rust-lang/portable-simd/issues/364
+- for await
+    - https://github.com/rust-lang/rust/pull/118847
+- async closures
+    - https://github.com/rust-lang/rust/issues/62290
+- constracts
+    - https://github.com/rust-lang/rust/issues/128044
+- deref patterns
+    - https://doc.rust-lang.org/unstable-book/language-features/deref-patterns.html
+- coroutines
+    - https://doc.rust-lang.org/unstable-book/language-features/coroutines.html
+- guard patterns
+    - https://github.com/rust-lang/rust/issues/129967
+    
