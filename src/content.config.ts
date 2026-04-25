@@ -1,4 +1,5 @@
-import { z, defineCollection } from "astro:content";
+import { defineCollection } from "astro:content";
+import { z } from "astro/zod";
 import { file, glob } from "astro/loaders";
 
 const MDX_PATTERN = "**/*.mdx";
@@ -12,9 +13,9 @@ const blogCollection = defineCollection({
       .optional(),
     pubDate: z.coerce.date().optional(),
     description: z.string().optional(),
-    reddit: z.string().url().optional(),
-    lobsters: z.string().url().optional(),
-    hackernews: z.string().url().optional(),
+    reddit: z.url().optional(),
+    lobsters: z.url().optional(),
+    hackernews: z.url().optional(),
   }),
 });
 
@@ -25,7 +26,7 @@ const bookReviewCollection = defineCollection({
     read: z.coerce.date(),
     genre: z.string(),
     author: z.string(),
-    url: z.string().url(),
+    url: z.url(),
   }),
 });
 
@@ -44,9 +45,7 @@ const ctfWriteupCollection = defineCollection({
     category: z.enum(writeupCategory),
     points: z.number(),
     attachments: z.array(z.string()).optional(),
-    links: z
-      .array(z.object({ name: z.string(), url: z.string().url() }))
-      .optional(),
+    links: z.array(z.object({ name: z.string(), url: z.url() })).optional(),
   }),
 });
 
@@ -54,7 +53,7 @@ const ctfsCollection = defineCollection({
   loader: file("src/content/ctf-write-up/ctfs.json"),
   schema: z.object({
     id: z.string(),
-    ctfLink: z.string().url(),
+    ctfLink: z.url(),
   }),
 });
 
@@ -76,7 +75,7 @@ const cubingCompetitionCollection = defineCollection({
         place: z.number().int(),
         times: z.array(z.union([z.literal("DNF"), z.number()])).length(5),
         plusTwos: z.array(z.number().int()).max(5).optional(),
-      })
+      }),
     ),
   }),
 });
@@ -85,7 +84,7 @@ const projectCollection = defineCollection({
   loader: glob({ pattern: MDX_PATTERN, base: "src/content/project" }),
   schema: z.object({
     sideProject: z.boolean(),
-    link: z.string().url().optional(),
+    link: z.url().optional(),
     dateRange: z.string(),
   }),
 });
@@ -96,7 +95,7 @@ const unreadBooksCollection = defineCollection({
     id: z.string(),
     genre: z.string(),
     author: z.string(),
-    url: z.string().url(),
+    url: z.url(),
     inProgress: z.boolean(),
   }),
 });

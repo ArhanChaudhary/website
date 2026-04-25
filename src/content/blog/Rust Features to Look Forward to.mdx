@@ -1,95 +1,202 @@
-{/*
-- kart saying that Rust isn't good enough
-- will only bring up specific rust project goals, accepted RFCs, or existing nightly feature flags
-- no optimizations
-- will not bring up refinements to current implementations of features like
-    - const generics
-        - https://github.com/rust-lang/project-const-generics
-    - async dyn
-        - https://github.com/rust-lang/rust/issues/133119
-        - box box box?
-    - permit impl trait type alias
-        - https://github.com/rust-lang/rfcs/pull/2515
-- bring up the LLVM author's blog post and how I very much liked that 
-- categorize every new feature
+import Summary from "../../components/Summary.astro"
 
+### Table of Contents
 
+# Introduction
 
-- specialization
-    - https://github.com/rust-lang/rfcs/blob/master/text/1210-impl-specialization.md
-- generic const exprs
-- associated traits
-    - https://github.com/rust-lang/rfcs/pull/3938
-- https://github.com/rust-lang/lang-team/blob/master/src/design_notes/variadic_generics.md
-- https://github.com/rust-lang/rfcs/pull/3869
-- https://github.com/rust-lang/rfcs/pull/3844
-- https://github.com/rust-lang/rfcs/pull/3530
+Right now I think it's *too easy* to dislike Rust. I recently got into an argument with a close friend after they told me something along the likes of "Rust isn't good enough." My stance was true to my past and present belief: *you are wrong*; Rust has too many upcoming novel features to say so. It was impossible to fault them for sharing a different opinion, though: Rust's development is increasingly difficult keep up with.
 
-rust is beautiful https://github.com/rust-lang/rust/issues/100000
-*/}
-- integer manipulation
-    - https://github.com/rust-lang/libs-team/issues/204 
-- std rand
-    - https://github.com/rust-lang/rust/issues/130703
-    - https://nindalf.com/posts/rust-stdlib/
-    - esl https://github.com/rust-lang/rfcs/pull/3810
-- in place initialization
-    - https://rust-lang.github.io/rust-project-goals/2026/redesigning-super-let.html
-    - out ptr? https://hackmd.io/@rust-for-linux-/H11r2RXpgl
-- f16 and f128 
-    - was stabilized in LLVM
-    - happened because of AI lol
-    - https://github.com/rust-lang/rust/issues/116909
-    - https://rust-lang.github.io/rust-project-goals/2026/stabilizing-f16.html
-- new range api 
-    - https://kaylynn.gay/blog/post/rust_ranges_and_suffering
-    - https://ridiculousfish.com/blog/posts/least-favorite-rust-type.html
-    - https://github.com/rust-lang/rust/pull/125751
-    - https://github.com/rust-lang/rust/pull/150522
-- Share trait + move expressions
-    - https://rust-lang.github.io/rust-project-goals/2026/ergonomic-rc.html#add-a-share-trait
-    - https://github.com/rust-lang/rfcs/pull/2229
-- reflection 
-    - https://rust-lang.github.io/rust-project-goals/2026/reflection-and-comptime.html#explore-design-space-for-comptime-const-fn    - 
-    - detail "Why Not Zig?"
-- gen blocks
-    - https://github.com/rust-lang/rfcs/pull/3861
-    - https://github.com/rust-lang/rust/issues/43122?issue=rust-lang%7Crust%7C117078#issuecomment-3614678914
-- try blocks
-    - https://github.com/rust-lang/rust/issues/154391
-- cargo script
-    - https://rust-lang.github.io/rust-project-goals/2026/cargo-script.html
-    - https://github.com/rust-lang/rust/issues/136889
-- cool core intrinsics
-    - https://doc.rust-lang.org/std/intrinsics/fn.const_eval_select.html
-- become
-    - that recent blog post
-    - https://github.com/rust-lang/rust/issues/112788
-- declarative macros 2.0
-    - but with the original one there's this https://github.com/rust-lang/rfcs/blob/master/text/3697-declarative-attribute-macros.md
-    - https://github.com/rust-lang/rust/issues/39412
-- oneshot
-    - https://github.com/rust-lang/libs-team/issues/610
-    - https://github.com/rust-lang/rust/issues/143674
-- rethink dont rebuild
-    - https://rust-lang.github.io/rust-project-goals/2025h2/relink-dont-rebuild.html
-- nonpoison mutexes
-    - https://github.com/rust-lang/rust/issues/149359
-    - https://smallcultfollowing.com/babysteps/blog/2024/05/02/unwind-considered-harmful/
-- derive from
-    - https://github.com/rust-lang/rust/issues/144889
-- portable_simd
-    - https://github.com/rust-lang/portable-simd/issues/364
-- for await
-    - https://github.com/rust-lang/rust/pull/118847
-- async closures
-    - https://github.com/rust-lang/rust/issues/62290
-- constracts
-    - https://github.com/rust-lang/rust/issues/128044
-- deref patterns
-    - https://doc.rust-lang.org/unstable-book/language-features/deref-patterns.html
-- coroutines
-    - https://doc.rust-lang.org/unstable-book/language-features/coroutines.html
-- guard patterns
-    - https://github.com/rust-lang/rust/issues/129967
-    
+You might expect there to be some central hub of information about "what's coming next" to Rust—but it turns out this doesn't exist[^releases] justifiably so: there are [over 700](https://doc.rust-lang.org/unstable-book/library-features/const-unsigned-bigint-helpers.html) experimental feature flags and [dozens](https://rust-lang.github.io/rust-project-goals/2026/goals.html) of current and future project goals. Concisely and accurately documenting the most important features is a long and arduous process. The time commitment is often not worth it because it can quickly become outdated.
+
+[^releases]: Actually, I was being somewhat dishonest: avid Rustaceans are aware of [releases.rs](https://releases.rs/), an automated changelog of the language contributions to the compiler. I'm not the biggest fan of [releases.rs](https://releases.rs/) because it is difficult to separate features I don't really care about from the ones that I do.
+
+Once in a blue moon, a technical project leader will do exactly that. The exemplar of this is Nikita Popov's excellent [This year in LLVM](https://www.npopov.com/2026/01/31/This-year-in-LLVM-2025.html) series; you can tell that a great deal of effort was put into making each article comprehensive. I was recently inspired to do something similar for Rust: aggregate which unknown, niche, or new upcoming features in Rust excite me the most.
+
+For the sake of cutting down the list, my selection of features follows three filtering criteria:
+
+- The feature must personally excite me.
+
+  I realize this makes the list inherently biased. I tried my best to take into account GitHub tracking issue reactions as well as opinions from my close friends.
+
+- The feature must be aptly specified.
+
+  There are an [innumerable](https://blog.polybdenum.com/2024/06/07/the-inconceivable-types-of-rust-how-to-make-self-borrows-safe.html) [amount](https://github.com/rust-lang/lang-team/blob/master/src/design_notes/variadic_generics.md) [of](https://github.com/rust-lang/rfcs/pull/2442) [write-ups](https://github.com/rust-lang/rfcs/pull/2442) that propose something revolutionary and novel, gain traction, and fail to follow up on a design that everyone can agree on, often permanently leaving them in gridlock. I want to avoid advocating for a feature if it can later be significantly changed or deleted. Therefore, the feature must have an established roadmap towards stabilization.
+
+- The feature cannot be an obvious improvement of another feature, possibly originally restricted due to implementation difficulty.
+
+  This includes: [the entire const generics project](https://github.com/rust-lang/project-const-generics), [associated type defaults](https://github.com/rust-lang/rust/issues/29661), and [expression attributes](https://github.com/rust-lang/rust/issues/15701). Basically, anything that you would already expect to work. The intent is to keep the discussion of ideas fresh and interesting. I make an exception for standard library additions, for which this criterion is more lenient.
+
+A few notes about the format for the rest of this article. Every feature is listed as a hidden dropdown under one of "Language Features", "Language Redesigns", "Standard Library Additions", "Optimizations", and "Cargo". Within each dropdown, the description of the feature follows roughly the same format. First, I will briefly summarize its motivation and operational semantics. Next, I provide an example of the most representative real-world usage of this feature. Finally, I list relevant references to learn more about this feature.
+
+# Language Features
+
+<Summary title="Async drop">
+    https://github.com/rust-lang/rust/issues/126482
+</Summary>
+<Summary title="Async closures">
+    https://github.com/rust-lang/rust/issues/62290
+</Summary>
+<Summary title="Become">
+  - that recent blog post
+  - https://github.com/rust-lang/rust/issues/112788
+</Summary>
+<Summary title="Contracts">
+  - like kotlin/liquid haskell
+  - https://github.com/rust-lang/rust/issues/128044
+</Summary>
+<Summary title="Coroutines">
+  - https://github.com/rust-lang/rust/issues/43122
+</Summary>
+<Summary title="Cfg version/accessible">
+  - https://github.com/rust-lang/rfcs/pull/2523
+</Summary>
+<Summary title="Default field values">
+  - https://github.com/rust-lang/rust/issues/132162
+</Summary>
+<Summary title="Deref patterns">
+  - https://doc.rust-lang.org/unstable-book/language-features/deref-patterns.html
+</Summary>
+<Summary title="Extern types">
+  - https://github.com/rust-lang/rust/issues/43467
+</Summary>
+<Summary title="For await">
+  - https://github.com/rust-lang/rust/pull/118847
+</Summary>
+<Summary title="Gen blocks">
+  - https://github.com/rust-lang/rfcs/pull/3861
+  - https://github.com/rust-lang/rust/issues/43122?issue=rust-lang%7Crust%7C117078#issuecomment-3614678914
+</Summary>
+<Summary title="Guard patterns">
+  - https://github.com/rust-lang/rust/issues/129967
+</Summary>
+<Summary title="Impl trait in type aliases">
+    https://github.com/rust-lang/rust/issues/63063
+</Summary>
+<Summary title="Macro metavariable expressions">
+  - https://github.com/rust-lang/rust/issues/83527
+</Summary>
+<Summary title="Reflection">
+  - https://rust-lang.github.io/rust-project-goals/2026/reflection-and-comptime.html#explore-design-space-for-comptime-const-fn    -
+  - detail "Why Not Zig?"
+</Summary>
+<Summary title="Specialization">
+  - https://github.com/rust-lang/rfcs/blob/master/text/1210-impl-specialization.md
+  - min_specialization
+  - A minimal, sound subset of specialization intended to be used by the standard library until the soundness issues with specialization are fixed.
+  - https://github.com/rust-lang/rust/issues/31844
+</Summary>
+<Summary title="Try trait">
+  - https://github.com/rust-lang/rust/issues/154391
+  - https://github.com/rust-lang/rust/issues/84277
+</Summary>
+<Summary title="Trait aliases">
+  - https://github.com/rust-lang/rust/issues/41517
+  - https://github.com/rust-lang/rust/issues/84277
+</Summary>
+
+# Language Redesigns
+
+<Summary title="Declarative macros 2.0">
+  - but with the original one there's this https://github.com/rust-lang/rfcs/blob/master/text/3697-declarative-attribute-macros.md
+  - https://github.com/rust-lang/rust/issues/39412
+</Summary>
+<Summary title="Ergonomic ref counting">
+  - https://rust-lang.zulipchat.com/#narrow/channel/410673-t-lang.2Fmeetings/topic/Design.20meeting.202025-08-27.3A.20Ergonomic.20RC/near/555643180
+  - https://smallcultfollowing.com/babysteps/series/ergonomic-rc/
+  - https://rust-lang.github.io/rust-project-goals/2026/ergonomic-rc.html#add-a-share-trait
+</Summary>
+<Summary title="Nonpoison mutexes">
+  - https://github.com/rust-lang/rust/issues/149359
+  - https://smallcultfollowing.com/babysteps/blog/2024/05/02/unwind-considered-harmful/
+</Summary>
+
+# Standard Library Additions
+
+<Summary title="Assert_matches!">
+  - https://github.com/rust-lang/rust/issues/82775
+</Summary>
+<Summary title="Array::try_map">
+  - https://github.com/rust-lang/rust/issues/79711
+</Summary>
+<Summary title="Allocator_api">
+  - https://github.com/rust-lang/rfcs/pull/1398
+</Summary>
+<Summary title="Async iterator">
+  - https://github.com/rust-lang/rfcs/pull/2996
+</Summary>
+<Summary title="Derive from">
+  - https://github.com/rust-lang/rust/issues/144889
+</Summary>
+<Summary title="Duration constructors">
+  - https://github.com/rust-lang/rust/issues/120301
+</Summary>
+<Summary title="Duration constants">
+  - https://github.com/rust-lang/rust/issues/57391
+</Summary>
+<Summary title="F16 and f128">
+  - was stabilized in LLVM
+  - happened because of AI lol
+  - https://github.com/rust-lang/rust/issues/116909
+  - https://rust-lang.github.io/rust-project-goals/2026/stabilizing-f16.html
+</Summary>
+<Summary title="Hash_map! macro">
+  - https://github.com/rust-lang/rust/issues/144032
+</Summary>
+<Summary title="Integer manipulation">
+  - https://github.com/rust-lang/libs-team/issues/204
+</Summary>
+<Summary title="Iterator::try_collect">
+  - https://github.com/rust-lang/rust/issues/94047
+</Summary>
+<Summary title="Never type">
+  - https://github.com/rust-lang/rust/issues/35121
+</Summary>
+<Summary title="New range api">
+  - https://kaylynn.gay/blog/post/rust_ranges_and_suffering
+  - https://ridiculousfish.com/blog/posts/least-favorite-rust-type.html
+  - https://github.com/rust-lang/rust/pull/125751
+  - https://github.com/rust-lang/rust/pull/150522
+</Summary>
+<Summary title="OnceCell::get_or_try_init">
+  - https://github.com/rust-lang/rust/issues/109737
+</Summary>
+<Summary title="Oneshot">
+  - https://github.com/rust-lang/libs-team/issues/610
+  - https://github.com/rust-lang/rust/issues/143674
+</Summary>
+<Summary title="Pattern types">
+  - https://github.com/rust-lang/types-team/issues/126
+</Summary>
+<Summary title="Portable_simd">
+  - https://github.com/rust-lang/portable-simd/issues/364
+</Summary>
+<Summary title="Std rand">
+  - https://github.com/rust-lang/rust/issues/130703
+  - https://nindalf.com/posts/rust-stdlib/
+  - esl https://github.com/rust-lang/rfcs/pull/3810
+</Summary>
+<Summary title="Variant count">
+  - https://github.com/rust-lang/rust/issues/73662
+</Summary>
+
+# Optimizations
+
+<Summary title="Parallel front end">
+  - https://github.com/rust-lang/rust-project-goals/issues/121
+</Summary>
+<Summary title="In place initialization">
+  - https://github.com/rust-lang/rfcs/pull/2884
+  - https://rust-lang.github.io/rust-project-goals/2026/redesigning-super-let.html
+  - out ptr? https://hackmd.io/@rust-for-linux-/H11r2RXpgl
+</Summary>
+
+# Cargo
+
+<Summary title="Cargo script">
+  - https://rust-lang.github.io/rust-project-goals/2026/cargo-script.html
+  - https://github.com/rust-lang/rust/issues/136889
+</Summary>
+
+# Conclusion
+
+Yeah so I expect the half-life of this list to be around one year. Rust would be nowhere near its current scale without the tremendous efforts of the open source world. Until next time!

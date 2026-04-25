@@ -1,7 +1,6 @@
-import { remarkReadingTime } from './remark-reading-time.mjs';
-import { defineConfig } from "astro/config";
+import { remarkReadingTime } from "./remark-reading-time.mjs";
+import { defineConfig, fontProviders } from "astro/config";
 import remarkToc from "remark-toc";
-import robotsTxt from "astro-robots-txt";
 import sitemap from "@astrojs/sitemap";
 import remarkAutoImport from "./remark-auto-import/remark-auto-import.ts";
 import { transformerNotationDiff } from "@shikijs/transformers";
@@ -12,15 +11,18 @@ import { typst } from "astro-typst";
 export default defineConfig({
   site: "https://arhan.sh",
   vite: {
-      ssr: {
-          external: ["@myriaddreamin/typst-ts-node-compiler"]
-      }
+    ssr: {
+      external: ["@myriaddreamin/typst-ts-node-compiler"],
+    },
   },
   integrations: [
-    robotsTxt(),
     sitemap(),
     mdx({
-      remarkPlugins: [remarkToc, remarkAutoImport, remarkReadingTime],
+      remarkPlugins: [
+        () => remarkToc({ skip: ".*\\/\\*\\*\\/" }),
+        remarkAutoImport,
+        remarkReadingTime,
+      ],
       shikiConfig: {
         transformers: [
           transformerNotationDiff({
@@ -41,18 +43,22 @@ export default defineConfig({
     typst({
       options: {
         remPx: 14,
-        props: { preserveAspectRatio: "xMidYMid meet", width: null, height: null },
+        props: {
+          preserveAspectRatio: "xMidYMid meet",
+          width: null,
+          height: null,
+        },
       },
       target: () => "svg",
     }),
   ],
-  experimental: {
-    fonts: [
-      {
-        provider: "local",
-        name: "Input Mono",
-        cssVariable: "--font-input-mono",
-        fallbacks: ["Helvetica"],
+  fonts: [
+    {
+      provider: fontProviders.local(),
+      name: "Input Mono",
+      cssVariable: "--font-input-mono",
+      fallbacks: ["Helvetica"],
+      options: {
         variants: [
           {
             weight: 200,
@@ -76,6 +82,6 @@ export default defineConfig({
           },
         ],
       },
-    ],
-  },
+    },
+  ],
 });
