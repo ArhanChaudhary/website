@@ -1,4 +1,4 @@
-import Summary from "../../components/Summary.astro"
+import FeatureSummary from "../../components/FeatureSummary.astro"
 
 ### Table of Contents
 
@@ -12,191 +12,810 @@ You might expect there to be some central hub of information about "what's comin
 
 Once in a blue moon, a technical project leader will do exactly that. The exemplar of this is Nikita Popov's excellent [This year in LLVM](https://www.npopov.com/2026/01/31/This-year-in-LLVM-2025.html) series; you can tell that a great deal of effort was put into making each article comprehensive. I was recently inspired to do something similar for Rust: aggregate which unknown, niche, or new upcoming features in Rust excite me the most.
 
-For the sake of cutting down the list, my selection of features follows three filtering criteria:
+For culling the list, my selection of features follows three filtering criteria:
 
 - The feature must personally excite me.
 
   I realize this makes the list inherently biased. I tried my best to take into account GitHub tracking issue reactions as well as opinions from my close friends.
 
-- The feature must be aptly specified.
+- The feature must have an accepted [RFC](https://rust-lang.github.io/rfcs/), [MCP](https://forge.rust-lang.org/compiler/proposals-and-stabilization.html#proposals), [ACP](https://std-dev-guide.rust-lang.org/development/feature-lifecycle.html#suitability-for-the-standard-library), or the equivalent.
 
-  There are an [innumerable](https://blog.polybdenum.com/2024/06/07/the-inconceivable-types-of-rust-how-to-make-self-borrows-safe.html) [amount](https://github.com/rust-lang/lang-team/blob/master/src/design_notes/variadic_generics.md) [of](https://github.com/rust-lang/rfcs/pull/2442) [write-ups](https://github.com/rust-lang/rfcs/pull/2442) that propose something revolutionary and novel, gain traction, and fail to follow up on a design that everyone can agree on, often permanently leaving them in gridlock. I want to avoid advocating for a feature if it can later be significantly changed or deleted. Therefore, the feature must have an established roadmap towards stabilization.
+  There are an [innumerable](https://github.com/rust-lang/rfcs/pull/2948) [amount](https://github.com/rust-lang/lang-team/blob/master/src/design_notes/variadic_generics.md) [of](https://github.com/rust-lang/rfcs/pull/2442) [proposals](https://github.com/rust-lang/rfcs/pull/2442) that propose something revolutionary and novel, gain traction, and fail to follow up on a design that everyone can agree on, often permanently leaving them in gridlock. I want to avoid advocating for a feature if it can later be changed or deleted. Therefore, the feature must have an established specification and a roadmap towards stabilization.
 
 - The feature cannot be an obvious improvement of another feature, possibly originally restricted due to implementation difficulty.
 
-  This includes: [the entire const generics project](https://github.com/rust-lang/project-const-generics), [associated type defaults](https://github.com/rust-lang/rust/issues/29661), and [expression attributes](https://github.com/rust-lang/rust/issues/15701). Basically, anything that you would already expect to work. The intent is to keep the discussion of ideas fresh and interesting. I make an exception for standard library additions, for which this criterion is more lenient.
+  This includes [the entire const generics project](https://github.com/rust-lang/project-const-generics) and [expression attributes](https://github.com/rust-lang/rust/issues/15701). Basically, anything that you would expect of an existing feature to already work. The intent is to keep the discussion of ideas fresh and interesting. I make an exception for standard library additions, for which this criterion is more lenient.
 
-A few notes about the format for the rest of this article. Every feature is listed as a hidden dropdown under one of "Language Features", "Language Redesigns", "Standard Library Additions", "Optimizations", and "Cargo". Within each dropdown, the description of the feature follows roughly the same format. First, I will briefly summarize its motivation and operational semantics. Next, I provide an example of the most representative real-world usage of this feature. Finally, I list relevant references to learn more about this feature.
+A few notes about the format for the rest of this article. Every feature is listed alphabetically as a hidden dropdown under one of "Language Features", "Standard Library Additions", "Language Redesigns", "Optimizations", and "Tooling". Within each dropdown, the description of the feature follows roughly the same format. First, I briefly summarize in my own words the motivation and impact of this feature. Next, I provide an example of the most representative real-world usage of this feature. Finally, I list relevant references.
 
 # Language Features
 
-<Summary title="Async drop">
-    https://github.com/rust-lang/rust/issues/126482
-</Summary>
-<Summary title="Async closures">
-    https://github.com/rust-lang/rust/issues/62290
-</Summary>
-<Summary title="Become">
-  - that recent blog post
-  - https://github.com/rust-lang/rust/issues/112788
-</Summary>
-<Summary title="Contracts">
-  - like kotlin/liquid haskell
-  - https://github.com/rust-lang/rust/issues/128044
-</Summary>
-<Summary title="Coroutines">
-  - https://github.com/rust-lang/rust/issues/43122
-</Summary>
-<Summary title="Cfg version/accessible">
-  - https://github.com/rust-lang/rfcs/pull/2523
-</Summary>
-<Summary title="Default field values">
-  - https://github.com/rust-lang/rust/issues/132162
-</Summary>
-<Summary title="Deref patterns">
-  - https://doc.rust-lang.org/unstable-book/language-features/deref-patterns.html
-</Summary>
-<Summary title="Extern types">
-  - https://github.com/rust-lang/rust/issues/43467
-</Summary>
-<Summary title="For await">
-  - https://github.com/rust-lang/rust/pull/118847
-</Summary>
-<Summary title="Gen blocks">
-  - https://github.com/rust-lang/rfcs/pull/3861
-  - https://github.com/rust-lang/rust/issues/43122?issue=rust-lang%7Crust%7C117078#issuecomment-3614678914
-</Summary>
-<Summary title="Guard patterns">
-  - https://github.com/rust-lang/rust/issues/129967
-</Summary>
-<Summary title="Impl trait in type aliases">
-    https://github.com/rust-lang/rust/issues/63063
-</Summary>
-<Summary title="Macro metavariable expressions">
-  - https://github.com/rust-lang/rust/issues/83527
-</Summary>
-<Summary title="Reflection">
-  - https://rust-lang.github.io/rust-project-goals/2026/reflection-and-comptime.html#explore-design-space-for-comptime-const-fn    -
-  - detail "Why Not Zig?"
-</Summary>
-<Summary title="Specialization">
-  - https://github.com/rust-lang/rfcs/blob/master/text/1210-impl-specialization.md
-  - min_specialization
-  - A minimal, sound subset of specialization intended to be used by the standard library until the soundness issues with specialization are fixed.
-  - https://github.com/rust-lang/rust/issues/31844
-</Summary>
-<Summary title="Try trait">
-  - https://github.com/rust-lang/rust/issues/154391
-  - https://github.com/rust-lang/rust/issues/84277
-</Summary>
-<Summary title="Trait aliases">
-  - https://github.com/rust-lang/rust/issues/41517
-  - https://github.com/rust-lang/rust/issues/84277
-</Summary>
+<FeatureSummary title="Arbitrary self types">
+    <Fragment slot="motivation">
+        
+    </Fragment>
+    <Fragment slot="example">
+        ```rust
+        fn foo() {
+            
+        }
+        ```
+    </Fragment>
+    <Fragment slot="references">
+        - https://github.com/rust-lang/rust/issues/44874
+    </Fragment>
+</FeatureSummary>
 
-# Language Redesigns
+<FeatureSummary title="Associated type defaults">
+    <Fragment slot="motivation">
+        
+    </Fragment>
+    <Fragment slot="example">
+        ```rust
+        fn foo() {
+            
+        }
+        ```
+    </Fragment>
+    <Fragment slot="references">
+        - https://github.com/rust-lang/rust/issues/29661
+    </Fragment>
+</FeatureSummary>
 
-<Summary title="Declarative macros 2.0">
-  - but with the original one there's this https://github.com/rust-lang/rfcs/blob/master/text/3697-declarative-attribute-macros.md
-  - https://github.com/rust-lang/rust/issues/39412
-</Summary>
-<Summary title="Ergonomic ref counting">
-  - https://rust-lang.zulipchat.com/#narrow/channel/410673-t-lang.2Fmeetings/topic/Design.20meeting.202025-08-27.3A.20Ergonomic.20RC/near/555643180
-  - https://smallcultfollowing.com/babysteps/series/ergonomic-rc/
-  - https://rust-lang.github.io/rust-project-goals/2026/ergonomic-rc.html#add-a-share-trait
-</Summary>
-<Summary title="Nonpoison mutexes">
-  - https://github.com/rust-lang/rust/issues/149359
-  - https://smallcultfollowing.com/babysteps/blog/2024/05/02/unwind-considered-harmful/
-</Summary>
+<FeatureSummary title="Async drop">
+    <Fragment slot="motivation">
+        
+    </Fragment>
+    <Fragment slot="example">
+        ```rust
+        fn foo() {
+            
+        }
+        ```
+    </Fragment>
+    <Fragment slot="references">
+        - https://github.com/rust-lang/rust/issues/126482
+    </Fragment>
+</FeatureSummary>
+
+<FeatureSummary title="Async closures">
+    <Fragment slot="motivation">
+        
+    </Fragment>
+    <Fragment slot="example">
+        ```rust
+        fn foo() {
+            
+        }
+        ```
+    </Fragment>
+    <Fragment slot="references">
+        - https://github.com/rust-lang/rust/issues/62290
+    </Fragment>
+</FeatureSummary>
+
+<FeatureSummary title="Contracts">
+    <Fragment slot="motivation">
+        
+    </Fragment>
+    <Fragment slot="example">
+        ```rust
+        fn foo() {
+            
+        }
+        ```
+    </Fragment>
+    <Fragment slot="references">
+        - like kotlin/liquid haskell
+        - https://github.com/rust-lang/rust/issues/128044
+    </Fragment>
+</FeatureSummary>
+
+<FeatureSummary title="Coroutines">
+    <Fragment slot="motivation">
+        
+    </Fragment>
+    <Fragment slot="example">
+        ```rust
+        fn foo() {
+            
+        }
+        ```
+    </Fragment>
+    <Fragment slot="references">
+        - https://github.com/rust-lang/rust/issues/43122
+    </Fragment>
+</FeatureSummary>
+
+<FeatureSummary title="#[cfg(accessible(..) / version(..))]">
+    <Fragment slot="motivation">
+        
+    </Fragment>
+    <Fragment slot="example">
+        ```rust
+        fn foo() {
+            
+        }
+        ```
+    </Fragment>
+    <Fragment slot="references">
+        - https://github.com/rust-lang/rfcs/pull/2523
+    </Fragment>
+</FeatureSummary>
+
+<FeatureSummary title="Declarative attribute macros">
+    <Fragment slot="motivation">
+        
+    </Fragment>
+    <Fragment slot="example">
+        ```rust
+        fn foo() {
+            
+        }
+        ```
+    </Fragment>
+    <Fragment slot="references">
+        - https://github.com/rust-lang/rfcs/pull/3697
+    </Fragment>
+</FeatureSummary>
+
+<FeatureSummary title="Default trait field values">
+    <Fragment slot="motivation">
+        
+    </Fragment>
+    <Fragment slot="example">
+        ```rust
+        fn foo() {
+            
+        }
+        ```
+    </Fragment>
+    <Fragment slot="references">
+        - https://github.com/rust-lang/rust/issues/132162
+    </Fragment>
+</FeatureSummary>
+
+<FeatureSummary title="Deref patterns">
+    <Fragment slot="motivation">
+        
+    </Fragment>
+    <Fragment slot="example">
+        ```rust
+        fn foo() {
+            
+        }
+        ```
+    </Fragment>
+    <Fragment slot="references">
+        - https://doc.rust-lang.org/unstable-book/language-features/deref-patterns.html
+        - https://github.com/rust-lang/rust/issues/87121
+    </Fragment>
+</FeatureSummary>
+
+<FeatureSummary title="#[derive(CoercePointee)]">
+    <Fragment slot="motivation">
+        
+    </Fragment>
+    <Fragment slot="example">
+        ```rust
+        fn foo() {
+            
+        }
+        ```
+    </Fragment>
+    <Fragment slot="references">
+        - https://github.com/rust-lang/rfcs/pull/3621
+    </Fragment>
+</FeatureSummary>
+
+<FeatureSummary title="Existential types">
+    <Fragment slot="motivation">
+        
+    </Fragment>
+    <Fragment slot="example">
+        ```rust
+        fn foo() {
+            
+        }
+        ```
+    </Fragment>
+    <Fragment slot="references">
+        - https://github.com/rust-lang/rfcs/pull/2071
+    </Fragment>
+</FeatureSummary>
+
+<FeatureSummary title="Explicit tail calls">
+    <Fragment slot="motivation">
+        
+    </Fragment>
+    <Fragment slot="example">
+        ```rust
+        fn foo() {
+            
+        }
+        ```
+    </Fragment>
+    <Fragment slot="references">
+        - that recent blog post
+        - https://github.com/rust-lang/rust/issues/112788
+    </Fragment>
+</FeatureSummary>
+
+<FeatureSummary title="Extern types">
+    <Fragment slot="motivation">
+        
+    </Fragment>
+    <Fragment slot="example">
+        ```rust
+        fn foo() {
+            
+        }
+        ```
+    </Fragment>
+    <Fragment slot="references">
+        - https://github.com/rust-lang/rust/issues/43467
+    </Fragment>
+</FeatureSummary>
+
+<FeatureSummary title="For await">
+    <Fragment slot="motivation">
+        
+    </Fragment>
+    <Fragment slot="example">
+        ```rust
+        fn foo() {
+            
+        }
+        ```
+    </Fragment>
+    <Fragment slot="references">
+        - https://github.com/rust-lang/rust/pull/118847
+    </Fragment>
+</FeatureSummary>
+
+<FeatureSummary title="Gen blocks">
+    <Fragment slot="motivation">
+        
+    </Fragment>
+    <Fragment slot="example">
+        ```rust
+        fn foo() {
+            
+        }
+        ```
+    </Fragment>
+    <Fragment slot="references">
+        - https://github.com/rust-lang/rfcs/pull/3861
+        - https://github.com/rust-lang/rust/issues/43122?issue=rust-lang%7Crust%7C117078#issuecomment-3614678914
+    </Fragment>
+</FeatureSummary>
+
+<FeatureSummary title="Guard patterns">
+    <Fragment slot="motivation">
+        
+    </Fragment>
+    <Fragment slot="example">
+        ```rust
+        fn foo() {
+            
+        }
+        ```
+    </Fragment>
+    <Fragment slot="references">
+        - https://github.com/rust-lang/rust/issues/129967
+    </Fragment>
+</FeatureSummary>
+
+<FeatureSummary title="Impl trait in type aliases">
+    <Fragment slot="motivation">
+        
+    </Fragment>
+    <Fragment slot="example">
+        ```rust
+        fn foo() {
+            
+        }
+        ```
+    </Fragment>
+    <Fragment slot="references">
+        - https://github.com/rust-lang/rust/issues/63063
+    </Fragment>
+</FeatureSummary>
+
+<FeatureSummary title="Macro metavariable expressions">
+    <Fragment slot="motivation">
+        
+    </Fragment>
+    <Fragment slot="example">
+        ```rust
+        fn foo() {
+            
+        }
+        ```
+    </Fragment>
+    <Fragment slot="references">
+        - https://github.com/rust-lang/rust/issues/83527
+    </Fragment>
+</FeatureSummary>
+
+<FeatureSummary title="Reflection">
+    <Fragment slot="motivation">
+        
+    </Fragment>
+    <Fragment slot="example">
+        ```rust
+        fn foo() {
+            
+        }
+        ```
+    </Fragment>
+    <Fragment slot="references">
+        - https://rust-lang.github.io/rust-project-goals/2026/reflection-and-comptime.html#explore-design-space-for-comptime-const-fn    -
+        - detail "Why Not Zig?"
+    </Fragment>
+</FeatureSummary>
+
+<FeatureSummary title="Specialization">
+    <Fragment slot="motivation">
+        
+    </Fragment>
+    <Fragment slot="example">
+        ```rust
+        fn foo() {
+            
+        }
+        ```
+    </Fragment>
+    <Fragment slot="references">
+        - https://github.com/rust-lang/rfcs/blob/master/text/1210-impl-specialization.md
+        - min_specialization
+        - A minimal, sound subset of specialization intended to be used by the standard library until the soundness issues with specialization are fixed.
+        - https://github.com/rust-lang/rust/issues/31844
+    </Fragment>
+</FeatureSummary>
+
+<FeatureSummary title="Try trait">
+    <Fragment slot="motivation">
+        
+    </Fragment>
+    <Fragment slot="example">
+        ```rust
+        fn foo() {
+            
+        }
+        ```
+    </Fragment>
+    <Fragment slot="references">
+        - https://github.com/rust-lang/rust/issues/154391
+        - https://github.com/rust-lang/rust/issues/84277
+        - https://github.com/rust-lang/rfcs/pull/3058
+        - https://github.com/rust-lang/rfcs/blob/master/text/3721-homogeneous-try-blocks.md
+    </Fragment>
+</FeatureSummary>
+
+<FeatureSummary title="Trait aliases">
+    <Fragment slot="motivation">
+        
+    </Fragment>
+    <Fragment slot="example">
+        ```rust
+        fn foo() {
+            
+        }
+        ```
+    </Fragment>
+    <Fragment slot="references">
+        - https://github.com/rust-lang/rust/issues/41517
+        - https://github.com/rust-lang/rust/issues/84277
+    </Fragment>
+</FeatureSummary>
 
 # Standard Library Additions
 
-<Summary title="Assert_matches!">
-  - https://github.com/rust-lang/rust/issues/82775
-</Summary>
-<Summary title="Array::try_map">
-  - https://github.com/rust-lang/rust/issues/79711
-</Summary>
-<Summary title="Allocator_api">
-  - https://github.com/rust-lang/rfcs/pull/1398
-</Summary>
-<Summary title="Async iterator">
-  - https://github.com/rust-lang/rfcs/pull/2996
-</Summary>
-<Summary title="Derive from">
-  - https://github.com/rust-lang/rust/issues/144889
-</Summary>
-<Summary title="Duration constructors">
-  - https://github.com/rust-lang/rust/issues/120301
-</Summary>
-<Summary title="Duration constants">
-  - https://github.com/rust-lang/rust/issues/57391
-</Summary>
-<Summary title="F16 and f128">
-  - was stabilized in LLVM
-  - happened because of AI lol
-  - https://github.com/rust-lang/rust/issues/116909
-  - https://rust-lang.github.io/rust-project-goals/2026/stabilizing-f16.html
-</Summary>
-<Summary title="Hash_map! macro">
-  - https://github.com/rust-lang/rust/issues/144032
-</Summary>
-<Summary title="Integer manipulation">
-  - https://github.com/rust-lang/libs-team/issues/204
-</Summary>
-<Summary title="Iterator::try_collect">
-  - https://github.com/rust-lang/rust/issues/94047
-</Summary>
-<Summary title="Never type">
-  - https://github.com/rust-lang/rust/issues/35121
-</Summary>
-<Summary title="New range api">
-  - https://kaylynn.gay/blog/post/rust_ranges_and_suffering
-  - https://ridiculousfish.com/blog/posts/least-favorite-rust-type.html
-  - https://github.com/rust-lang/rust/pull/125751
-  - https://github.com/rust-lang/rust/pull/150522
-</Summary>
-<Summary title="OnceCell::get_or_try_init">
-  - https://github.com/rust-lang/rust/issues/109737
-</Summary>
-<Summary title="Oneshot">
-  - https://github.com/rust-lang/libs-team/issues/610
-  - https://github.com/rust-lang/rust/issues/143674
-</Summary>
-<Summary title="Pattern types">
-  - https://github.com/rust-lang/types-team/issues/126
-</Summary>
-<Summary title="Portable_simd">
-  - https://github.com/rust-lang/portable-simd/issues/364
-</Summary>
-<Summary title="Std rand">
-  - https://github.com/rust-lang/rust/issues/130703
-  - https://nindalf.com/posts/rust-stdlib/
-  - esl https://github.com/rust-lang/rfcs/pull/3810
-</Summary>
-<Summary title="Variant count">
-  - https://github.com/rust-lang/rust/issues/73662
-</Summary>
+<FeatureSummary title="assert_matches!">
+    <Fragment slot="motivation">
+        
+    </Fragment>
+    <Fragment slot="example">
+        ```rust
+        fn foo() {
+            
+        }
+        ```
+    </Fragment>
+    <Fragment slot="references">
+        - https://github.com/rust-lang/rust/issues/82775
+    </Fragment>
+</FeatureSummary>
+
+<FeatureSummary title="Allocator API">
+    <Fragment slot="motivation">
+        
+    </Fragment>
+    <Fragment slot="example">
+        ```rust
+        fn foo() {
+            
+        }
+        ```
+    </Fragment>
+    <Fragment slot="references">
+        - https://github.com/rust-lang/rfcs/pull/1398
+    </Fragment>
+</FeatureSummary>
+
+<FeatureSummary title="Async iterator">
+    <Fragment slot="motivation">
+        
+    </Fragment>
+    <Fragment slot="example">
+        ```rust
+        fn foo() {
+            
+        }
+        ```
+    </Fragment>
+    <Fragment slot="references">
+        - https://github.com/rust-lang/rfcs/pull/2996
+    </Fragment>
+</FeatureSummary>
+
+<FeatureSummary title="core::random">
+    <Fragment slot="motivation">
+        
+    </Fragment>
+    <Fragment slot="example">
+        ```rust
+        fn foo() {
+            
+        }
+        ```
+    </Fragment>
+    <Fragment slot="references">
+        - https://github.com/rust-lang/rust/issues/130703
+        - https://nindalf.com/posts/rust-stdlib/
+        - esl https://github.com/rust-lang/rfcs/pull/3810
+    </Fragment>
+</FeatureSummary>
+
+<FeatureSummary title="Derive from">
+    <Fragment slot="motivation">
+        
+    </Fragment>
+    <Fragment slot="example">
+        ```rust
+        fn foo() {
+            
+        }
+        ```
+    </Fragment>
+    <Fragment slot="references">
+        - https://github.com/rust-lang/rust/issues/144889
+    </Fragment>
+</FeatureSummary>
+
+<FeatureSummary title="Duration constructors">
+    <Fragment slot="motivation">
+        
+    </Fragment>
+    <Fragment slot="example">
+        ```rust
+        fn foo() {
+            
+        }
+        ```
+    </Fragment>
+    <Fragment slot="references">
+        - https://github.com/rust-lang/rust/issues/120301
+    </Fragment>
+</FeatureSummary>
+
+<FeatureSummary title="Duration constants">
+    <Fragment slot="motivation">
+        
+    </Fragment>
+    <Fragment slot="example">
+        ```rust
+        fn foo() {
+            
+        }
+        ```
+    </Fragment>
+    <Fragment slot="references">
+        - https://github.com/rust-lang/rust/issues/57391
+    </Fragment>
+</FeatureSummary>
+
+<FeatureSummary title="Enum variant count">
+    <Fragment slot="motivation">
+        
+    </Fragment>
+    <Fragment slot="example">
+        ```rust
+        fn foo() {
+            
+        }
+        ```
+    </Fragment>
+    <Fragment slot="references">
+        - https://github.com/rust-lang/rust/issues/73662
+    </Fragment>
+</FeatureSummary>
+
+<FeatureSummary title="f16 and f128">
+    <Fragment slot="motivation">
+        
+    </Fragment>
+    <Fragment slot="example">
+        ```rust
+        fn foo() {
+            
+        }
+        ```
+    </Fragment>
+    <Fragment slot="references">
+        - was stabilized in LLVM
+        - happened because of AI lol
+        - https://github.com/rust-lang/rust/issues/116909
+        - https://rust-lang.github.io/rust-project-goals/2026/stabilizing-f16.html
+    </Fragment>
+</FeatureSummary>
+
+<FeatureSummary title="hash_map!">
+    <Fragment slot="motivation">
+        
+    </Fragment>
+    <Fragment slot="example">
+        ```rust
+        fn foo() {
+            
+        }
+        ```
+    </Fragment>
+    <Fragment slot="references">
+        - https://github.com/rust-lang/rust/issues/144032
+    </Fragment>
+</FeatureSummary>
+
+<FeatureSummary title="Integer manipulation">
+    <Fragment slot="motivation">
+        
+    </Fragment>
+    <Fragment slot="example">
+        ```rust
+        fn foo() {
+            
+        }
+        ```
+    </Fragment>
+    <Fragment slot="references">
+        - https://github.com/rust-lang/libs-team/issues/204
+    </Fragment>
+</FeatureSummary>
+
+<FeatureSummary title="Iterator::try_collect">
+    <Fragment slot="motivation">
+        
+    </Fragment>
+    <Fragment slot="example">
+        ```rust
+        fn foo() {
+            
+        }
+        ```
+    </Fragment>
+    <Fragment slot="references">
+        - https://github.com/rust-lang/rust/issues/94047
+    </Fragment>
+</FeatureSummary>
+
+<FeatureSummary title="MPMC Channels">
+    <Fragment slot="motivation">
+        
+    </Fragment>
+    <Fragment slot="example">
+        ```rust
+        fn foo() {
+            
+        }
+        ```
+    </Fragment>
+    <Fragment slot="references">
+        - https://github.com/rust-lang/rust/issues/126840
+    </Fragment>
+</FeatureSummary>
+
+<FeatureSummary title="Never type">
+    <Fragment slot="motivation">
+        
+    </Fragment>
+    <Fragment slot="example">
+        ```rust
+        fn foo() {
+            
+        }
+        ```
+    </Fragment>
+    <Fragment slot="references">
+        - https://github.com/rust-lang/rust/issues/35121
+    </Fragment>
+</FeatureSummary>
+
+<FeatureSummary title="OnceCell::get_or_try_init">
+    <Fragment slot="motivation">
+        
+    </Fragment>
+    <Fragment slot="example">
+        ```rust
+        fn foo() {
+            
+        }
+        ```
+    </Fragment>
+    <Fragment slot="references">
+        - https://github.com/rust-lang/rust/issues/109737
+    </Fragment>
+</FeatureSummary>
+
+<FeatureSummary title="Oneshot channels">
+    <Fragment slot="motivation">
+        
+    </Fragment>
+    <Fragment slot="example">
+        ```rust
+        fn foo() {
+            
+        }
+        ```
+    </Fragment>
+    <Fragment slot="references">
+        - https://github.com/rust-lang/libs-team/issues/610
+        - https://github.com/rust-lang/rust/issues/143674
+    </Fragment>
+</FeatureSummary>
+
+<FeatureSummary title="Pattern types">
+    <Fragment slot="motivation">
+        
+    </Fragment>
+    <Fragment slot="example">
+        ```rust
+        fn foo() {
+            
+        }
+        ```
+    </Fragment>
+    <Fragment slot="references">
+        - https://github.com/rust-lang/types-team/issues/126
+    </Fragment>
+</FeatureSummary>
+
+<FeatureSummary title="<[T; N]>::try_map">
+    <Fragment slot="motivation">
+        
+    </Fragment>
+    <Fragment slot="example">
+        ```rust
+        fn foo() {
+            
+        }
+        ```
+    </Fragment>
+    <Fragment slot="references">
+        - https://github.com/rust-lang/rust/issues/79711
+    </Fragment>
+</FeatureSummary>
+
+# Language Redesigns
+
+<FeatureSummary title="Declarative macros 2.0">
+    <Fragment slot="motivation">
+        
+    </Fragment>
+    <Fragment slot="example">
+        ```rust
+        fn foo() {
+            
+        }
+        ```
+    </Fragment>
+    <Fragment slot="references">
+        - https://github.com/rust-lang/rust/issues/39412
+    </Fragment>
+</FeatureSummary>
+
+<FeatureSummary title="New range types">
+    <Fragment slot="motivation">
+        
+    </Fragment>
+    <Fragment slot="example">
+        ```rust
+        fn foo() {
+            
+        }
+        ```
+    </Fragment>
+    <Fragment slot="references">
+        - https://kaylynn.gay/blog/post/rust_ranges_and_suffering
+        - https://ridiculousfish.com/blog/posts/least-favorite-rust-type.html
+        - https://github.com/rust-lang/rust/pull/125751
+        - https://github.com/rust-lang/rust/pull/150522
+    </Fragment>
+</FeatureSummary>
+
+<FeatureSummary title="Nonpoison mutexes">
+    <Fragment slot="motivation">
+        
+    </Fragment>
+    <Fragment slot="example">
+        ```rust
+        fn foo() {
+            
+        }
+        ```
+    </Fragment>
+    <Fragment slot="references">
+        - https://github.com/rust-lang/rust/issues/149359
+        - https://smallcultfollowing.com/babysteps/blog/2024/05/02/unwind-considered-harmful/
+        - https://users.rust-lang.org/t/negative-views-on-rust-panicking/69796
+    </Fragment>
+</FeatureSummary>
 
 # Optimizations
 
-<Summary title="Parallel front end">
-  - https://github.com/rust-lang/rust-project-goals/issues/121
-</Summary>
-<Summary title="In place initialization">
-  - https://github.com/rust-lang/rfcs/pull/2884
-  - https://rust-lang.github.io/rust-project-goals/2026/redesigning-super-let.html
-  - out ptr? https://hackmd.io/@rust-for-linux-/H11r2RXpgl
-</Summary>
+<FeatureSummary title="Parallel front end">
+    <Fragment slot="motivation">
+        
+    </Fragment>
+    <Fragment slot="example">
+        ```rust
+        fn foo() {
+            
+        }
+        ```
+    </Fragment>
+    <Fragment slot="references">
+        - https://github.com/rust-lang/rust/issues/113349
+    </Fragment>
+</FeatureSummary>
 
-# Cargo
+# Tooling
 
-<Summary title="Cargo script">
-  - https://rust-lang.github.io/rust-project-goals/2026/cargo-script.html
-  - https://github.com/rust-lang/rust/issues/136889
-</Summary>
+<FeatureSummary title="cargo-script">
+    <Fragment slot="motivation">
+        
+    </Fragment>
+    <Fragment slot="example">
+        ```rust
+        fn foo() {
+            
+        }
+        ```
+    </Fragment>
+    <Fragment slot="references">
+        - https://rust-lang.github.io/rust-project-goals/2026/cargo-script.html
+        - https://github.com/rust-lang/rust/issues/136889
+    </Fragment>
+</FeatureSummary>
+
+<FeatureSummary title="Imports granularity formatting">
+    <Fragment slot="motivation">
+        
+    </Fragment>
+    <Fragment slot="example">
+        ```rust
+        fn foo() {
+            
+        }
+        ```
+    </Fragment>
+    <Fragment slot="references">
+        - https://github.com/rust-lang/rustfmt/issues/4991
+    </Fragment>
+</FeatureSummary>
 
 # Conclusion
 
-Yeah so I expect the half-life of this list to be around one year. Rust would be nowhere near its current scale without the tremendous efforts of the open source world. Until next time!
+Yeah so I expect the half-life of this list to be around one year. That's all I have left to say.
+
+Until next time!
