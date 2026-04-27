@@ -1,11 +1,13 @@
 ---
+import { mySlugify } from '../../lib/utils';
+
 interface Props {
     title: string;
 }
 const { title } = Astro.props;
 ---
 
-<details>
+<details id={mySlugify(title)}>
     <summary>{title}</summary>
     <h3>Motivation</h3>
     <slot name="motivation" />
@@ -26,3 +28,13 @@ const { title } = Astro.props;
         font-size: 1.3em;
     }
 </style>
+
+<script>
+  const featuresummaries = document.querySelectorAll('details');
+
+  for (let featuresummary of featuresummaries) {
+    featuresummary.addEventListener("click", function() {
+      history.replaceState(null, "", `#${this.id}`);
+    })
+  }
+</script>

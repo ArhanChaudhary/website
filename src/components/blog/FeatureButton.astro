@@ -1,0 +1,32 @@
+<button id="featurebutton">Expand all features</button>
+
+<style lang="scss">
+    button {
+        background-color: white;
+        color: black;
+        margin: 0 auto;
+        display: block;
+        padding: 3px 5px;
+        border-radius: 2px;
+        border: 2.5px solid gray;
+        outline: 1px solid white;
+        cursor: pointer;
+    }
+</style>
+
+<script>
+  let featurebutton = document.getElementById("featurebutton")!;
+  let featuresummaries = document.querySelectorAll("details");
+  let expanded = false;
+  featurebutton.addEventListener("click", function() {
+    for (let featuresummary of featuresummaries) {
+      featuresummary.toggleAttribute("open", !expanded);
+    }
+    if (expanded) {
+      featurebutton.textContent = "Expand all features";
+    } else {
+      featurebutton.textContent = "Collapse all features";
+    }
+    expanded = !expanded;
+  })
+</script>
