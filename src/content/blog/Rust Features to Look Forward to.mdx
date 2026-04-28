@@ -21,18 +21,19 @@ For the sake of culling the list, my selection of features follows three filteri
 
 - The feature must have an accepted [RFC](https://rust-lang.github.io/rfcs/), [MCP](https://forge.rust-lang.org/compiler/proposals-and-stabilization.html#proposals), [ACP](https://std-dev-guide.rust-lang.org/development/feature-lifecycle.html#suitability-for-the-standard-library), [UCP](https://github.com/rust-lang/rust/pull/97629#issuecomment-1148916727), or the equivalent.
 
+  insert explanation
   {/*There are an [innumerable](https://github.com/rust-lang/rfcs/pull/2948) [amount](https://github.com/rust-lang/lang-team/blob/master/src/design_notes/variadic_generics.md) [of](https://github.com/rust-lang/rfcs/pull/2442) [proposals](https://github.com/rust-lang/rfcs/pull/2442) that propose something revolutionary and novel, gain traction, and fail to follow up on a design that everyone can agree on, often permanently leaving them in gridlock. I want to avoid advocating for a feature if it can later be significantly changed or deleted. Therefore, the feature must have an established specification and a roadmap towards stabilization.
 
   don't care about implementation
   remove that entirely
   std::simd, explicit tail calls, ergonomic ref counting*/}
 
-- The feature cannot be an obvious improvement of another feature, possibly originally restricted due to implementation difficulty.
+- The feature cannot be something you would already expect to compile.
 
-  {/*This includes [the entire const generics project](https://github.com/rust-lang/project-const-generics) and [expression attributes](https://github.com/rust-lang/rust/issues/15701). Basically, anything that you would expect of an existing feature to already work. The intent is to keep the discussion of ideas fresh and interesting. I make an exception for standard library additions, for which this criterion is more lenient.
+  insert explanation
+  {/*an obvious improvement of another feature, possibly originally restricted due to implementation difficulty. This includes [the entire const generics project](https://github.com/rust-lang/project-const-generics) and [expression attributes](https://github.com/rust-lang/rust/issues/15701). Basically, anything that you would expect of an existing feature to already work. The intent is to keep the discussion of ideas fresh and interesting. I make an exception for standard library additions, for which this criterion is more lenient.
 
   if you tried to write code and were surprised it didn't compile, being behind a feature flag, then it should not be on the list */}
-
 
 A few notes about the format for the rest of this article. Every feature is listed alphabetically as a hidden dropdown under one of "Language Features", "Standard Library Additions", "Language Redesigns", "Optimizations", and "Tooling". Within each dropdown, the description of the feature follows roughly the same format. First, I briefly summarize in my own words the motivation and impact of this feature. Next, I provide an example of the most representative real-world usage of this feature. Finally, I list relevant references.
 
@@ -123,6 +124,22 @@ A few notes about the format for the rest of this article. Every feature is list
     </Fragment>
 </FeatureSummary>
 
+<FeatureSummary title="#[cfg(accessible(..) / version(..))]">
+    <Fragment slot="motivation">
+
+    </Fragment>
+    <Fragment slot="example">
+        ```rust
+        fn foo() {
+
+        }
+        ```
+    </Fragment>
+    <Fragment slot="references">
+        - https://github.com/rust-lang/rfcs/pull/2523
+    </Fragment>
+</FeatureSummary>
+
 <FeatureSummary title="Contracts">
     <Fragment slot="motivation">
 
@@ -154,22 +171,6 @@ A few notes about the format for the rest of this article. Every feature is list
     <Fragment slot="references">
         - https://github.com/rust-lang/rust/issues/43122
         - https://github.com/rust-lang/rust/issues/69663
-    </Fragment>
-</FeatureSummary>
-
-<FeatureSummary title="#[cfg(accessible(..) / version(..))]">
-    <Fragment slot="motivation">
-
-    </Fragment>
-    <Fragment slot="example">
-        ```rust
-        fn foo() {
-
-        }
-        ```
-    </Fragment>
-    <Fragment slot="references">
-        - https://github.com/rust-lang/rfcs/pull/2523
     </Fragment>
 </FeatureSummary>
 
@@ -385,7 +386,7 @@ A few notes about the format for the rest of this article. Every feature is list
     </Fragment>
 </FeatureSummary>
 
-<FeatureSummary title="Type changing struct update">
+<FeatureSummary title="Return type notation">
     <Fragment slot="motivation">
 
     </Fragment>
@@ -397,8 +398,7 @@ A few notes about the format for the rest of this article. Every feature is list
         ```
     </Fragment>
     <Fragment slot="references">
-        - https://github.com/rust-lang/rust/issues/86555
-        - https://github.com/rust-lang/rfcs/pull/2528
+        - https://github.com/rust-lang/rfcs/pull/3654
     </Fragment>
 </FeatureSummary>
 
@@ -422,26 +422,6 @@ A few notes about the format for the rest of this article. Every feature is list
     </Fragment>
 </FeatureSummary>
 
-<FeatureSummary title="Try trait">
-    <Fragment slot="motivation">
-
-    </Fragment>
-    <Fragment slot="example">
-        ```rust
-        fn foo() {
-
-        }
-        ```
-    </Fragment>
-    <Fragment slot="references">
-        - https://github.com/rust-lang/rfcs/pull/1859
-        - https://github.com/rust-lang/rust/issues/154391
-        - https://github.com/rust-lang/rust/issues/84277
-        - https://github.com/rust-lang/rfcs/pull/3058
-        - https://github.com/rust-lang/rfcs/blob/master/text/3721-homogeneous-try-blocks.md
-    </Fragment>
-</FeatureSummary>
-
 <FeatureSummary title="Trait aliases">
     <Fragment slot="motivation">
 
@@ -456,6 +436,74 @@ A few notes about the format for the rest of this article. Every feature is list
     <Fragment slot="references">
         - https://github.com/rust-lang/rust/issues/41517
         - https://github.com/rust-lang/rust/issues/84277
+    </Fragment>
+</FeatureSummary>
+
+<FeatureSummary title="Try blocks">
+    <Fragment slot="motivation">
+
+    </Fragment>
+    <Fragment slot="example">
+        ```rust
+        fn foo() {
+
+        }
+        ```
+    </Fragment>
+    <Fragment slot="references">
+        - https://github.com/rust-lang/rust/issues/154391
+    </Fragment>
+</FeatureSummary>
+
+<FeatureSummary title="Try trait">
+    <Fragment slot="motivation">
+
+    </Fragment>
+    <Fragment slot="example">
+        ```rust
+        fn foo() {
+
+        }
+        ```
+    </Fragment>
+    <Fragment slot="references">
+        - https://github.com/rust-lang/rfcs/pull/1859
+        - https://github.com/rust-lang/rust/issues/84277
+        - https://github.com/rust-lang/rfcs/pull/3058
+        - https://github.com/rust-lang/rfcs/blob/master/text/3721-homogeneous-try-blocks.md
+    </Fragment>
+</FeatureSummary>
+
+<FeatureSummary title="Type changing struct update">
+    <Fragment slot="motivation">
+
+    </Fragment>
+    <Fragment slot="example">
+        ```rust
+        fn foo() {
+
+        }
+        ```
+    </Fragment>
+    <Fragment slot="references">
+        - https://github.com/rust-lang/rust/issues/86555
+        - https://github.com/rust-lang/rfcs/pull/2528
+    </Fragment>
+</FeatureSummary>
+
+<FeatureSummary title="Unsized rvalues">
+    <Fragment slot="motivation">
+
+    </Fragment>
+    <Fragment slot="example">
+        ```rust
+        fn foo() {
+
+        }
+        ```
+    </Fragment>
+    <Fragment slot="references">
+        - https://github.com/rust-lang/rfcs/pull/1909
     </Fragment>
 </FeatureSummary>
 
@@ -522,6 +570,7 @@ A few notes about the format for the rest of this article. Every feature is list
     </Fragment>
     <Fragment slot="references">
         - https://github.com/rust-lang/rust/issues/78485
+        - https://github.com/rust-lang/rfcs/pull/2930
     </Fragment>
 </FeatureSummary>
 
@@ -721,6 +770,22 @@ A few notes about the format for the rest of this article. Every feature is list
     </Fragment>
 </FeatureSummary>
 
+<FeatureSummary title="minmax">
+    <Fragment slot="motivation">
+
+    </Fragment>
+    <Fragment slot="example">
+        ```rust
+        fn foo() {
+
+        }
+        ```
+    </Fragment>
+    <Fragment slot="references">
+        - https://github.com/rust-lang/rust/issues/115939
+    </Fragment>
+</FeatureSummary>
+
 <FeatureSummary title="MPMC channel">
     <Fragment slot="motivation">
 
@@ -902,23 +967,7 @@ A few notes about the format for the rest of this article. Every feature is list
     </Fragment>
 </FeatureSummary>
 
-<FeatureSummary title="Integer manipulation API">
-    <Fragment slot="motivation">
-
-    </Fragment>
-    <Fragment slot="example">
-        ```rust
-        fn foo() {
-
-        }
-        ```
-    </Fragment>
-    <Fragment slot="references">
-        - https://github.com/rust-lang/libs-team/issues/204
-    </Fragment>
-</FeatureSummary>
-
-<FeatureSummary title="New range type">
+<FeatureSummary title="Range">
     <Fragment slot="motivation">
 
     </Fragment>
@@ -937,7 +986,7 @@ A few notes about the format for the rest of this article. Every feature is list
     </Fragment>
 </FeatureSummary>
 
-<FeatureSummary title="Nonpoison mutex by default">
+<FeatureSummary title="Nonpoison mutex">
     <Fragment slot="motivation">
 
     </Fragment>
@@ -956,6 +1005,22 @@ A few notes about the format for the rest of this article. Every feature is list
 </FeatureSummary>
 
 # Optimizations
+
+<FeatureSummary title="Autodiff">
+    <Fragment slot="motivation">
+
+    </Fragment>
+    <Fragment slot="example">
+        ```rust
+        fn foo() {
+
+        }
+        ```
+    </Fragment>
+    <Fragment slot="references">
+        - https://github.com/rust-lang/rust/issues/124509
+    </Fragment>
+</FeatureSummary>
 
 <FeatureSummary title="Parallel front end">
     <Fragment slot="motivation">
