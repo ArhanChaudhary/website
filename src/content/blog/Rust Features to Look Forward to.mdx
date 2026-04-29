@@ -5,7 +5,7 @@ import FeatureButton from "../../components/blog/FeatureButton.astro"
 
 # Introduction
 
-Right now I think it's *too easy* to dislike Rust. I recently got into an argument with a close friend after they told me something along the likes of "Rust isn't good enough." My stance was true to my past and present belief: *you are wrong*; Rust has too many upcoming novel features to say so. It was impossible to fault them for sharing a different opinion, though: Rust's development is increasingly difficult keep up with.
+Right now I think it's *too easy* to dislike Rust. I recently got into an argument with a close friend from university after they told me something along the likes of "Rust isn't good enough." My stance was true to my past and present belief: *you are wrong*; Rust has too many upcoming novel features to say so. It was impossible to fault them for sharing a different opinion, though: Rust's development is increasingly difficult keep up with.
 
 You might expect there to be some central hub of information about "what's coming next" to Rust—but it turns out this doesn't exist[^releases] for a pretty reasonable reason: there are [over 700](https://doc.rust-lang.org/unstable-book/library-features/const-unsigned-bigint-helpers.html) experimental feature flags and [dozens](https://rust-lang.github.io/rust-project-goals/2026/goals.html) of current and future project goals. Concisely and accurately documenting the most important features is a long and arduous process. The time commitment is often not worth it because it can quickly become outdated.
 
@@ -21,19 +21,11 @@ For the sake of culling the list, my selection of features follows three filteri
 
 - The feature must have an accepted [RFC](https://rust-lang.github.io/rfcs/), [MCP](https://forge.rust-lang.org/compiler/proposals-and-stabilization.html#proposals), [ACP](https://std-dev-guide.rust-lang.org/development/feature-lifecycle.html#suitability-for-the-standard-library), [UCP](https://github.com/rust-lang/rust/pull/97629#issuecomment-1148916727), or the equivalent.
 
-  insert explanation
-  {/*There are an [innumerable](https://github.com/rust-lang/rfcs/pull/2948) [amount](https://github.com/rust-lang/lang-team/blob/master/src/design_notes/variadic_generics.md) [of](https://github.com/rust-lang/rfcs/pull/2442) [proposals](https://github.com/rust-lang/rfcs/pull/2442) that propose something revolutionary and novel, gain traction, and fail to follow up on a design that everyone can agree on, often permanently leaving them in gridlock. I want to avoid advocating for a feature if it can later be significantly changed or deleted. Therefore, the feature must have an established specification and a roadmap towards stabilization.
-
-  don't care about implementation
-  remove that entirely
-  std::simd, explicit tail calls, ergonomic ref counting*/}
+  While there are [many](https://github.com/rust-lang/rfcs/pull/3407) [popular](https://github.com/rust-lang/rfcs/pull/2948) [features](https://rust-lang.github.io/rust-project-goals/2026/ergonomic-rc.html#add-a-share-trait) without an accepted RFC, I maintain a strict policy against including them. Having some form of official endorsement for the specification of this feature reduces the likelihood for its design to change. If you are interested in a more general list of "wanted features in Rust", check out [Rust-for-Linux's tracking issue](https://github.com/Rust-for-Linux/linux/issues/354).
 
 - The feature cannot be something you would already expect to compile.
 
-  insert explanation
-  {/*an obvious improvement of another feature, possibly originally restricted due to implementation difficulty. This includes [the entire const generics project](https://github.com/rust-lang/project-const-generics) and [expression attributes](https://github.com/rust-lang/rust/issues/15701). Basically, anything that you would expect of an existing feature to already work. The intent is to keep the discussion of ideas fresh and interesting. I make an exception for standard library additions, for which this criterion is more lenient.
-
-  if you tried to write code and were surprised it didn't compile, being behind a feature flag, then it should not be on the list */}
+  In other words, this feature cannot be an obvious improvement of another feature, possibly originally restricted due to implementation difficulty. This includes [the entire const generics project](https://github.com/rust-lang/project-const-generics), [const traits](https://github.com/rust-lang/rust/issues/143874) and [expression attributes](https://github.com/rust-lang/rust/issues/15701). The intent is to keep the discussion of ideas fresh and interesting. I make an exception for standard library additions, for which this criterion is more lenient.
 
 A few notes about the format for the rest of this article. Every feature is listed alphabetically as a hidden dropdown under one of "Language Features", "Standard Library Additions", "Language Redesigns", "Optimizations", and "Tooling". Within each dropdown, the description of the feature follows roughly the same format. First, I briefly summarize in my own words the motivation and impact of this feature. Next, I provide an example of the most representative real-world usage of this feature. Finally, I list relevant references.
 
@@ -140,6 +132,22 @@ A few notes about the format for the rest of this article. Every feature is list
     </Fragment>
 </FeatureSummary>
 
+<FeatureSummary title="Closure lifetime binders">
+    <Fragment slot="motivation">
+
+    </Fragment>
+    <Fragment slot="example">
+        ```rust
+        fn foo() {
+
+        }
+        ```
+    </Fragment>
+    <Fragment slot="references">
+        - https://github.com/rust-lang/rust/issues/97362
+    </Fragment>
+</FeatureSummary>
+
 <FeatureSummary title="Contracts">
     <Fragment slot="motivation">
 
@@ -171,22 +179,6 @@ A few notes about the format for the rest of this article. Every feature is list
     <Fragment slot="references">
         - https://github.com/rust-lang/rust/issues/43122
         - https://github.com/rust-lang/rust/issues/69663
-    </Fragment>
-</FeatureSummary>
-
-<FeatureSummary title="Closure lifetime binders">
-    <Fragment slot="motivation">
-
-    </Fragment>
-    <Fragment slot="example">
-        ```rust
-        fn foo() {
-
-        }
-        ```
-    </Fragment>
-    <Fragment slot="references">
-        - https://github.com/rust-lang/rust/issues/97362
     </Fragment>
 </FeatureSummary>
 
@@ -268,6 +260,22 @@ A few notes about the format for the rest of this article. Every feature is list
     </Fragment>
     <Fragment slot="references">
         - https://github.com/rust-lang/rust/issues/144889
+    </Fragment>
+</FeatureSummary>
+
+<FeatureSummary title="#[diagnostic]">
+    <Fragment slot="motivation">
+
+    </Fragment>
+    <Fragment slot="example">
+        ```rust
+        fn foo() {
+
+        }
+        ```
+    </Fragment>
+    <Fragment slot="references">
+        - https://rust-lang.github.io/rfcs/3368-diagnostic-attribute-namespace.html
     </Fragment>
 </FeatureSummary>
 
@@ -491,6 +499,22 @@ A few notes about the format for the rest of this article. Every feature is list
     </Fragment>
 </FeatureSummary>
 
+<FeatureSummary title="Unsafe fields">
+    <Fragment slot="motivation">
+
+    </Fragment>
+    <Fragment slot="example">
+        ```rust
+        fn foo() {
+
+        }
+        ```
+    </Fragment>
+    <Fragment slot="references">
+        - https://github.com/rust-lang/rfcs/pull/3458
+    </Fragment>
+</FeatureSummary>
+
 <FeatureSummary title="Unsized rvalues">
     <Fragment slot="motivation">
 
@@ -509,22 +533,6 @@ A few notes about the format for the rest of this article. Every feature is list
 
 # Standard Library Additions
 
-<FeatureSummary title="assert_matches!">
-    <Fragment slot="motivation">
-
-    </Fragment>
-    <Fragment slot="example">
-        ```rust
-        fn foo() {
-
-        }
-        ```
-    </Fragment>
-    <Fragment slot="references">
-        - https://github.com/rust-lang/rust/issues/82775
-    </Fragment>
-</FeatureSummary>
-
 <FeatureSummary title="Allocator API">
     <Fragment slot="motivation">
 
@@ -538,6 +546,22 @@ A few notes about the format for the rest of this article. Every feature is list
     </Fragment>
     <Fragment slot="references">
         - https://github.com/rust-lang/rfcs/pull/1398
+    </Fragment>
+</FeatureSummary>
+
+<FeatureSummary title="assert_matches!">
+    <Fragment slot="motivation">
+
+    </Fragment>
+    <Fragment slot="example">
+        ```rust
+        fn foo() {
+
+        }
+        ```
+    </Fragment>
+    <Fragment slot="references">
+        - https://github.com/rust-lang/rust/issues/82775
     </Fragment>
 </FeatureSummary>
 
@@ -891,13 +915,23 @@ A few notes about the format for the rest of this article. Every feature is list
     </Fragment>
     <Fragment slot="example">
         ```rust
-        fn foo() {
-
+        fn foo<T: Trait>(t: T) {
+            // The branch here is expected to be eliminated when monomorphized.
+            if let Some(dt) = try_as_dyn::<_, dyn SubTrait>(&t) {
+                // Do something special.  `SubTrait` could even be
+                // a marker trait that verifies some invariants required
+                // for `unsafe`, or it could supply some supplemental
+                // data; you need not use dynamic dispatch specifically
+                // (though of course you can).
+            } else {
+                // Do the thing that works for all `T: Trait`
+            }
         }
         ```
     </Fragment>
     <Fragment slot="references">
         - https://github.com/rust-lang/rust/issues/144361
+        - https://users.rust-lang.org/t/whats-your-2026-wish-list-for-rust/137259/13
     </Fragment>
 </FeatureSummary>
 
@@ -917,22 +951,6 @@ A few notes about the format for the rest of this article. Every feature is list
     </Fragment>
 </FeatureSummary>
 
-<FeatureSummary title="<[T; N]>::try_map">
-    <Fragment slot="motivation">
-
-    </Fragment>
-    <Fragment slot="example">
-        ```rust
-        fn foo() {
-
-        }
-        ```
-    </Fragment>
-    <Fragment slot="references">
-        - https://github.com/rust-lang/rust/issues/79711
-    </Fragment>
-</FeatureSummary>
-
 <FeatureSummary title="<[T; N]>::try_from_fn">
     <Fragment slot="motivation">
 
@@ -946,6 +964,22 @@ A few notes about the format for the rest of this article. Every feature is list
     </Fragment>
     <Fragment slot="references">
         - https://github.com/rust-lang/rust/issues/89379
+    </Fragment>
+</FeatureSummary>
+
+<FeatureSummary title="<[T; N]>::try_map">
+    <Fragment slot="motivation">
+
+    </Fragment>
+    <Fragment slot="example">
+        ```rust
+        fn foo() {
+
+        }
+        ```
+    </Fragment>
+    <Fragment slot="references">
+        - https://github.com/rust-lang/rust/issues/79711
     </Fragment>
 </FeatureSummary>
 
@@ -967,7 +1001,7 @@ A few notes about the format for the rest of this article. Every feature is list
     </Fragment>
 </FeatureSummary>
 
-<FeatureSummary title="Range API">
+<FeatureSummary title="Range">
     <Fragment slot="motivation">
 
     </Fragment>
@@ -983,6 +1017,22 @@ A few notes about the format for the rest of this article. Every feature is list
         - https://ridiculousfish.com/blog/posts/least-favorite-rust-type.html
         - https://github.com/rust-lang/rust/pull/125751
         - https://github.com/rust-lang/rust/pull/150522
+    </Fragment>
+</FeatureSummary>
+
+<FeatureSummary title="Restrictions">
+    <Fragment slot="motivation">
+
+    </Fragment>
+    <Fragment slot="example">
+        ```rust
+        fn foo() {
+
+        }
+        ```
+    </Fragment>
+    <Fragment slot="references">
+        -  https://github.com/rust-lang/rfcs/pull/3323
     </Fragment>
 </FeatureSummary>
 
@@ -1019,6 +1069,23 @@ A few notes about the format for the rest of this article. Every feature is list
     </Fragment>
     <Fragment slot="references">
         - https://github.com/rust-lang/rust/issues/124509
+    </Fragment>
+</FeatureSummary>
+
+<FeatureSummary title="Next generation trait solver">
+    <Fragment slot="motivation">
+
+    </Fragment>
+    <Fragment slot="example">
+        ```rust
+        fn foo() {
+
+        }
+        ```
+    </Fragment>
+    <Fragment slot="references">
+        - https://github.com/rust-lang/rust/issues/107374
+        - https://rust-lang.github.io/rust-project-goals/2025h2/next-solver.html
     </Fragment>
 </FeatureSummary>
 
@@ -1091,6 +1158,6 @@ A few notes about the format for the rest of this article. Every feature is list
 
 # Conclusion
 
-Yeah so I expect the half-life of this list to be one or two years. That's all I have left to say.
+Yeah so I expect the half-life of this list to be one, maybe two years. That's all I have left to say.
 
 Until next time!
