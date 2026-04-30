@@ -28,13 +28,3 @@ const { title } = Astro.props;
         font-size: 1.3em;
     }
 </style>
-
-<script>
-  const featuresummaries = document.querySelectorAll('details');
-
-  for (let featuresummary of featuresummaries) {
-    featuresummary.addEventListener("click", function() {
-      history.replaceState(null, "", `#${this.id}`);
-    })
-  }
-</script>
