@@ -23,11 +23,11 @@ For the sake of culling the list, my selection of features follows three filteri
 
   While there are [many](https://github.com/rust-lang/rfcs/pull/3407) [popular](https://github.com/rust-lang/rfcs/pull/2948) [features](https://rust-lang.github.io/rust-project-goals/2026/ergonomic-rc.html#add-a-share-trait) without an accepted RFC, I maintain a strict policy against including them. Having some form of official endorsement for the specification of this feature reduces the likelihood for its design to change. If you are interested in a more general list of "wanted features in Rust", check out [Rust-for-Linux's tracking issue](https://github.com/Rust-for-Linux/linux/issues/354).
 
-- The feature cannot be something you would already expect to compile.
+- The feature cannot be something you would already expect to compile, at my own discretion.
 
-  In other words, this feature cannot be an obvious improvement of another feature, possibly originally restricted due to implementation difficulty. This includes [the entire const generics project](https://github.com/rust-lang/project-const-generics), [const traits](https://github.com/rust-lang/rust/issues/143874) and [expression attributes](https://github.com/rust-lang/rust/issues/15701). The intent is to keep the discussion of ideas fresh and interesting. I make an exception for standard library additions, for which this criterion is more lenient.
+  In other words, this feature cannot be an obvious improvement of another feature, possibly originally restricted due to implementation difficulty. This includes [the entire const generics project](https://github.com/rust-lang/project-const-generics), [const traits](https://github.com/rust-lang/rust/issues/143874) and [expression attributes](https://github.com/rust-lang/rust/issues/15701). The intent is to keep the discussion of ideas fresh and interesting.
 
-A few notes about the format for the rest of this article. Every feature is listed alphabetically as a hidden dropdown under one of "Language Features", "Standard Library Additions", "Language Redesigns", "Optimizations", and "Tooling". Within each dropdown, the description of the feature follows roughly the same format. First, I briefly summarize the motivation of this feature. Next, I provide an example of the most representative real-world usage of this feature. Finally, I list relevant references.
+A few notes about the format for the rest of this article. Every feature is listed alphabetically as a hidden dropdown under one of "Language Features", "Standard Library Additions", "Language Redesigns", "Optimizations", and "Tooling". Within each dropdown, the description of the feature follows roughly the same format. First, I briefly summarize the feature and its motivation. Next, I provide an example of the most representative real-world usage of this feature. Finally, I list relevant references.
 
 For full transparency, I shamelessly reuse wording and code examples from official documentation. The Rust language designers have spent significantly more time thinking about how to motivate these features than I; my contribution has been to edit and condense these explanations to keep them somewhat minimal. Of course, as previously mentioned, I make sure to cite my sources.
 
@@ -37,102 +37,204 @@ For full transparency, I shamelessly reuse wording and code examples from offici
 
 <FeatureSummary title="Arbitrary self types">
     <Fragment slot="motivation">
-        Methods can only be received by value, by reference, or by one of a few blessed smart pointer types from `core`, `alloc` and `std` (`Arc<Self>`, `Box<Self>`, `Pin<P>`, and `Rc<Self>`). The logical next step is to support custom smart pointers, such as `CustomPtr<Self>`.
+        Methods can only be received by value, by reference, or by one of a few blessed smart pointer types from `core`, `alloc` and `std` (`Arc<Self>`, `Box<Self>`, `Pin<P>`, and `Rc<Self>`). The logical next step is to support custom smart pointers, such as `CustomPtr<Self>`. This would help with a few things:
+            - Automatic code generation tools need to represent foreign language pointers or references somehow in Rust, and often, we want to call methods on such types. However, we can't always represent these references with `&T` in methods because they can't guarantee the aliasing and exclusivity semantics required of a Rust reference.
+            - Sometimes the existence of a reference is, itself, semantically important — for example, reference counting, or if relayout of a UI should occur each time a mutable reference ceases to exist. In these cases it’s not OK to allow a regular Rust reference to exist, and yet sometimes we still want to be able to call methods on a reference-like thing.
+            - Taking smart pointer types as `self` parameters can enable functions to act on the smart pointer type, not just the underlying data. For example, taking `&Arc<T>` allows the functions to both clone the smart pointer (noting that the underlying `T` might not implement `Clone`) in addition to access the data inside the type, which is useful for some methods.
     </Fragment>
     <Fragment slot="example">
         ```rust
-        fn foo() {
+        #![feature(arbitrary_self_types)]
 
+        #[repr(transparent)]
+        #[derive(Clone)]
+        /// A C++ reference. Obeys C++ reference semantics, not Rust reference semantics.
+        /// There is no exclusivity; the underlying data may mutate, etc.
+        /// (This is an abridged example: a real CppRef type would fully document invariants
+        /// here.)
+        pub struct CppRef<T: ?Sized> {
+            ptr: *const T,
+        }
+
+        impl<T: ?Sized> Receiver for CppRef<T> {
+            type Target = T;
+        }
+
+        // generated by bindings generator
+        struct ConcreteCppType {
+            // ...
+        }
+
+        // all generated by bindings generator; mostly calls into C++
+        // In this example these are not marked "unsafe" because we do not directly use
+        // CppRef::ptr in Rust. This example assumes that the corresponding C++ functions
+        // do not themselves have unsafe behavior and thus can be presented to Rust as safe.
+        // Safety of FFI is orthogonal to this RFC.
+        impl ConcreteCppType {
+            fn some_cpp_method(self: CppRef<Self>) {
+                todo!()
+            }
+            fn get_int_field(self: &CppRef<Self>) -> u32 {
+                todo!()
+            }
+            fn get_more_complex_field(self: &CppRef<Self>) -> CppRef<FieldType> {
+                todo!()
+            }
+            fn equals(self: &CppRef<Self>, other: &CppRef<Self>) -> bool {
+                todo!()
+            }
+        }
+
+        // generated by bindings generator
+        fn get_cpp_reference() -> CppRef<ConcreteCppType> {
+            // also calls into C++
+            todo!()
+        }
+
+        fn main() {
+            // Rust code manipulating C++ objects via C++-semantics references
+            let cpp_obj_reference: CppRef<ConcreteCppType> = get_cpp_reference();
+            // cpp_obj_reference does not obey Rust reference semantics. Other
+            // "references" to the same data may exist in the Rust or C++ domain.
+            // But it can effectively be used as an opaque token to pass safely
+            // through Rust back into C++
+            let some_value: u32 = cpp_obj_reference.get_int_field();
+            let some_field = cpp_obj_reference.get_more_complex_field();
+            cpp_obj_reference.equals(&get_cpp_reference());
         }
         ```
     </Fragment>
     <Fragment slot="references">
         - [Accepted RFC](https://rust-lang.github.io/rfcs/3519-arbitrary-self-types-v2.html)
         - [Tracking issue](https://github.com/rust-lang/rust/issues/44874)
-        - [Blog post for a list of more specific use-cases](https://medium.com/@adetaylor/the-case-for-stabilizing-arbitrary-self-types-b07bab22bb45)
     </Fragment>
 </FeatureSummary>
 
 <FeatureSummary title="Associated type defaults">
     <Fragment slot="motivation">
-
+        Rust permits associating traits with default `const`s, `fn`s, but not `type`s. Allowing `type`s to have defaults helps crate authors provide more ergonomic APIs.
     </Fragment>
     <Fragment slot="example">
         ```rust
-        fn foo() {
+        #![feature(associated_type_defaults)]
 
+        trait Arbitrary: Sized + Debug {
+            type Parameters: Default = ();
+
+            fn arbitrary_with(args: Self::Parameters) -> Self::Strategy;
+
+            fn arbitrary() -> Self::Strategy {
+                Self::arbitrary_with(Default::default())
+            }
+
+            type Strategy: Strategy<Value = Self>;
         }
         ```
     </Fragment>
     <Fragment slot="references">
-        - https://github.com/rust-lang/rust/issues/29661
-        - https://github.com/rust-lang/rfcs/pull/2532
+        - [Accepted RFC](https://rust-lang.github.io/rfcs/2532-associated-type-defaults.html)
+        - [Tracking issue](https://github.com/rust-lang/rust/issues/29661)
     </Fragment>
 </FeatureSummary>
 
-<FeatureSummary title="Async closures">
+<FeatureSummary title="AsyncDrop">
     <Fragment slot="motivation">
-
+        It is currently impossible to create types (e.g. database connections) that perform async operations on cleanup. We introduce `AsyncDrop` as a async version of `Drop`.
     </Fragment>
     <Fragment slot="example">
         ```rust
-        fn foo() {
+        #![feature(async_drop)]
 
+        impl AsyncDrop for DatabaseConnection {
+            async fn drop(&mut self) {
+                todo!()
+            }
         }
         ```
     </Fragment>
     <Fragment slot="references">
-        - https://github.com/rust-lang/rust/issues/62290
-        - https://github.com/rust-lang/rust/issues/146790
+        - [std::future::AsyncDrop](https://doc.rust-lang.org/stable/std/future/trait.AsyncDrop.html)
+        - [Design notes](https://rust-lang.github.io/async-fundamentals-initiative/roadmap/async_drop.html)
+        - [Accepted MCP](https://github.com/rust-lang/compiler-team/issues/727)
+        - [Tracking issue](https://github.com/rust-lang/rust/issues/126482)
     </Fragment>
 </FeatureSummary>
 
-<FeatureSummary title="Async drop">
+<FeatureSummary title="AsyncIterator">
     <Fragment slot="motivation">
-
+        It often desirable to want an async version of `Iterator`. We introduce `AsyncIterator` as a core async abstraction, using the design from the `Stream` trait defined in the [futures](https://crates.io/crates/futures) crate. Compared to `Iterator`, it allows other tasks to run while it waits rather than blocking between each item yield.
     </Fragment>
     <Fragment slot="example">
         ```rust
-        fn foo() {
+        #![feature(async_iterator)]
 
+        struct Counter {
+            count: usize,
+        }
+
+        impl Counter {
+            fn new() -> Counter {
+                Counter { count: 0 }
+            }
+        }
+
+        impl AsyncIterator for Counter {
+            type Item = usize;
+
+            fn poll_next(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
+                self.count += 1;
+
+                if self.count < 6 {
+                    Poll::Ready(Some(self.count))
+                } else {
+                    Poll::Ready(None)
+                }
+            }
+        }
+
+        // A helper function similar to [`StreamExt::next`](https://docs.rs/futures/latest/futures/prelude/stream/trait.StreamExt.html)
+        fn next<T>(mut iter: Pin<&mut impl AsyncIterator<Item = T>>) -> impl Future<Output = Option<T>> {
+            futures::future::poll_fn(move |cx| iter.as_mut().poll_next(cx))
+        }
+
+        #[tokio::main]
+        async fn main() {
+            let mut counter = pin!(Counter::new());
+            while let Some(val) = next(counter.as_mut()).await {
+                dbg!(val);
+            }
         }
         ```
     </Fragment>
     <Fragment slot="references">
-        - https://github.com/rust-lang/rust/issues/126482
-    </Fragment>
-</FeatureSummary>
-
-<FeatureSummary title="Async streams">
-    <Fragment slot="motivation">
-
-    </Fragment>
-    <Fragment slot="example">
-        ```rust
-        fn foo() {
-
-        }
-        ```
-    </Fragment>
-    <Fragment slot="references">
-        - https://github.com/rust-lang/rust/pull/118847
-        - https://github.com/rust-lang/rfcs/pull/2996
+        - [std::async_iter::AsyncIterator](https://doc.rust-lang.org/stable/std/async_iter/trait.AsyncIterator.html)
+        - [Accepted RFC](https://github.com/rust-lang/rfcs/pull/2996)
+        - [Tracking issue](https://github.com/rust-lang/rust/issues/79024)
     </Fragment>
 </FeatureSummary>
 
 <FeatureSummary title="#[cfg(accessible(..) / version(..))]">
     <Fragment slot="motivation">
+        The current support for such conditional compilation is lacking. Crate authors often face a dilemma: *"Shall I provide more features and implementations for later versions of Rust, or should I stay compatible with more versions of the compiler"*.
 
+        We introduce `#[cfg(accessible($path))]` and `#[cfg(version(<semver>))]` to allow crate authors to extend how many versions back a crate supports within the language itself.
     </Fragment>
     <Fragment slot="example">
         ```rust
-        fn foo() {
-
+        #![feature(cfg_accessible)]
+        
+        fn make_iter(limit: u8) -> impl Iterator<Item = u8> {
+            #[cfg(not(accessible(::std::iter::Flatten)))]
+            use itertools::Itertools;
+        
+            (0..limit).map(move |x| (x..limit)).flatten()
         }
         ```
     </Fragment>
     <Fragment slot="references">
-        - https://github.com/rust-lang/rfcs/pull/2523
+        - [Accepted RFC](https://rust-lang.github.io/rfcs/2523-cfg-path-version.html)
+        - [Tracking issue for #[cfg(accessible($path))]](https://github.com/rust-lang/rust/issues/64797)
+        - [Tracking issue for #[cfg(version(\<semver>))]](https://github.com/rust-lang/rust/issues/64796)
     </Fragment>
 </FeatureSummary>
 
@@ -683,6 +785,23 @@ For full transparency, I shamelessly reuse wording and code examples from offici
     </Fragment>
 </FeatureSummary>
 
+<FeatureSummary title="Exclusive">
+    <Fragment slot="motivation">
+
+    </Fragment>
+    <Fragment slot="example">
+        ```rust
+        fn foo() {
+
+        }
+        ```
+    </Fragment>
+    <Fragment slot="references">
+        - https://doc.rust-lang.org/stable/std/sync/struct.Exclusive.html
+        - https://github.com/rust-lang/rust/issues/98407
+    </Fragment>
+</FeatureSummary>
+
 <FeatureSummary title="Fallible collection allocation">
     <Fragment slot="motivation">
 
@@ -910,23 +1029,6 @@ For full transparency, I shamelessly reuse wording and code examples from offici
     </Fragment>
     <Fragment slot="references">
         -  https://github.com/rust-lang/rfcs/pull/3323
-    </Fragment>
-</FeatureSummary>
-
-<FeatureSummary title="sync::Exclusive">
-    <Fragment slot="motivation">
-
-    </Fragment>
-    <Fragment slot="example">
-        ```rust
-        fn foo() {
-
-        }
-        ```
-    </Fragment>
-    <Fragment slot="references">
-        - https://doc.rust-lang.org/stable/std/sync/struct.Exclusive.html
-        - https://github.com/rust-lang/rust/issues/98407
     </Fragment>
 </FeatureSummary>
 
