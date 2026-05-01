@@ -10,7 +10,6 @@ const { title } = Astro.props;
 <details id={mySlugify(title)} open={import.meta.env.DEV}>
     <hr>
     <summary>{title}</summary>
-    <h3>Motivation and summary</h3>
     <slot name="motivation" />
     <h3>Example</h3>
     <slot name="example" />
