@@ -112,7 +112,7 @@ For full transparency, I shamelessly reuse wording and code examples from offici
 
 <FeatureSummary title="Associated type defaults">
     <Fragment slot="motivation">
-        Rust permits associating traits with default `const`s, `fn`s, but not `type`s. Allowing `type`s to have defaults helps crate authors provide more ergonomic APIs.
+        Rust permits associating traits with default `const`s, `fn`s, but not `type`s. We allow `type`s to have defaults to provide more ergonomic APIs.
     </Fragment>
     <Fragment slot="example">
         ```rust
@@ -157,59 +157,6 @@ For full transparency, I shamelessly reuse wording and code examples from offici
         - [Design notes](https://rust-lang.github.io/async-fundamentals-initiative/roadmap/async_drop.html)
         - [Accepted MCP](https://github.com/rust-lang/compiler-team/issues/727)
         - [Tracking issue](https://github.com/rust-lang/rust/issues/126482)
-    </Fragment>
-</FeatureSummary>
-
-<FeatureSummary title="AsyncIterator">
-    <Fragment slot="motivation">
-        It often desirable to want an async version of `Iterator`. We introduce `AsyncIterator` as a core async abstraction, using the design from the `Stream` trait defined in the [futures](https://crates.io/crates/futures) crate. Compared to `Iterator`, it allows other tasks to run while it waits rather than blocking between each item yield.
-    </Fragment>
-    <Fragment slot="example">
-        ```rust
-        #![feature(async_iterator)]
-
-        struct Counter {
-            count: usize,
-        }
-
-        impl Counter {
-            fn new() -> Counter {
-                Counter { count: 0 }
-            }
-        }
-
-        impl AsyncIterator for Counter {
-            type Item = usize;
-
-            fn poll_next(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
-                self.count += 1;
-
-                if self.count < 6 {
-                    Poll::Ready(Some(self.count))
-                } else {
-                    Poll::Ready(None)
-                }
-            }
-        }
-
-        // A helper function similar to [`StreamExt::next`](https://docs.rs/futures/latest/futures/prelude/stream/trait.StreamExt.html)
-        fn next<T>(mut iter: Pin<&mut impl AsyncIterator<Item = T>>) -> impl Future<Output = Option<T>> {
-            futures::future::poll_fn(move |cx| iter.as_mut().poll_next(cx))
-        }
-
-        #[tokio::main]
-        async fn main() {
-            let mut counter = pin!(Counter::new());
-            while let Some(val) = next(counter.as_mut()).await {
-                dbg!(val);
-            }
-        }
-        ```
-    </Fragment>
-    <Fragment slot="references">
-        - [std::async_iter::AsyncIterator](https://doc.rust-lang.org/stable/std/async_iter/trait.AsyncIterator.html)
-        - [Accepted RFC](https://github.com/rust-lang/rfcs/pull/2996)
-        - [Tracking issue](https://github.com/rust-lang/rust/issues/79024)
     </Fragment>
 </FeatureSummary>
 
@@ -688,19 +635,56 @@ For full transparency, I shamelessly reuse wording and code examples from offici
     </Fragment>
 </FeatureSummary>
 
-<FeatureSummary title="Async iterator">
+<FeatureSummary title="AsyncIterator">
     <Fragment slot="motivation">
-
+        It often desirable to want an async version of `Iterator`. We introduce `AsyncIterator` as a core async abstraction, using the design from the `Stream` trait defined in the [futures](https://crates.io/crates/futures) crate. Compared to `Iterator`, it allows other tasks to run while it waits rather than blocking between each item yield.
     </Fragment>
     <Fragment slot="example">
         ```rust
-        fn foo() {
+        #![feature(async_iterator)]
 
+        struct Counter {
+            count: usize,
+        }
+
+        impl Counter {
+            fn new() -> Counter {
+                Counter { count: 0 }
+            }
+        }
+
+        impl AsyncIterator for Counter {
+            type Item = usize;
+
+            fn poll_next(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
+                self.count += 1;
+
+                if self.count < 6 {
+                    Poll::Ready(Some(self.count))
+                } else {
+                    Poll::Ready(None)
+                }
+            }
+        }
+
+        // A helper function similar to [`StreamExt::next`](https://docs.rs/futures/latest/futures/prelude/stream/trait.StreamExt.html)
+        fn next<T>(mut iter: Pin<&mut impl AsyncIterator<Item = T>>) -> impl Future<Output = Option<T>> {
+            futures::future::poll_fn(move |cx| iter.as_mut().poll_next(cx))
+        }
+
+        #[tokio::main]
+        async fn main() {
+            let mut counter = pin!(Counter::new());
+            while let Some(val) = next(counter.as_mut()).await {
+                dbg!(val);
+            }
         }
         ```
     </Fragment>
     <Fragment slot="references">
-        - https://github.com/rust-lang/rfcs/pull/2996
+        - [std::async_iter::AsyncIterator](https://doc.rust-lang.org/stable/std/async_iter/trait.AsyncIterator.html)
+        - [Accepted RFC](https://github.com/rust-lang/rfcs/pull/2996)
+        - [Tracking issue](https://github.com/rust-lang/rust/issues/79024)
     </Fragment>
 </FeatureSummary>
 
