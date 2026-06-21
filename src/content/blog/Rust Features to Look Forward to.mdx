@@ -5,6 +5,12 @@ import FeatureButton from "../../components/blog/FeatureButton.astro"
 
 # Introduction
 
+split_array
+
+https://github.com/rust-lang/rust/issues/132951 
+
+https://github.com/rust-lang/rust/issues/148227
+
 Right now I think it's *too easy* to dislike Rust. I recently got into an argument with a close friend from university after they told me something along the likes of "Rust isn't good enough." My stance was true to my past and present belief: *you are wrong*; Rust has too many upcoming novel features to say so. It was impossible to fault them for sharing a different opinion, though: Rust's development is increasingly difficult keep up with.
 
 You might expect there to be some central hub of information about "what's coming next" to Rust—but it turns out this doesn't exist[^releases] for a pretty reasonable reason: there are [over 700](https://doc.rust-lang.org/unstable-book/library-features/const-unsigned-bigint-helpers.html) experimental feature flags and [dozens](https://rust-lang.github.io/rust-project-goals/2026/goals.html) of current and future project goals. Concisely and accurately documenting the most important features is a long and arduous process. The time commitment is often not worth it because it can quickly become outdated.
@@ -619,22 +625,6 @@ For full transparency, I shamelessly reuse wording and code examples from offici
     </Fragment>
 </FeatureSummary>
 
-<FeatureSummary title="assert_matches!">
-    <Fragment slot="motivation">
-
-    </Fragment>
-    <Fragment slot="example">
-        ```rust
-        fn foo() {
-
-        }
-        ```
-    </Fragment>
-    <Fragment slot="references">
-        - https://github.com/rust-lang/rust/issues/82775
-    </Fragment>
-</FeatureSummary>
-
 <FeatureSummary title="AsyncIterator">
     <Fragment slot="motivation">
         It often desirable to want an async version of `Iterator`. We introduce `AsyncIterator` as a core async abstraction, using the design from the `Stream` trait defined in the [futures](https://crates.io/crates/futures) crate. Compared to `Iterator`, it allows other tasks to run while it waits rather than blocking between each item yield.
@@ -1193,6 +1183,22 @@ For full transparency, I shamelessly reuse wording and code examples from offici
     </Fragment>
     <Fragment slot="references">
         - https://github.com/rust-lang/rust/issues/113349
+    </Fragment>
+</FeatureSummary>
+
+<FeatureSummary title="Relink don't rebuild">
+    <Fragment slot="motivation">
+
+    </Fragment>
+    <Fragment slot="example">
+        ```rust
+        fn foo() {
+
+        }
+        ```
+    </Fragment>
+    <Fragment slot="references">
+        - https://github.com/rust-lang/compiler-team/issues/790
     </Fragment>
 </FeatureSummary>
 

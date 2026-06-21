@@ -159,12 +159,13 @@ impl PermGroup {
 }
 ```
 
-Your *inner Ferris* awakens. With the annoyances of our last iteration freshly in memory, you ask yourself: can we perform that length check (the `validate_permutation` function) during the creation of `PermGroup`, and avoid it entirely in `Permutation::compose_into`? Then, can we tweak our composition function to only operate on permutations from the same permutation group?
+Your *inner Ferris* awakens. With the annoyances of our last iteration freshly in memory, you ask yourself: can we perform that length check (done in the `validate_permutation` function) during the creation of `PermGroup`, and avoid it entirely in `Permutation::compose_into`? Then, can we tweak our composition function to only operate on permutations from the same permutation group?
 
 ```rust
 impl Permutation {
     // No `from_mapping` method. `Permutation` can only be
-    // constructed within `PermGroup::new`.
+    // constructed within `PermGroup::new`, and accessed via
+    // `PermGroup::base_permutations`.
 
     pub fn compose_into(&self, b: &Permutation, result: &mut Permutation) {
         for i in 0..result.0.len() {

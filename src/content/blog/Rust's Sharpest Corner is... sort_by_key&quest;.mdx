@@ -1,0 +1,71 @@
+Rust tends to surprise me in the most unexpected ways. A few weeks ago I was working on something that roughly looked like this.
+
+```rs
+#[derive(PartialEq, Eq, PartialOrd, Ord)]
+struct Data {
+    x: Box<u8>,
+}
+
+fn sort_in_reverse(data_list: &mut [Data]) {
+    data_list.sort_unstable_by_key(|data| std::cmp::Reverse(data));
+}
+```
+
+This is so simple; what could *possibly* be wrong here? Let's try to compile it!
+
+```text
+error: lifetime may not live long enough
+ --> src/lib.rs:7:43
+  |
+7 |     data_list.sort_unstable_by_key(|data| std::cmp::Reverse(data));
+  |                                     ----- ^^^^^^^^^^^^^^^^^^^^^^^ returning this value requires that `'1` must outlive `'2`
+  |                                     |   |
+  |                                     |   return type of closure is Reverse<&'2 Data>
+  |                                     has type `&'1 Data`
+```
+
+Okay, what? I've been programming Rust for a few years, and I thought I was familiar with the language, but this error left me scratching my head. The culprit turns out to be the function signature for `sort_unstable_by_key` in the standard library.
+
+```rs
+pub fn sort_by_key<K, F>(&mut self, f: F)
+where
+    F: FnMut(&T) -> K,
+    K: Ord,
+```
+
+The function call monomorphizes `T` as `Data`, `K` as `Reverse<&'2 Data>`, and `F` as `impl FnMut(&'1 Data) -> Reverse<&'2 Data>`. Without some form of post-monomorphization analysis, the borrow checker requires `FnMut(&'1 T) -> K` to produce a valid `K` no matter how short-lived `'1` is 
+
+The root cause should now be clear: the borrow checker is unable to unify the lifetimes of the two references of `F` together. 
+
+Sure. But isn't this what `for` bounds are for?
+
+```rs
+pub fn sort_by_key<T, B, F>(this: &mut [T], mut f: F)
+where
+    for<'a> F: FnMut(&'a T) -> B + 'a,
+    B: Ord,
+{
+    unimplemented!()
+}
+
+
+#[derive(PartialEq, Eq, PartialOrd, Ord)]
+struct Data {
+    x: Box<u8>,
+}
+
+fn sort_in_reverse(data_list: &mut [Data]) {
+    sort_by_key(data_list, |data| std::cmp::Reverse(data));
+}
+```
+
+Unfortunately, the compiler gives us the exact same error. 
+
+A bit of poking around, and I found a remedy.
+
+```rust
+data_list.sort_unstable_by_key(|data| std::cmp::Reverse(data)); // [!code --]
+data_list.sort_unstable_by(|data1, data2| data2.cmp(data1)); // [!code ++]
+```
+
+But I still really wanted to 
