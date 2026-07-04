@@ -96,7 +96,6 @@ const unreadBooksCollection = defineCollection({
     genre: z.string(),
     author: z.string(),
     url: z.url(),
-    inProgress: z.boolean(),
   }),
 });
 

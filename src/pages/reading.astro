@@ -45,29 +45,15 @@ const allUnreadBooks = await getCollection("unread-books");
       <summary>Reading List</summary>
       {
         allUnreadBooks
-          .filter(({ data: { inProgress } }) => !inProgress)
-          .map(({ data }) => <UnreadBook {...data} />)
-      }
-    </details>
-    <details>
-      <summary>Reading in Progress</summary>
-      {
-        allUnreadBooks
-          .filter(({ data: { inProgress } }) => inProgress)
           .map(({ data }) => <UnreadBook {...data} />)
       }
     </details>
     {
       yearsToBookReviews.map(([year, bookReviews]) => (
         <>
-          <details>
-            <summary>{year}</summary>
-            <div class="indent">
-              {bookReviews.map((section) => (
-                <BookReview {section} />
-              ))}
-            </div>
-          </details>
+          {bookReviews.map((section) => (
+            <BookReview {section} />
+          ))}
         </>
       ))
     }

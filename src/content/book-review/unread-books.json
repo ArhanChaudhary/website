@@ -3,98 +3,84 @@
     "id": "The Road",
     "genre": "Apocalyptic fiction",
     "author": "Cormac McCarthy",
-    "url": "https://www.amazon.com/The-Road-Oprah-s-Book-Club/dp/0307387895",
-    "inProgress": false
+    "url": "https://www.amazon.com/The-Road-Oprah-s-Book-Club/dp/0307387895"
   },
   {
     "id": "No Country for Old Men",
     "genre": "Thriller",
     "author": "Cormac McCarthy",
-    "url": "https://www.amazon.com/Country-Old-Men-Cormac-McCarthy/dp/0375706674",
-    "inProgress": false
+    "url": "https://www.amazon.com/Country-Old-Men-Cormac-McCarthy/dp/0375706674"
   },
   {
     "id": "Project Hail Mary: A Novel",
     "genre": "Science Fiction",
     "author": "Andy Weir",
-    "url": "https://www.amazon.com/Project-Hail-Mary-Andy-Weir/dp/0593135202",
-    "inProgress": false
+    "url": "https://www.amazon.com/Project-Hail-Mary-Andy-Weir/dp/0593135202"
   },
   {
     "id": "The Cuckoo's Egg: Tracking a Spy Through the Maze of Computer Espionage",
     "genre": "True Crime",
     "author": "Cliff Stoll",
-    "url": "https://www.amazon.com/Cuckoos-Egg-Tracking-Computer-Espionage/dp/1416507787",
-    "inProgress": false
+    "url": "https://www.amazon.com/Cuckoos-Egg-Tracking-Computer-Espionage/dp/1416507787"
   },
   {
     "id": "2001: a Space Odyssey",
     "genre": "Science Fiction",
     "author": "Arthur Clarke",
-    "url": "https://www.amazon.com/2001-Space-Odyssey/dp/0451457994",
-    "inProgress": false
+    "url": "https://www.amazon.com/2001-Space-Odyssey/dp/0451457994"
   },
   {
     "id": "Designing Data-Intensive Applications: The Big Ideas Behind Reliable, Scalable, and Maintainable Systems",
     "genre": "Computers and Technology",
     "author": "Martin Kleppmann",
-    "url": "https://www.amazon.com/Designing-Data-Intensive-Applications-Reliable-Maintainable/dp/1449373321",
-    "inProgress": false
+    "url": "https://www.amazon.com/Designing-Data-Intensive-Applications-Reliable-Maintainable/dp/1449373321"
   },
   {
     "id": "The Art of Electronics",
     "genre": "Science and Engineering",
     "author": "Paul Horowitz, Winfield Hill",
-    "url": "https://www.amazon.com/Art-Electronics-Paul-Horowitz/dp/0521809266",
-    "inProgress": false
+    "url": "https://www.amazon.com/Art-Electronics-Paul-Horowitz/dp/0521809266"
   },
   {
     "id": "Existentialism Is a Humanism",
     "genre": "Philosophy",
     "author": "Jean-Paul Sartre",
-    "url": "https://www.amazon.com/Existentialism-Humanism-Jean-Paul-Sartre/dp/0300115466",
-    "inProgress": false
+    "url": "https://www.amazon.com/Existentialism-Humanism-Jean-Paul-Sartre/dp/0300115466"
   },
   {
     "id": "The Hitchhiker's Guide to the Galaxy",
     "genre": "Science Fiction",
     "author": "Douglas Adams",
-    "url": "https://www.amazon.com/Hitchhikers-Guide-Galaxy-Illustrated-dp-0593359445/dp/0593359445",
-    "inProgress": false
+    "url": "https://www.amazon.com/Hitchhikers-Guide-Galaxy-Illustrated-dp-0593359445/dp/0593359445"
   },
   {
     "id": "The Art of Computer Programming",
     "genre": "Monograph",
     "author": "Donald Knuth",
-    "url": "https://www.amazon.com/Computer-Programming-Volumes-1-4B-Boxed-dp-0137935102/dp/0137935102",
-    "inProgress": false
+    "url": "https://www.amazon.com/Computer-Programming-Volumes-1-4B-Boxed-dp-0137935102/dp/0137935102"
   },
   {
     "id": "Computer Networks and Internets",
     "genre": "Computers and Technology",
     "author": "Douglas Comer",
-    "url": "https://www.amazon.com/Computer-Networks-Internets-Douglas-Comer/dp/0133587932",
-    "inProgress": true
+    "url": "https://www.amazon.com/Computer-Networks-Internets-Douglas-Comer/dp/0133587932"
   },
   {
     "id": "The Perfectionists: How Precision Engineers Created the Modern World",
     "genre": "History",
     "author": "Simon Winchester",
-    "url": "https://www.amazon.com/Perfectionists-Precision-Engineers-Created-Modern/dp/0062652559",
-    "inProgress": false
+    "url": "https://www.amazon.com/Perfectionists-Precision-Engineers-Created-Modern/dp/0062652559"
   },
   {
     "id": "The Scientist & Engineer's Guide to Digital Signal Processing",
     "genre": "Science and Engineering",
     "author": "Steven Smith",
-    "url": "https://www.amazon.com/Scientist-Engineers-Digital-Signal-Processing/dp/0966017633",
-    "inProgress": false
+    "url": "https://www.amazon.com/Scientist-Engineers-Digital-Signal-Processing/dp/0966017633"
   },
   {
     "id": "This Is How You Lose the Time War",
     "genre": "Science Fiction",
     "author": "Amal El-Mohtar, Max Gladstone",
-    "url": "https://www.amazon.com/This-How-You-Lose-Time/dp/1534430997",
-    "inProgress": false
+    "url": "https://www.amazon.com/This-How-You-Lose-Time/dp/1534430997"
   }
 ]
