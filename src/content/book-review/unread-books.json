@@ -82,5 +82,11 @@
     "genre": "Science Fiction",
     "author": "Amal El-Mohtar, Max Gladstone",
     "url": "https://www.amazon.com/This-How-You-Lose-Time/dp/1534430997"
+  },
+  {
+    "id": "How Linux Works, 3rd Edition: What Every Superuser Should Know",
+    "genre": "Computers and Technology",
+    "author": "Brian Ward",
+    "url": "https://www.amazon.com/How-Linux-Works-Brian-Ward/dp/1718500408"
   }
 ]
