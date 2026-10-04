@@ -6,6 +6,7 @@ import remarkAutoImport from "./remark-auto-import/remark-auto-import.ts";
 import { transformerNotationDiff } from "@shikijs/transformers";
 import mdx from "@astrojs/mdx";
 import { typst } from "astro-typst";
+import { unified } from "@astrojs/markdown-remark";
 
 // https://astro.build/config
 export default defineConfig({
@@ -15,9 +16,8 @@ export default defineConfig({
       external: ["@myriaddreamin/typst-ts-node-compiler"],
     },
   },
-  integrations: [
-    sitemap(),
-    mdx({
+  markdown: {
+    processor: unified({
       remarkPlugins: [
         () => remarkToc({ skip: ".*\\/\\*\\*\\/" }),
         remarkAutoImport,
@@ -40,6 +40,10 @@ export default defineConfig({
         clobberPrefix: "",
       },
     }),
+  },
+  integrations: [
+    sitemap(),
+    mdx(),
     typst({
       options: {
         remPx: 14,
