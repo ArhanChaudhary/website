@@ -1,6 +1,9 @@
 import { decodeFilePath1, mySlugify } from "../lib/utils";
 import rss from "@astrojs/rss";
 import { getCollection } from "astro:content";
+import sanitizeHtml from "sanitize-html";
+import MarkdownIt from "markdown-it";
+const parser = new MarkdownIt();
 
 export async function GET(context: { site: URL }) {
   const publishedBlogs = (
@@ -8,7 +11,7 @@ export async function GET(context: { site: URL }) {
   ).sort(
     (a, b) =>
       // biome-ignore lint/style/noNonNullAssertion: <explanation>
-      new Date(b.data.pubDate!).getTime() - new Date(a.data.pubDate!).getTime()
+      new Date(b.data.pubDate!).getTime() - new Date(a.data.pubDate!).getTime(),
   );
   return rss({
     title: "Arhan's Blog",
@@ -16,6 +19,9 @@ export async function GET(context: { site: URL }) {
     site: context.site,
     items: publishedBlogs.map((blog) => ({
       title: decodeFilePath1(blog.filePath),
+      content: sanitizeHtml(parser.render(blog.body!), {
+        allowedTags: sanitizeHtml.defaults.allowedTags.concat(["img"]),
+      }),
       pubDate: blog.data.pubDate,
       description: blog.data.description,
       link: `/blog/${blog.data.url || mySlugify(decodeFilePath1(blog.filePath))}/`,
