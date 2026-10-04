@@ -23,23 +23,23 @@ export default defineConfig({
         remarkAutoImport,
         remarkReadingTime,
       ],
-      shikiConfig: {
-        transformers: [
-          transformerNotationDiff({
-            matchAlgorithm: "v3",
-          }),
-        ],
-        theme: "catppuccin-mocha",
-        // theme: "tokyo-night",
-        // theme: "material-theme-ocean",
-        // theme: "kanagawa-wave",
-        // theme: "plastic",
-        // theme: "one-dark-pro",
-      },
       remarkRehype: {
         clobberPrefix: "",
       },
     }),
+    shikiConfig: {
+      transformers: [
+        transformerNotationDiff({
+          matchAlgorithm: "v3",
+        }),
+      ],
+      theme: "catppuccin-mocha",
+      // theme: "tokyo-night",
+      // theme: "material-theme-ocean",
+      // theme: "kanagawa-wave",
+      // theme: "plastic",
+      // theme: "one-dark-pro",
+    },
   },
   integrations: [
     sitemap(),
