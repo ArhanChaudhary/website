@@ -22,7 +22,6 @@
     "camelcase": "^8.0.0",
     "fast-glob": "^3.3.3",
     "html-entities": "^2.6.0",
-    "markdown-it": "^15.0.2",
     "mdast-util-to-string": "^4.0.0",
     "normalize.css": "^8.0.1",
     "reading-time": "^1.5.0",
