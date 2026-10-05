@@ -10,6 +10,7 @@ const sshUsers = [
   "cubing",
   "ctf",
   "reading",
+  null,
   "nuclear-bomb",
 ] as const;
 
@@ -119,6 +120,14 @@ const highlightIndex = sshUsers.indexOf(sshUser);
               </a>
             )
           )
+        }
+        {
+          <a
+            href="https://resume.arhan.sh",
+            class:list={{ white: highlightIndex === 6 }}
+          >
+            Resume
+          </a>
         }
         {
           sshUser === "nuclear-bomb" && (
