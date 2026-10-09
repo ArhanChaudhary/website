@@ -4,8 +4,6 @@ import Project from "../components/Project.astro";
 import { getCollection } from "astro:content";
 import { decodeFilePath1 } from "../lib/utils";
 
-// cspell:disable
-
 let projects = await getCollection("project");
 
 const projectsOrder = [
@@ -38,8 +36,6 @@ projects = projects.sort(
     safeIndexOf(projectsOrder, decodeFilePath1(a.filePath)) -
     safeIndexOf(projectsOrder, decodeFilePath1(b.filePath))
 );
-
-// cspell:enable
 ---
 
 <Layout title="Arhan's Projects" sshUser="projects">

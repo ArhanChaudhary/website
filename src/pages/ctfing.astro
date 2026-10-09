@@ -1,5 +1,4 @@
 ---
-// cSpell:disable
 import { decodeFileName, decodeFilePath2, mySlugify } from "../lib/utils";
 import Layout from "../layouts/Layout.astro";
 import { getCollection } from "astro:content";
@@ -18,11 +17,8 @@ const ctfWriteupNames = new Set(
     throw new Error("ctf name typo");
   })
 );
-// cSpell:enable
 ---
-
 <Layout title="Arhan's CTF Page" sshUser="ctf">
-  <!-- cspell:ignore Ruien asmhole Starphish b01lers Ftime ctfs -->
   <div id="max-width-wrapper" class="system-ui offwhite">
     <h1>My CTF page</h1>
     <hr />

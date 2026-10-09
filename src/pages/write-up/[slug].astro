@@ -10,8 +10,6 @@ import Writeup from "../../components/Writeup.astro";
 import { getCollection } from "astro:content";
 import { writeupCategory } from "../../content.config.ts";
 
-// cspell:disable
-
 export async function getStaticPaths() {
   const allWriteups = await getCollection("ctf-write-up");
   const ctfWriteupNames = [
@@ -48,8 +46,6 @@ writeups.sort((a, b) => {
   }
   return firstIndex - secondIndex;
 });
-// cspell:enable
-// cspell:ignore writeups
 ---
 
 <Layout title={ctfName + " Write-up"} sshUser="ctf">
