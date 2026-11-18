@@ -63,6 +63,7 @@ const ctfWriteupNames = new Set(
         ctfsEntry.map(({ data: { id, ctfLink } }) => (
           <li>
             <a href={ctfLink}>{id}</a> —
+            {" "}
             {ctfWriteupNames.has(id) ? (
               <a href={`/write-up/${mySlugify(decodeFileName(id))}/`}>
                 write-up
