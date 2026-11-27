@@ -1,0 +1,264 @@
+## Table of contents
+
+# Introduction
+
+Yesterday I was working on my Rust pet project [qter](https://github.com/qter-project/qter) when I noticed an absurd performance regression. One of my integration benchmarks that used to take 2 minutes started to take 4 minutes. After some bisection, I pinpointed the unexpected culprit: `log_enabled!`.
+
+Here is the condensed version of my code before I added `log_enabled!`, which performs a glorified DFS search[^remark].
+
+[^remark]: One of my friend's university advisors likes to joke that "all CS research is basically a glorified BFS search."
+
+```rs
+use humanize_duration::{Truncate, prelude::DurationExt};
+use log::info;
+use std::time::Instant;
+
+fn main() {
+    // `env_logger` is configured via environment variables
+    env_logger::init();
+
+    let now = Instant::now();
+    dfs(&mut [0; 10], 0);
+    info!("{}", now.elapsed().human(Truncate::Millis));
+}
+
+fn dfs(a: &mut [u32], i: usize) {
+    if i != a.len() {
+        for n in a[i] + 1..10 {
+            let old = std::mem::replace(&mut a[i], n);
+            dfs(a, i + 1);
+            a[i] = old;
+        }
+    }
+}
+```
+
+Running this on my laptop produces the following output.
+
+```text
+$ RUST_LOG=info cargo run --release
+   Compiling playground v0.1.0 (/Users/arhan/Projects/playground)
+    Finished `release` profile [optimized] target(s) in 0.37s
+     Running `target/release/playground`
+[2026-11-23T21:11:55Z INFO  playground] 6s 847ms
+```
+
+Cool. No shenanigans here. Now, it would not be morally wrong to log the total DFS node count (i.e. the number of recrusions). We make a simple modication:
+
+```rs
+use humanize_duration::{Truncate, prelude::DurationExt};
+use log::info; // [!code --]
+use log::{debug, info}; // [!code ++]
+use std::time::Instant;
+
+fn main() {
+    // `env_logger` is configured via environment variables
+    env_logger::init();
+
+    let mut node_count = 0; // [!code ++]
+    let now = Instant::now();
+    dfs(&mut [0; 10], 0); // [!code --]
+    dfs(&mut [0; 10], 0, &mut node_count); // [!code ++]
+    info!("{}", now.elapsed().human(Truncate::Millis));
+    debug!("{node_count}"); // [!code ++]
+}
+
+fn dfs(a: &mut [u32], i: usize) { // [!code --]
+fn dfs(a: &mut [u32], i: usize, node_count: &mut u32) { // [!code ++]
+    *node_count += 1; // [!code ++]
+    if i != a.len() {
+        for n in a[i] + 1..10 {
+            let old = std::mem::replace(&mut a[i], n);
+            dfs(a, i + 1, node_count);
+            a[i] = old;
+        }
+    }
+}
+```
+
+And run it again:
+
+```text
+$ RUST_LOG=debug cargo run --release
+   Compiling playground v0.1.0 (/Users/arhan/Projects/playground)
+    Finished `release` profile [optimized] target(s) in 0.37s
+     Running `target/release/playground`
+[2026-11-23T21:38:23Z INFO  playground] 6s 675ms
+[2026-11-23T21:38:23Z DEBUG playground] 3922632451
+```
+
+We see that the performance characteristic hasn't changed, and the node count is logged accurately. Everything looks good.
+
+Except that's not what happened. My code is performance-sensitive, so to reduce work I wrapped `*node_count += 1;` with a `log_enabled!(Level::Debug)` guard to avoid incrementing `node_count` when we are not in debug mode. After all, we increment it 3.9 billion times in six seconds, which is a pretty large number, and the branch predictor will hide the cost of the `if` statement, right?
+
+```rs
+*node_count += 1; // [!code --]
+if log_enabled!(Level::Debug) { // [!code ++]
+    *node_count += 1; // [!code ++]
+} // [!code ++]
+```
+
+```text
+$ RUST_LOG=debug cargo run --release
+   Compiling playground v0.1.0 (/Users/arhan/Projects/playground)
+    Finished `release` profile [optimized] target(s) in 0.34s
+     Running `target/release/playground`
+[2026-11-23T22:04:42Z INFO  playground] 17s 545ms
+[2026-11-23T22:04:42Z DEBUG playground] 3922632451
+```
+
+*What the hell?* I ran it a few more times and then wrote a small Criterion benchmark. The results were conclusive: *`log_enabled!(Level::Debug)` is somehow slowing down this program by a factor of 4*. Although the simple fix was to revert this change, the performance impact was so visceral that I had to investigate.
+
+# Initial investigation
+
+A good starting point is to use [`cargo-expand`](https://crates.io/crates/cargo-expand) to expand the `log_enabled!(Level::Debug)` macro.
+
+```rs
+fn dfs(a: &mut [u32], i: usize, node_count: &mut u32) {
+    if {
+        let lvl = Level::Debug;
+        lvl <= ::log::STATIC_MAX_LEVEL
+            && lvl <= ::log::max_level()
+            && ::log::__private_api::enabled(
+                { ::log::__private_api::GlobalLogger },
+                lvl,
+                "playground",
+            )
+    } {
+        *node_count += 1;
+    }
+    if i != a.len() {
+        for n in a[i] + 1..10 {
+            let old = std::mem::replace(&mut a[i], n);
+            dfs(a, i + 1, node_count);
+            a[i] = old;
+        }
+    }
+}
+```
+
+The `if` statement expands to three conditions and only evaluates to `true` when every condition is also `true`. The first and second conditions ensure that the given log level satisfies the log level filter supplied at compile time and the log level filter supplied at run time, respectively. The `::log::max_level()` function conists of a singlular atomic integer load and comparsion, which are fast operations. The `log` crate permits custom loggers, so the third condition calls a function that internally calls the set logger's `enabled` method. So far this is all reasonable; there was nothing in the `log` crate's source code that would indicate anything slow or suspicious.
+
+`env_logger::init()` sets the logger to `env_logger::logger::Logger`, so we next inspect its `enabled` method:
+
+```rs
+// Check whether a level and target are enabled by the set of directives.
+pub(crate) fn enabled(directives: &[Directive], level: Level, target: &str) -> bool {
+    // Search for the longest match, the vector is assumed to be pre-sorted.
+    for directive in directives.iter().rev() {
+        match directive.name {
+            Some(ref name) if !target.starts_with(&**name) => {}
+            Some(..) | None => return level <= directive.level,
+        }
+    }
+    false
+}
+```
+
+It turns out the `env_logger` crate provides support for a custom list of "directives," which filters logs by module path name, by level, or both. Well, considering that we run this very branchy function billions of times, it would explain a lot of the performance impacts. We need to switch to a minimal logging implementation.
+
+<Aside collapse={false}>
+    The `log` crate cannot be used by itself; it only provides a common logging API, and it must be paired with a concrete logging implementation that consumes this API. `env_logger` is one such crate that provides a logging implementation. If no logging implementation is selected, it falls back to a no-op logger which ignores all log messages.
+</Aside>
+
+The `log` crate's documentation endorses `simplelog` as one of the available logging implementations. Taking a look at its source code:
+
+```rs
+fn enabled(&self, metadata: &Metadata<'_>) -> bool {
+    metadata.level() <= self.level
+}
+```
+
+We see that the `enabled` function is indeed sufficiently minimal. Does using `simplelog` restore the original performance of the program?
+
+```text
+foo
+```
+
+Unfortunately, no. It reduced the slowdown from a factor of 4 to a factor of 3, but I wasn't able to explain the rest of the overhead. What could possibly be so hard about performing an integer comparsion and calling the above `enabled` function? High-level code analysis can only take us so far; the next step is to disassemble the program.
+
+# Disassembling the program
+
+My favorite shiny disassembly tool is [`cargo-show-asm`](https://github.com/pacak/cargo-show-asm). I disassembled two versions of the program: with and without the `log_enabled!(Level::Debug)` guard, and I diffed the disassembly. This isolates the assembly code generated specifically by the `log_enabled!(Level::Debug)` guard:
+
+```asm
+    ; We check at compile-time that `Level::Debug` satisfies the
+    ; compile-time constant `log::STATIC_MAX_LEVEL`. The check succeeds,
+    ; but had it failed, the guard would be unconditionally false
+
+    ; Load MAX_LOG_LEVEL_FILTER, a compile-time constant, into `rax`
+    mov rax, qword ptr [rip + log::MAX_LOG_LEVEL_FILTER@GOTPCREL]
+    mov rax, qword ptr [rax]
+    ; If the value is less than 4 (Level::Debug), then escape
+    cmp rax, 4
+    jb .LBB10_2
+    ; Prepare arguments and data to call the `enabled` function
+    mov qword ptr [rsp + 16], 4
+    lea rax, [rip + .L__unnamed_15]
+    mov qword ptr [rsp + 24], rax
+    mov qword ptr [rsp + 32], 24
+    lea rdi, [rsp + 15]
+    lea rsi, [rsp + 16]
+    ; Call the `log` crate's `enabled` function
+    call qword ptr [rip + <log::__private_api::GlobalLogger as log::Log>::enabled@GOTPCREL]
+    ; If not enabled, then escape
+    test al, al
+    je .LBB10_2
+    ; *node_count += 1
+    inc dword ptr [rbx]
+.LBB10_2:
+```
+
+Perhaps surprisingly, the `log` crate's `__private_api::enabled` function is not inlined[^derivative]. This is not to be confused with `simplelog`'s `enabled` function, which the `__private_api::enabled` function calls internally. My immediate reaction was to enable LTO, or link-time optimizations. LTO performs whole-program analysis including cross-crate inlining in exchange for longer compile times[^thinlto]. Once again, I performed the same disassembly diff.
+
+[^derivative]: If someone can tell me why this function is missing the `#[inline]` derivative, please let me know.
+
+[^thinlto]: Thought this would be interesting to share: I default using thin LTO over fat LTO. I like how Nora describes in her [talk](https://youtu.be/G1g6Me1FHmE?t=1112), "thin and fat sort of imply that fat is just a better of thin, but that's just not true." I typically enable LTO in the first place when I want code to be inlined, which thin LTO also handles perfectly well. Furthermore, the Rust compiler uses thin LTO because it turned out to be better for performance. You can see the rest of her talk for more details.
+
+```asm
+    ; Call the `enabled` function ; [!code --]
+    call qword ptr [rip + <log::__private_api::GlobalLogger as log::Log>::enabled@GOTPCREL] ; [!code --]
+    ; Test if the logger has been set ; [!code ++]
+    mov rax, qword ptr [rip + log::STATE] ; [!code ++]
+    cmp rax, 2 ; [!code ++]
+    ; Select the logger's vtable if one was set ; [!code ++]
+    ; else the select a no-op logger's vtable ; [!code ++]
+    lea rax, [rip + .Lanon.1a7982dea0e126d3aedbbc34451c8700.11] ; [!code ++]
+    cmove rax, qword ptr [rip + log::LOGGER.1] ; [!code ++]
+    ; Load the vtable's corresponding data ; [!code ++]
+    ; pointer as the first argument &self ; [!code ++]
+    lea rdi, [rip + log::logger::NOP] ; [!code ++]
+    cmove rdi, qword ptr [rip + log::LOGGER.0] ; [!code ++]
+    ; Load a reference to a struct containing ; [!code ++]
+    ; the log level, as the second argument ; [!code ++]
+    mov rsi, rsp ; [!code ++]
+    ; Call the vtable's `enabled` method from the logger ; [!code ++]
+    call qword ptr [rax + 24] ; [!code ++]
+```
+
+This is marginally better, however the internal call to `simplelog`'s `enabled` function is still not inlined. The `log` crate falls back to a no-op logger if no logger implementation is chosen. Then, it uses dynamic dispatch to call either the selected logger's or the no-op logger's `enabled` method. Dynamic dispatch makes inlining the `enabled` function call impossible.
+
+We can see one more thing
+
+```asm
+...
+cmp rsi, 10
+je .LBB13_5
+push rbp
+push r15
+push r14
+push r13
+push r12
+push rbx
+push rax
+```
+
+# Linux perf
+
+I tried making simple_guard branchless but it no performance impact.
+
+There was other logic, black box
+
+I suppose the intention it to use `log_enabled!` when you are about to log, making the cost o
+
+nice thing about hand coding is that i can even notice this, eric quote, shoehorn AI into way

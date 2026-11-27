@@ -1252,3 +1252,57 @@ For full transparency, I shamelessly reuse wording and code examples from offici
 Yeah so I expect the half-life of this list to be one, maybe two years. That's all I have left to say.
 
 Until next time!
+
+
+
+
+
+
+<FeatureSummary title="Async closures">
+    <Fragment slot="motivation">
+        Async closures attempt to solve two issues:
+  
+        First, users often employ `Fn()` trait bounds to write more functional code and reduce code duplication by pulling out specific logic into callbacks. When adapting these idioms into async Rust, users find that they need to split their `Fn()` trait bounds into two to account for the fact that `async` blocks and async functions return anonymous futures. For example,
+      
+        ```rust
+        async fn for_each_city<F, Fut>(mut f: F)
+        where
+            F: for<'c> FnMut(&'c str) -> Fut,
+            Fut: Future<Output = ()>,
+        {
+            for x in ["New York", "London", "Tokyo"] {
+                f(x).await;
+            }
+        }
+        ```
+      
+        This does not compile because the type for the `Fut` generic parameter is chosen by the caller, and it cannot reference the higher-ranked lifetime `for<'c>` in the `FnMut` trait bound, but the anonymous future produced by calling `f` does capture a generic lifetime parameter, and must capture it in order to use the `&str` argument.
+
+        Second, when users want to call a function that takes an async callback argument, they often reach for `|| async {}` (a closure that returns an anonymous future) because closures can capture state from the local environment and are syntactically lightweight. However, users are quickly met with the limitation that they cannot use any of the closure’s captures by reference in the async block. In order for this to work, the `FnMut` trait would need to be ["lending"](https://smallcultfollowing.com/babysteps/blog/2023/05/09/giving-lending-and-async-closures/#async-closures-are-a-lending-pattern).
+    </Fragment>
+    <Fragment slot="example">
+        ```rust
+        // We could also use APIT: `mut f: impl async FnMut(&str)`.
+        async fn for_each_city<F>(mut f: F)
+        where
+            F: async FnMut(&str),
+        {
+            for x in ["New York", "London", "Tokyo"] {
+                f(x).await;
+            }
+        }
+      
+        async fn increment_city_population_db_query(city_name: &str) { todo!() }
+      
+        async fn main() {
+            // Works for `async fn` that is higher-ranked.
+            for_each_city(increment_city_population_db_query).await;
+        }
+        ```
+    </Fragment>
+    <Fragment slot="references">
+        - [Accepted RFC](https://rust-lang.github.io/rfcs/3668-async-closures.html?highlight=3668#)
+        - https://github.com/rust-lang/rust/issues/62290
+        - https://github.com/rust-lang/rust/issues/146790
+    </Fragment>
+</FeatureSummary>
