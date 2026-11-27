@@ -236,21 +236,37 @@ Perhaps surprisingly, the `log` crate's `__private_api::enabled` function is not
     call qword ptr [rax + 24] ; [!code ++]
 ```
 
-This is marginally better, however the internal call to `simplelog`'s `enabled` function is still not inlined. The `log` crate falls back to a no-op logger if no logger implementation is chosen. Then, it uses dynamic dispatch to call either the selected logger's or the no-op logger's `enabled` method. Dynamic dispatch makes inlining the `enabled` function call impossible.
+This is marginally better, however the internal call to `simplelog`'s `enabled` function is still not inlined. The `log` crate falls back to a no-op logger if no logging implementation is chosen. Then, it uses dynamic dispatch to call either the selected logger's or the no-op logger's `enabled` method. Dynamic dispatch makes inlining the `enabled` function call impossible.
 
-We can see one more thing
+There is one more 
 
 ```asm
 ...
-cmp rsi, 10
-je .LBB13_5
-push rbp
-push r15
-push r14
-push r13
-push r12
-push rbx
-push rax
+    inc dword ptr [rbx] ; [!code --]
+    cmp rsi, 10 ; [!code --]
+    je .LBB13_5 ; [!code --]
+    push rbp
+    push r15
+    push r14
+    push r13
+    push r12
+    push rbx
+    ...
+    inc dword ptr [rbx] ; [!code ++]
+    ...
+    cmp r14, 10 ; [!code ++]
+    je .LBB8_6 ; [!code ++]
+    ...
+.LBB8_6: ; [!code ++]
+    add rsp, 24 ; [!code ++]
+    pop rbx
+    pop r12
+    pop r13
+    pop r14
+    pop r15
+    pop rbp
+.LBB13_5: ; [!code --]
+    ret
 ```
 
 # Linux perf
